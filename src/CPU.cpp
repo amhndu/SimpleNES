@@ -27,6 +27,23 @@ namespace sn
         f_N = value & 0x80;
     }
 
+    void CPU::SubtractAndSet(Byte a, Byte b)
+    {
+        //High carry means "no borrow"
+        uint16_t diff = a - b - !f_C,
+        f_C = diff & 0x100;
+        //A formula obtained by analyzing the different cases of signs of operands and the result
+        f_V = (a ^ diff) & (a ^ b) & 0x80;
+        SetZN(diff);
+        return diff;
+
+    }
+
+    void CPU::SetPageCrossed(Address a, Address b, int inc)
+    {
+        if ((a & 0xff00) != (b & 0xff00))
+            m_SkipCycles += inc;
+    }
     void CPU::Execute()
     {
         if (m_SkipCycles-- > 0)
@@ -34,35 +51,41 @@ namespace sn
 
         Byte opcode = Read(r_PC);
 
+        auto CycleLength = OperationCycles[opcode];
         //Using short-circuit evaluation, call the other function only if the first failed
-        if (! (ExecuteImplied() || ExecuteBranch() || ExecuteType01() || ExecuteType10() || ExecuteType00()) )
+        //ExecuteImplied must be called first and ExecuteBranch must be before ExecuteType0
+        if (CycleLength && (ExecuteImplied() || ExecuteBranch() ||
+                        ExecuteType1() || ExecuteType2() || ExecuteType0()))
+        {
+            m_SkipCycles += length;
+        }
+        else
+        {
             std::cerr << "Unrecognized opcode: " << std::hex << opcode << std::endl;
+        }
 
         ++r_PC;
     }
 
     bool CPU::ExecuteImplied(Byte opcode)
     {
-        switch (static_cast<OpcodeImplied>(opcode))
+        switch (static_cast<OperationImplied>(opcode))
         {
             case NOP:
                 break;
             case BRK:
                 f_B = true;
                 ++r_PC;
-                m_SkipCycles = 7;
                 TODO;
                 break;
             case JSR:
                 PushStack(static_cast<Byte>(r_PC >> 8));
                 PushStack(static_cast<Byte>(r_PC + 2));
                 r_PC = Read(r_PC + 1) | Read(r_PC + 2) << 8;
-                m_SkipCycles = 6;
                 break;
             case RTS:
                 r_PC = PullStack() + 1;
                 r_PC |= PullStack() << 8;
-                m_SkipCycles = 6;
                 break;
             case RTI:
                 {
@@ -76,7 +99,15 @@ namespace sn
                 }
                 r_PC = PullStack() + 1;
                 r_PC |= PullStack() << 8;
-                m_SkipCycles = 6;
+                break;
+            case JMP:
+                r_PC = Read(r_PC + 1) | Read(r_PC + 2) << 8;
+                break;
+            case JMPI:
+                {
+                    Address location = Read(r_PC + 1) | Read(r_PC + 2) << 8;
+                    r_PC = Read(location) | Read(location + 1) << 8;
+                }
                 break;
             case PHP:
                 {
@@ -88,7 +119,6 @@ namespace sn
                                  f_C;
                     PushStack(flags);
                 }
-                m_SkipCycles = 3;
                 break;
             case PLP:
                 {
@@ -100,85 +130,67 @@ namespace sn
                     f_Z = flags & 0x2;
                     f_C = flags & 0x1;
                 }
-                m_SkipCycles = 4;
                 break;
             case PHA:
                 PushStack(r_A);
-                m_SkipCycles = 3;
                 break;
             case PLA:
                 r_A = PullStack();
                 SetZN(r_A);
-                m_SkipCycles = 4;
                 break;
             case DEY:
                 --r_Y;
                 SetZN(r_Y);
-                m_SkipCycles = 2;
                 break;
             case DEX:
                 --r_X;
                 SetZN(r_X);
-                m_SkipCycles = 2;
                 break;
             case TAY:
                 r_Y = r_A;
                 SetZN(r_Y);
-                m_SkipCycles = 2;
                 break;
             case INY:
                 ++r_Y;
                 SetZN(r_Y);
-                m_SkipCycles = 2;
                 break;
             case INX:
                 ++r_X;
                 SetZN(r_X);
-                m_SkipCycles = 2;
                 break;
             case CLC:
                 f_C = false;
-                m_SkipCycles = 2;
                 break;
             case SEC:
                 f_C = true;
-                m_SkipCycles = 2;
                 break;
             case CLI:
                 f_I = false;
-                m_SkipCycles = 2;
                 break;
             case SEI:
                 f_I = true;
-                m_SkipCycles = 2;
                 break;
             case TYA:
                 r_A = r_Y;
                 SetZN(r_A);
-                m_SkipCycles = 2;
                 break;
             case CLV:
                 f_V = false;
-                m_SkipCycles = 2;
                 break;
             case TXA:
                 r_A = r_X;
                 SetZN(r_A);
-                m_SkipCycles = 2;
                 break;
             case TXS:
                 r_SP = r_X;
-                m_SkipCycles = 2;
                 break;
             case TAX:
                 r_X = r_A;
                 SetZN(r_X);
-                m_SkipCycles = 2;
                 break;
             case TSX:
                 r_X = r_SP;
                 SetZN(r_X);
-                m_SkipCycles = 2;
                 break;
             default:
                 return false;
@@ -209,154 +221,150 @@ namespace sn
                 default:
                     return false;
             }
-            m_SkipCycles = 2;
             if (branch)
             {
                 Byte offset = Read(r_PC);
                 ++m_SkipCycles;
 
-                //***TO VERIFY. This check for a change in page is probably not true.
-                if ((r_PC % 0x100) != ((r_PC + offset) % 0x100))
-                    m_SkipCycles += 2;
+                SetPageCrossed(r_PC, r_PC + offset, 2);
+                r_PC += offset;
             }
             return true;
         }
         return false;
     }
 
-    bool CPU::ExecuteType01(Byte opcode)
+    bool CPU::ExecuteType1(Byte opcode)
     {
-        if (opcode & 0x3 == 01)
+        if (opcode & InstructionModeMask == 0x1)
         {
             Address location = 0;
-            Byte index = 0;
-            switch (static_cast<Mode01>(Mode01 addr_mode = opcode & 0x1c))
+            switch (static_cast<AddrMode1>(AddrMode1 addr_mode =
+                                    (opcode & AddrModeMask) >> AddrModeShift))
             {
                 case IndexedIndirectX:
                     {
                         Address addr = Read(r_X + Read(r_PC++));
                         location = Read(addr) | Read(addr + 1) << 8;
-                        m_SkipCycles = 6;
                     }
                     break;
                 case ZeroPage:
                     location = Read(r_PC++);
-                    m_SkipCycles = 3;
                     break;
                 case Immediate:
                     location = r_PC++;
-                    m_SkipCycles = 2;
                     break;
                 case Absolute:
                     location = Read(r_PC++);
                     location = location | Read(r_PC++) << 8;
-                    m_SkipCycles = 4;
                     break;
                 case IndirectY:
                     {
                         Byte zero_addr = Read(r_PC++);
                         location = Read(zero_addr) | Read(zero_addr + 1) << 8;
-                        index = r_Y;
-                        m_SkipCycles = 5;
+                        SetPageCrossed(location, location + r_Y);
+                        location += r_Y;
                     }
                     break;
                 case IndexedX;
-                    {
-                        Byte zero_addr = Read(r_PC++);
-                        location = Read(zero_addr) | Read(zero_addr + 1) << 8;
-                        index = r_X;
-                        m_SkipCycles= 5;
-                    }
+                    location = Read(r_PC++) + r_X;
                     break;
                 case AbsoluteY:
                     {
                         Address addr = Read(r_PC++);
                         addr = addr | Read(r_PC++) << 8;
-                        location = Read(addr);
-                        index = r_Y;
-                        m_SkipCycles = 4;
+                        location = Read(addr) | Read(addr + 1) << 8;
+                        SetPageCrossed(location, location + r_Y);
+                        location += r_Y;
                     }
                     break;
                 case AbsoluteX:
                     {
                         Address addr = Read(r_PC++);
                         addr = addr | Read(r_PC++) << 8;
-                        location = Read(addr)
-                        index = r_X;
-                        m_SkipCycles = 4;
+                        location = Read(addr) | Read(addr + 1) << 8;
+                        SetPageCrossed(location, location + r_X);
+                        location += r_X;
                     }
                     break;
                 default:
                     return false;
             }
 
-            switch (static_cast<Opcode01>(opcode & 0xe0))
+            switch (static_cast<Operation1>(
+                                (opcode & OperationMask) >> OperationShift))
             {
                 case ORA:
-                    r_A |= Read(location) + index;
+                    r_A |= Read(location);
                     SetZN(r_A);
                     break;
                 case AND:
-                    r_A &= Read(location) + index;
+                    r_A &= Read(location);
                     SetZN(r_A);
                     break;
                 case EOR:
-                    r_A ^= Read(location) + index;
+                    r_A ^= Read(location);
                     SetZN(r_A);
                     break;
                 case ADC:
                     {
-                        Byte operand = Read(location) + index;
-                        uint16_t sum = r_A + operand + (f_C) ? 1 : 0;
+                        Byte operand = Read(location);
+                        uint16_t sum = r_A + operand + f_C;
                         r_A = static_cast<Byte>(sum);
-                        f_C = sum >> 8 & 1;
+                        f_C = sum & 0x100;
                         f_V = (r_A ^ sum) & (r_A ^ operand) & 0x80;
                         SetZN(r_A);
                     }
                     break;
                 case STA:
-                    if (addr_mode == Immediate)
-                        return false;
-                    else
-                        Write(location, r_A);
+                    Write(location, r_A);
                     break;
                 case LDA:
                     r_A = Read(location);
                     SetZN(r_A);
                     break;
                 case SDC:
-                    Byte operand = Read(location) + index;
-                    uint16_t diff = r_A - operand - (f_C) ? 0 : 1;
-                    r_A = static_cast<Byte>(diff);
-                    //No break!
+                    r_A = SubtractAndSet(r_A, Read(location));
+                    break;
                 case CMP:
-                    f_C = sum >> 8 & 1;
-                    f_V = (r_A ^ sum) & (r_A ^ operand) & 0x80;
-                    SetZN(r_A);
+                    SubtractAndSet(r_A, Read(location));
                     break;
                 default:
-                    std::cerr << "Invalid opcode/overflow" << std::endl;
+                    return false;
             }
             return true;
         }
         return false;
     }
 
-    bool CPU::ExecuteType10(Byte opcode)
+    bool CPU::ExecuteType2(Byte opcode)
     {
-        if (opcode & 0x3 == 10)
+        if (opcode & InstructionModeMask == 0x2)
         {
             Address location = 0;
-            Byte index = 0;
-            switch (static_cast<Mode10>(Mode10 addr_mode = opcode & 0x1c))
+            Operation2 op = (opcode & OperationMask) >> OperationShift;
+            switch (static_cast<AddrMode2>(AddrMode2 addr_mode =
+                                    (opcode & AddrModeMask) >> AddrModeShift))
             {
                 case Immediate:
+//                    if (op != LDX)
+//                        return false;
                     location = r_PC++;
                     break;
                 case ZeroPage:
                     location = Read(r_PC++);
                     break;
                 case Accumulator:
+//                    switch (op)
+//                    {
+//                        case STX:
+//                        case LDX:
+//                        case DEC:
+//                        case INC:
+//                            return false:
+//                        default:
+//                            break;
+//                    }
                     break;
                 case Absolute:
                     location = Read(r_PC++);
@@ -366,72 +374,167 @@ namespace sn
                     {
                         Byte zero_addr = Read(r_PC++);
                         location = Read(zero_addr) | Read(zero_addr + 1) << 8;
+                        Byte index;
+                        if (op == LDX || op == STX)
+                            index = r_Y;
+                        else
+                            index = r_X;
+                        SetPageCrossed(location, location + index);
+                        location += index;
                     }
                     break;
                 case AbsoluteIndexed:
                     {
                         Address addr = Read(r_PC++);
                         addr = addr | Read(r_PC++) << 8;
-                        location = Read(addr)
+                        location = Read(addr);
+                        Byte index;
+                        if (op == LDX || op == STX)
+                            index = r_Y;
+                        else
+                            index = r_X;
+                        SetPageCrossed(location, location + index);
+                        location += index;
                     }
                     break;
                 default:
                     return false;
             }
 
-            ADD SKIP CYCLES;
-
             uint16_t operand = 0;
-            switch (static_cast<Opcode01>(opcode & 0xe0))
+            switch (op)
             {
                 case ASL:
-                    if (mode == Accumulator)
-                    {
-                        f_C = r_A >> 8 & 1;
-                        r_A <<= 1;
-                        SetZN(r_A);
-                    }
-                    else
-                    {
-                        if (mode == Indexed || mode == AbsoluteIndexed)
-                            index == r_X;
-                        operand = Read(location) + index;
-                        f_C = operand >> 8 & 1;
-                        operand <<= 1;
-                        SetZN(operand);
-                    }
-                    break;
                 case ROL:
                     if (mode == Accumulator)
                     {
-                        f_C = r_A >> 8 & 1;
-                        r_A = (r_A << 1) | f_C;
+                        f_C = r_A & 0x100;
+                        r_A <<= 1;
                         SetZN(r_A);
+                        r_A = r_A | (f_C & op == ROL);
                     }
                     else
                     {
-                        if (mode == Indexed || mode == AbsoluteIndexed)
-                            index == r_X;
-                        operand = Read(location) + index;
-                        f_C = operand >> 8 & 1;
-                        operand = (operand << 1) | f_C;
+                        operand = Read(location);
+                        f_C = operand & 0x100;
+                        operand <<= 1;
                         SetZN(operand);
+                        Write(location, operand | (f_C & op == ROL));
                     }
                     break;
                 case LSR:
-                    break;
                 case ROR:
+                    if (mode == Accumulator)
+                    {
+                        f_C = r_A & 1;
+                        r_A >>= 1;
+                        SetZN(r_A);
+                        r_A = r_A | (f_C & op == ROR) << 7;
+                    }
+                    else
+                    {
+                        operand = Read(location);
+                        f_C = operand & 1;
+                        operand >>= 1;
+                        SetZN(operand);
+                        Write(location, operand | (f_C & op == ROR) << 7);
+                    }
                     break;
                 case STX:
+                    Write(location, r_X);
                     break;
                 case LDX:
+                    r_X = Read(location);
+                    SetZN(r_X);
                     break;
                 case DEC:
+                    {
+                        auto tmp = --Read(location);
+                        SetZN(tmp);
+                        Write(location, tmp);
+                    }
                     break;
                 case INC:
+                    {
+                        auto tmp = ++Read(location);
+                        SetZN(tmp);
+                        Write(location, tmp);
+                    }
                     break;
+                default:
+                    return false;
             }
             return true;
+        }
+        return false;
+    }
+
+    bool CPU::ExecuteType0(Byte opcode)
+    {
+        if (opcode & InstructionModeMask == 0x0)
+        {
+            Operation0 op = (opcode & OperationMask) >> OperationShift;
+            Address location = 0;
+            switch (static_cast<AddrMode2>(AddrMode0 addr_mode =
+                                (opcode & AddrModeMask) >> AddrModeShift));
+            {
+                case Immediate:
+                    location = r_PC++;
+                    break;
+                case ZeroPage:
+                    location = Read(r_PC++);
+                    break;
+                case Absolute:
+                    location = Read(r_PC++);
+                    location = location | Read(r_PC++) << 8;
+                    break;
+                case Indexed:
+                    {
+                        Byte zero_addr = Read(r_PC++);
+                        location = Read(zero_addr) | Read(zero_addr + 1) << 8;
+                        SetPageCrossed(location, location + r_X);
+                        location += r_X;
+                    }
+                    break;
+                case AbsoluteIndexed:
+                    {
+                        Address addr = Read(r_PC++);
+                        addr = addr | Read(r_PC++) << 8;
+                        location = Read(addr);
+                        SetPageCrossed(location, location + r_X);
+                        location += r_X;
+                    }
+                    break;
+                default:
+                    return false;
+            }
+            uint16_t operand = 0;
+            switch (op)
+            {
+                case BIT:
+                    operand = Read(location);
+                    f_Z = r_A & operand;
+                    f_V = operand & 0x40;
+                    f_C = operand & 0x80;
+                    break;
+                case STY:
+                    Write(location, r_Y);
+                    break;
+                case LDY:
+                    r_Y = Read(location);
+                    SetZN(r_Y);
+                    break;
+                case CPY:
+                    SubtractAndSet(r_Y, Read(location));
+                    break;
+                case CPX:
+                    SubtractAndSet(r_X, Read(location));
+                    break;
+                default:
+                    return false;
+            }
+
+            return true
         }
         return false;
     }
@@ -444,6 +547,7 @@ namespace sn
             return RAM[addr & 0x7ff];
         }
     }
+
     Byte CPU::ReadRAM(Address addr)
     {
         return RAM[addr & 0x7ff];
@@ -456,6 +560,7 @@ namespace sn
             RAM[addr & 0x7ff] = value;
         }
     }
+
     void CPU::WriteRAM(Address addr, Byte value)
     {
         RAM[addr & 0x7ff] = value;
