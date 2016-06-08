@@ -1,17 +1,23 @@
 #ifndef CPU_H
 #define CPU_H
+#include "MainMemory.h"
 
 namespace sn
 {
 
-    using uint8_t  = Byte;
-    using uint16_t = Address;
-
     class CPU
     {
         public:
-            CPU();
-            ~CPU();
+            enum InterruptType
+            {
+                IRQ,
+                NMI,
+                BRK
+            };
+
+            CPU(MainMemory &mem);
+            CPU(MainMemory &mem, Address start_addr);
+
             void Execute();
 
             //Instructions are split into five sets to make decoding easier.
@@ -21,14 +27,16 @@ namespace sn
             bool ExecuteType0(Byte opcode);
             bool ExecuteType1(Byte opcode);
             bool ExecuteType2(Byte opcode);
-
         private:
-            Byte Read(Address addr);
-            void Write(Address addr, Byte value);
+            //Assuming sequential execution, for asynchronously calling this with Execute, further work needed
+            void Reset();
+            void Reset(Address start_addr);
+            void Interrupt(InterruptType type);
 
-            //Directly access the SRAM, with no checks
-            Byte ReadRAM(Address addr);
-            void WriteRAM(Address addr, Byte value);
+            Byte Read(Address addr);
+            Address ReadAddress(Address addr);
+
+            void Write(Address addr, Byte value);
 
             void PushStack(Byte value);
             Byte PullStack();
@@ -57,7 +65,8 @@ namespace sn
             bool f_V;
             bool f_N;
 
-            Byte m_RAM[2048];
+            MainMemory &m_Memory;
+            //Byte m_RAM[2048];
     };
 
 };

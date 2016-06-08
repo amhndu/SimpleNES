@@ -1,13 +1,62 @@
 #include "CPU.h"
+#include "CPUOpcodes.h"
 
 namespace sn
 {
-    CPU::CPU()
+    CPU::CPU(MainMemory &mem) :
+        m_Memory(mem)
     {
+        Reset();
     }
 
-    CPU::~CPU()
+    CPU::CPU(MainMemory &mem, Address start_addr) :
+        m_Memory(mem)
     {
+        Reset();
+    }
+
+    void CPU::Reset()
+    {
+        f_I = true;
+        r_PC = ReadAddress(ResetVector);
+    }
+
+    void CPU::Reset(Address start_addr)
+    {
+        f_I = true;
+        r_PC = start_addr;
+    }
+
+    void CPU::Interrupt(InterruptType type)
+    {
+        if (f_I && type != NMI)
+            return;
+
+        PushStack(r_PC >> 8);
+        PushStack(r_PC + (type == BRK)); //Add one if BRK, a quirk of 6502
+
+        Byte flags = f_N << 7 |
+                     f_V << 6 |
+           (type == BRK) << 4 | //f_B
+                     f_I << 2 |
+                     f_Z << 1 |
+                     f_C;
+        PushStack(flags);
+
+        f_I = true;
+
+        switch (type)
+        {
+            case IRQ:
+            case BRK:
+                r_PC = ReadAddress(IRQVector);
+                break;
+            case NMI:
+                r_PC = ReadAddress(NMIVector);
+                break;
+        }
+
+        m_SkipCycles += 7;
     }
 
     void CPU::PushStack(Byte value)
@@ -29,18 +78,21 @@ namespace sn
 
     void CPU::SubtractAndSet(Byte a, Byte b)
     {
-        //High carry means "no borrow"
+        //High carry means "no borrow", thus negate and subtract
         uint16_t diff = a - b - !f_C,
+
         f_C = diff & 0x100;
+
         //A formula obtained by analyzing the different cases of signs of operands and the result
         f_V = (a ^ diff) & (a ^ b) & 0x80;
+
         SetZN(diff);
         return diff;
-
     }
 
     void CPU::SetPageCrossed(Address a, Address b, int inc)
     {
+        //Page is determined by the high byte
         if ((a & 0xff00) != (b & 0xff00))
             m_SkipCycles += inc;
     }
@@ -52,6 +104,7 @@ namespace sn
         Byte opcode = Read(r_PC);
 
         auto CycleLength = OperationCycles[opcode];
+
         //Using short-circuit evaluation, call the other function only if the first failed
         //ExecuteImplied must be called first and ExecuteBranch must be before ExecuteType0
         if (CycleLength && (ExecuteImplied() || ExecuteBranch() ||
@@ -74,14 +127,14 @@ namespace sn
             case NOP:
                 break;
             case BRK:
-                f_B = true;
-                ++r_PC;
-                TODO;
+                Interrupt(BRK);
                 break;
             case JSR:
-                PushStack(static_cast<Byte>(r_PC >> 8));
+                //Push address of next instruction - 1, thus current + 2 instead of r_PC + 3
+                //since current + 1 and current + 2 are address of subroutine
+                PushStack(static_cast<Byte>(r_PC >> 8)); //No point in adding 2 since we are pushing the high byte
                 PushStack(static_cast<Byte>(r_PC + 2));
-                r_PC = Read(r_PC + 1) | Read(r_PC + 2) << 8;
+                r_PC = ReadAddress(r_PC + 1);
                 break;
             case RTS:
                 r_PC = PullStack() + 1;
@@ -97,16 +150,16 @@ namespace sn
                     f_Z = flags & 0x2;
                     f_C = flags & 0x1;
                 }
-                r_PC = PullStack() + 1;
+                r_PC = PullStack();
                 r_PC |= PullStack() << 8;
                 break;
             case JMP:
-                r_PC = Read(r_PC + 1) | Read(r_PC + 2) << 8;
+                r_PC = ReadAddress(r_PC + 1);
                 break;
             case JMPI:
                 {
-                    Address location = Read(r_PC + 1) | Read(r_PC + 2) << 8;
-                    r_PC = Read(location) | Read(location + 1) << 8;
+                    Address location = ReadAddress(r_PC + 1);
+                    r_PC = ReadAddress(location);
                 }
                 break;
             case PHP:
@@ -200,27 +253,32 @@ namespace sn
 
     bool CPU::ExecuteBranch(Byte opcode)
     {
-        if (opcode & 0x1f == 0x10)
+        if (opcode & BranchInstructionMask)
         {
             ++r_PC;
-            bool branch = opcode & 0x40;
-            switch (opcode >> 6)
+
+            //branch is initialized to the condition required (for the flag specified later)
+            bool branch = opcode & BranchCondidtionMask;
+
+            //set branch to true if the given condition is met by the given flag
+            switch (opcode >> BranchOnFlagShift)
             {
-                case 0x0:
+                case Negative:
                     branch = branch && f_N;
                     break;
-                case 0x1:
+                case Overflow:
                     branch = branch && f_V;
                     break;
-                case 0x2:
+                case Carry:
                     branch = branch && f_C;
                     break;
-                case 0x3:
+                case Zero:
                     branch = branch && f_Z;
                     break;
                 default:
                     return false;
             }
+
             if (branch)
             {
                 Byte offset = Read(r_PC);
@@ -245,7 +303,7 @@ namespace sn
                 case IndexedIndirectX:
                     {
                         Address addr = Read(r_X + Read(r_PC++));
-                        location = Read(addr) | Read(addr + 1) << 8;
+                        location = ReadAddress(addr);
                     }
                     break;
                 case ZeroPage:
@@ -255,13 +313,13 @@ namespace sn
                     location = r_PC++;
                     break;
                 case Absolute:
-                    location = Read(r_PC++);
-                    location = location | Read(r_PC++) << 8;
+                    location = ReadAddress(r_PC);
+                    r_PC += 2;
                     break;
                 case IndirectY:
                     {
                         Byte zero_addr = Read(r_PC++);
-                        location = Read(zero_addr) | Read(zero_addr + 1) << 8;
+                        location = ReadAddress(zero_addr);
                         SetPageCrossed(location, location + r_Y);
                         location += r_Y;
                     }
@@ -271,18 +329,18 @@ namespace sn
                     break;
                 case AbsoluteY:
                     {
-                        Address addr = Read(r_PC++);
-                        addr = addr | Read(r_PC++) << 8;
-                        location = Read(addr) | Read(addr + 1) << 8;
+                        Address addr = ReadAddress(r_PC);
+                        r_PC += 2;
+                        location = ReadAddress(addr);
                         SetPageCrossed(location, location + r_Y);
                         location += r_Y;
                     }
                     break;
                 case AbsoluteX:
                     {
-                        Address addr = Read(r_PC++);
-                        addr = addr | Read(r_PC++) << 8;
-                        location = Read(addr) | Read(addr + 1) << 8;
+                        Address addr = ReadAddress(r_PC);
+                        r_PC += 2;
+                        location = ReadAddress(addr);
                         SetPageCrossed(location, location + r_X);
                         location += r_X;
                     }
@@ -347,33 +405,22 @@ namespace sn
                                     (opcode & AddrModeMask) >> AddrModeShift))
             {
                 case Immediate:
-//                    if (op != LDX)
-//                        return false;
                     location = r_PC++;
                     break;
                 case ZeroPage:
                     location = Read(r_PC++);
                     break;
                 case Accumulator:
-//                    switch (op)
-//                    {
-//                        case STX:
-//                        case LDX:
-//                        case DEC:
-//                        case INC:
-//                            return false:
-//                        default:
-//                            break;
-//                    }
                     break;
                 case Absolute:
-                    location = Read(r_PC++);
-                    location = location | Read(r_PC++) << 8;
+                    location = ReadAddress(r_PC);
+                    r_PC += 2;
+                    location = ReadAddress(location);
                     break;
                 case Indexed:
                     {
                         Byte zero_addr = Read(r_PC++);
-                        location = Read(zero_addr) | Read(zero_addr + 1) << 8;
+                        location = ReadAddress(zero_addr);
                         Byte index;
                         if (op == LDX || op == STX)
                             index = r_Y;
@@ -385,9 +432,9 @@ namespace sn
                     break;
                 case AbsoluteIndexed:
                     {
-                        Address addr = Read(r_PC++);
-                        addr = addr | Read(r_PC++) << 8;
-                        location = Read(addr);
+                        Address addr = ReadAddress(r_PC);
+                        r_PC += 2;
+                        location = ReadAddress(addr);
                         Byte index;
                         if (op == LDX || op == STX)
                             index = r_Y;
@@ -485,22 +532,22 @@ namespace sn
                     location = Read(r_PC++);
                     break;
                 case Absolute:
-                    location = Read(r_PC++);
-                    location = location | Read(r_PC++) << 8;
+                    location = ReadAddress(r_PC);
+                    r_PC += 2;
                     break;
                 case Indexed:
                     {
                         Byte zero_addr = Read(r_PC++);
-                        location = Read(zero_addr) | Read(zero_addr + 1) << 8;
+                        location = ReadAddress(zero_addr);
                         SetPageCrossed(location, location + r_X);
                         location += r_X;
                     }
                     break;
                 case AbsoluteIndexed:
                     {
-                        Address addr = Read(r_PC++);
-                        addr = addr | Read(r_PC++) << 8;
-                        location = Read(addr);
+                        Address addr = ReadAddress(r_PC);
+                        r_PC += 2;
+                        location = ReadAddress(addr);
                         SetPageCrossed(location, location + r_X);
                         location += r_X;
                     }
@@ -541,28 +588,16 @@ namespace sn
 
     Byte CPU::Read(Address addr)
     {
-        if (addr < 0x2000)
-        {
-            //Locations 0x0 - 0x7ff are mirrored three times up to 0x1fff
-            return RAM[addr & 0x7ff];
-        }
+        return m_Memory[addr];
     }
 
-    Byte CPU::ReadRAM(Address addr)
+    Address CPU::ReadAddress(Address addr)
     {
-        return RAM[addr & 0x7ff];
+        return m_Memory[addr] | m_Memory[addr + 1] << 8;
     }
 
     void CPU::Write(Address addr, Byte value)
     {
-        if (addr < 0x2000)
-        {
-            RAM[addr & 0x7ff] = value;
-        }
-    }
-
-    void CPU::WriteRAM(Address addr, Byte value)
-    {
-        RAM[addr & 0x7ff] = value;
+        m_MemoryRAM[addr] = value;
     }
 };

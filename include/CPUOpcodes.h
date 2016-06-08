@@ -11,6 +11,22 @@ namespace sn
     const auto AddrModeMask = 0x1c;
     const auto AddrModeShift = 2;
 
+    const auto BranchInstructionMask = 0x10;
+    const auto BranchConditionMask = 0x40;
+    const auto BranchOnFlagShift = 6;
+
+    const auto NMIVector = 0xfffa;
+    const auto ResetVector = 0xfffc;
+    const auto IRQVector = 0xfffe;
+
+    enum BranchOnFlag
+    {
+        Negative,
+        Overflow,
+        Carry,
+        Zero
+    };
+
     enum Operation1
     {
         ORA,
@@ -113,7 +129,7 @@ namespace sn
     };
 
     //0 implies unused opcode
-    Byte OperationCycles[0x100] = {
+    int OperationCycles[0x100] = {
             7, 6, 0, 0, 0, 3, 5, 0, 3, 2, 2, 0, 0, 4, 6, 0,
             6, 0, 3, 0, 2, 0, 4, 0, 5, 0, 4, 0, 4, 0, 4, 0,
             0, 3, 3, 0, 6, 5, 0, 0, 0, 4, 6, 0, 5, 2, 4, 0,
