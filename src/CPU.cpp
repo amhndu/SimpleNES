@@ -1,18 +1,28 @@
 #include "CPU.h"
 #include "CPUOpcodes.h"
+#include <iostream>
+#include <iomanip>
+
+#define LINE_LOG {std::cout << __LINE__ << " was executed" << std::endl;}
+#define PRINT_VAR(x) {std::cout << #x << ": " << x << std::endl;}
+#define PRINT_BYTE(x) {std::cout << #x << ": " << int(x) << std::endl;}
 
 namespace sn
 {
     CPU::CPU(MainMemory &mem) :
+        m_SkipCycles(0),
+        m_Cycles(0),
         m_Memory(mem)
     {
         Reset();
     }
 
     CPU::CPU(MainMemory &mem, Address start_addr) :
+        m_SkipCycles(0),
+        m_Cycles(0),
         m_Memory(mem)
     {
-        Reset();
+        Reset(start_addr);
     }
 
     void CPU::Reset()
@@ -25,6 +35,8 @@ namespace sn
     {
         f_I = true;
         r_PC = start_addr;
+        r_SP = 0xfd; //for TESTING only! REMOVE this later
+        m_SkipCycles = 3; //for TESTING only! REMOVE this later
     }
 
     void CPU::Interrupt(InterruptType type)
@@ -32,12 +44,16 @@ namespace sn
         if (f_I && type != NMI)
             return;
 
+        if (type == BRK_) //Add one if BRK, a quirk of 6502
+            ++r_PC;
         PushStack(r_PC >> 8);
-        PushStack(r_PC + (type == BRK)); //Add one if BRK, a quirk of 6502
+        PushStack(r_PC);
 
         Byte flags = f_N << 7 |
                      f_V << 6 |
-           (type == BRK) << 4 | //f_B
+                       1 << 5 | //unused bit, supposed to be always 1
+          (type == BRK_) << 4 | //B flag set if BRK
+                     f_D << 3 |
                      f_I << 2 |
                      f_Z << 1 |
                      f_C;
@@ -48,7 +64,7 @@ namespace sn
         switch (type)
         {
             case IRQ:
-            case BRK:
+            case BRK_:
                 r_PC = ReadAddress(IRQVector);
                 break;
             case NMI:
@@ -76,20 +92,6 @@ namespace sn
         f_N = value & 0x80;
     }
 
-    void CPU::SubtractAndSet(Byte a, Byte b)
-    {
-        //High carry means "no borrow", thus negate and subtract
-        uint16_t diff = a - b - !f_C,
-
-        f_C = diff & 0x100;
-
-        //A formula obtained by analyzing the different cases of signs of operands and the result
-        f_V = (a ^ diff) & (a ^ b) & 0x80;
-
-        SetZN(diff);
-        return diff;
-    }
-
     void CPU::SetPageCrossed(Address a, Address b, int inc)
     {
         //Page is determined by the high byte
@@ -98,26 +100,45 @@ namespace sn
     }
     void CPU::Execute()
     {
-        if (m_SkipCycles-- > 0)
-            return;
+//        if (m_SkipCycles-- > 0)
+//            return;
 
-        Byte opcode = Read(r_PC);
+        int psw =    f_N << 7 |
+                     f_V << 6 |
+                       1 << 5 |
+                     f_D << 3 |
+                     f_I << 2 |
+                     f_Z << 1 |
+                     f_C;
+        std::cout << std::hex << std::setfill('0') << std::uppercase
+                  << std::setw(4) << int(r_PC)
+                  << "    "
+                  << std::setw(2) << int(Read(r_PC))
+                  << "    "
+                  << "A:"   << std::setw(2) << int(r_A) << " "
+                  << "X:"   << std::setw(2) << int(r_X) << " "
+                  << "Y:"   << std::setw(2) << int(r_Y) << " "
+                  << "P:"   << std::setw(2) << psw << " "
+                  << "SP:"  << std::setw(2) << int(r_SP) /* << " "
+                  << "CYC:" << std::setw(3) << std::setfill(' ') << std::dec << m_Cycles*/
+                  << std::endl;
+        Byte opcode = Read(r_PC++);
 
         auto CycleLength = OperationCycles[opcode];
-
         //Using short-circuit evaluation, call the other function only if the first failed
         //ExecuteImplied must be called first and ExecuteBranch must be before ExecuteType0
-        if (CycleLength && (ExecuteImplied() || ExecuteBranch() ||
-                        ExecuteType1() || ExecuteType2() || ExecuteType0()))
+        if (CycleLength && (ExecuteImplied(opcode) || ExecuteBranch(opcode) ||
+                        ExecuteType1(opcode) || ExecuteType2(opcode) || ExecuteType0(opcode)))
         {
-            m_SkipCycles += length;
+            m_SkipCycles += CycleLength;
+            m_Cycles += m_SkipCycles;
+            m_Cycles %= 340; //compatibility with Nintendulator log
+            m_SkipCycles = 0; //for testing only, remove later
         }
         else
         {
-            std::cerr << "Unrecognized opcode: " << std::hex << opcode << std::endl;
+            std::cerr << "Unrecognized opcode: " << std::hex << int(opcode) << std::endl;
         }
-
-        ++r_PC;
     }
 
     bool CPU::ExecuteImplied(Byte opcode)
@@ -127,25 +148,26 @@ namespace sn
             case NOP:
                 break;
             case BRK:
-                Interrupt(BRK);
+                Interrupt(BRK_);
                 break;
             case JSR:
-                //Push address of next instruction - 1, thus current + 2 instead of r_PC + 3
-                //since current + 1 and current + 2 are address of subroutine
-                PushStack(static_cast<Byte>(r_PC >> 8)); //No point in adding 2 since we are pushing the high byte
-                PushStack(static_cast<Byte>(r_PC + 2));
-                r_PC = ReadAddress(r_PC + 1);
+                //Push address of next instruction - 1, thus r_PC + 1 instead of r_PC + 2
+                //since r_PC and r_PC + 1 are address of subroutine
+                PushStack(static_cast<Byte>((r_PC + 1) >> 8));
+                PushStack(static_cast<Byte>(r_PC + 1));
+                r_PC = ReadAddress(r_PC);
                 break;
             case RTS:
-                r_PC = PullStack() + 1;
+                r_PC = PullStack();
                 r_PC |= PullStack() << 8;
+                ++r_PC;
                 break;
             case RTI:
                 {
                     Byte flags = PullStack();
                     f_N = flags & 0x80;
                     f_V = flags & 0x40;
-                    f_B = flags & 0x10;
+                    f_D = flags & 0x8;
                     f_I = flags & 0x4;
                     f_Z = flags & 0x2;
                     f_C = flags & 0x1;
@@ -154,19 +176,23 @@ namespace sn
                 r_PC |= PullStack() << 8;
                 break;
             case JMP:
-                r_PC = ReadAddress(r_PC + 1);
+                r_PC = ReadAddress(r_PC);
                 break;
             case JMPI:
                 {
-                    Address location = ReadAddress(r_PC + 1);
+                    Address location = ReadAddress(r_PC);
+                    PRINT_VAR(location)
                     r_PC = ReadAddress(location);
+                    PRINT_VAR(r_PC)
                 }
                 break;
             case PHP:
                 {
                     Byte flags = f_N << 7 |
                                  f_V << 6 |
-                                 f_B << 4 |
+                                   1 << 5 | //supposed to always be 1
+                                   1 << 4 | //PHP pushes with the B flag as 1, no matter what
+                                 f_D << 3 |
                                  f_I << 2 |
                                  f_Z << 1 |
                                  f_C;
@@ -178,7 +204,7 @@ namespace sn
                     Byte flags = PullStack();
                     f_N = flags & 0x80;
                     f_V = flags & 0x40;
-                    f_B = flags & 0x10;
+                    f_D = flags & 0x8;
                     f_I = flags & 0x4;
                     f_Z = flags & 0x2;
                     f_C = flags & 0x1;
@@ -223,6 +249,12 @@ namespace sn
             case SEI:
                 f_I = true;
                 break;
+            case CLD:
+                f_D = false;
+                break;
+            case SED:
+                f_D = true;
+                break;
             case TYA:
                 r_A = r_Y;
                 SetZN(r_A);
@@ -253,27 +285,26 @@ namespace sn
 
     bool CPU::ExecuteBranch(Byte opcode)
     {
-        if (opcode & BranchInstructionMask)
+        if ((opcode & BranchInstructionMask) == BranchInstructionMaskResult)
         {
-            ++r_PC;
-
             //branch is initialized to the condition required (for the flag specified later)
-            bool branch = opcode & BranchCondidtionMask;
+            bool branch = opcode & BranchConditionMask;
 
             //set branch to true if the given condition is met by the given flag
+            //We use xnor here, it is true if either both operands are true or false
             switch (opcode >> BranchOnFlagShift)
             {
                 case Negative:
-                    branch = branch && f_N;
+                    branch = !(branch ^ f_N);
                     break;
                 case Overflow:
-                    branch = branch && f_V;
+                    branch = !(branch ^ f_V);
                     break;
                 case Carry:
-                    branch = branch && f_C;
+                    branch = !(branch ^ f_C);
                     break;
                 case Zero:
-                    branch = branch && f_Z;
+                    branch = !(branch ^ f_Z);
                     break;
                 default:
                     return false;
@@ -281,12 +312,14 @@ namespace sn
 
             if (branch)
             {
-                Byte offset = Read(r_PC);
+                Byte offset = Read(r_PC++);
                 ++m_SkipCycles;
 
                 SetPageCrossed(r_PC, r_PC + offset, 2);
                 r_PC += offset;
             }
+            else
+                ++r_PC;
             return true;
         }
         return false;
@@ -294,16 +327,17 @@ namespace sn
 
     bool CPU::ExecuteType1(Byte opcode)
     {
-        if (opcode & InstructionModeMask == 0x1)
+        if ((opcode & InstructionModeMask) == 0x1)
         {
             Address location = 0;
-            switch (static_cast<AddrMode1>(AddrMode1 addr_mode =
-                                    (opcode & AddrModeMask) >> AddrModeShift))
+            switch (static_cast<AddrMode1>(
+                    (opcode & AddrModeMask) >> AddrModeShift))
             {
                 case IndexedIndirectX:
                     {
-                        Address addr = Read(r_X + Read(r_PC++));
-                        location = ReadAddress(addr);
+                        Byte zero_addr = r_X + Read(r_PC++);
+                        //Addresses wrap in zero page mode, thus pass through a mask
+                        location = Read(zero_addr & 0xff) | Read((zero_addr + 1) & 0xff) << 8;
                     }
                     break;
                 case ZeroPage:
@@ -319,12 +353,12 @@ namespace sn
                 case IndirectY:
                     {
                         Byte zero_addr = Read(r_PC++);
-                        location = ReadAddress(zero_addr);
+                        location = Read(zero_addr & 0xff) | Read((zero_addr + 1) & 0xff) << 8;
                         SetPageCrossed(location, location + r_Y);
                         location += r_Y;
                     }
                     break;
-                case IndexedX;
+                case IndexedX:
                     location = Read(r_PC++) + r_X;
                     break;
                 case AbsoluteY:
@@ -368,9 +402,12 @@ namespace sn
                     {
                         Byte operand = Read(location);
                         uint16_t sum = r_A + operand + f_C;
-                        r_A = static_cast<Byte>(sum);
+                        //Carry forward or UNSIGNED overflow
                         f_C = sum & 0x100;
-                        f_V = (r_A ^ sum) & (r_A ^ operand) & 0x80;
+                        //SIGNED overflow, would only happen if the sign of sum is
+                        //different from BOTH the operands
+                        f_V = (r_A ^ sum) & (operand ^ sum) & 0x80;
+                        r_A = static_cast<Byte>(sum);
                         SetZN(r_A);
                     }
                     break;
@@ -381,11 +418,26 @@ namespace sn
                     r_A = Read(location);
                     SetZN(r_A);
                     break;
-                case SDC:
-                    r_A = SubtractAndSet(r_A, Read(location));
+                case SBC:
+                    {
+                        //High carry means "no borrow", thus negate and subtract
+                        uint16_t subtrahend = Read(location),
+                                 diff = r_A - subtrahend - !f_C;
+                        //if the ninth bit is 1, the resulting number is negative => borrow => low carry
+                        f_C = !(diff & 0x100);
+                        //Same as ADC, except instead of the subtrahend,
+                        //substitute with it's one complement
+                        f_V = (r_A ^ diff) & (~subtrahend ^ diff) & 0x80;
+                        r_A = diff;
+                        SetZN(diff);
+                    }
                     break;
                 case CMP:
-                    SubtractAndSet(r_A, Read(location));
+                    {
+                        uint16_t diff = r_A - Read(location);
+                        f_C = !(diff & 0x100);
+                        SetZN(diff);
+                    }
                     break;
                 default:
                     return false;
@@ -397,25 +449,25 @@ namespace sn
 
     bool CPU::ExecuteType2(Byte opcode)
     {
-        if (opcode & InstructionModeMask == 0x2)
+        if ((opcode & InstructionModeMask) == 2)
         {
             Address location = 0;
-            Operation2 op = (opcode & OperationMask) >> OperationShift;
-            switch (static_cast<AddrMode2>(AddrMode2 addr_mode =
-                                    (opcode & AddrModeMask) >> AddrModeShift))
+            auto op = static_cast<Operation2>((opcode & OperationMask) >> OperationShift);
+            auto addr_mode =
+                    static_cast<AddrMode2>((opcode & AddrModeMask) >> AddrModeShift);
+            switch (addr_mode)
             {
-                case Immediate:
+                case Immediate_:
                     location = r_PC++;
                     break;
-                case ZeroPage:
+                case ZeroPage_:
                     location = Read(r_PC++);
                     break;
                 case Accumulator:
                     break;
-                case Absolute:
+                case Absolute_:
                     location = ReadAddress(r_PC);
                     r_PC += 2;
-                    location = ReadAddress(location);
                     break;
                 case Indexed:
                     {
@@ -453,38 +505,44 @@ namespace sn
             {
                 case ASL:
                 case ROL:
-                    if (mode == Accumulator)
+                    if (addr_mode == Accumulator)
                     {
-                        f_C = r_A & 0x100;
+                        auto prev_C = f_C;
+                        f_C = r_A & 0x80;
                         r_A <<= 1;
+                        //If Rotating, set the bit-0 to the the previous carry
+                        r_A = r_A | (prev_C && (op == ROL));
                         SetZN(r_A);
-                        r_A = r_A | (f_C & op == ROL);
                     }
                     else
                     {
+                        auto prev_C = f_C;
                         operand = Read(location);
-                        f_C = operand & 0x100;
-                        operand <<= 1;
+                        f_C = operand & 0x80;
+                        operand = operand << 1 | (prev_C && (op == ROL));
                         SetZN(operand);
-                        Write(location, operand | (f_C & op == ROL));
+                        Write(location, operand);
                     }
                     break;
                 case LSR:
                 case ROR:
-                    if (mode == Accumulator)
+                    if (addr_mode == Accumulator)
                     {
+                        auto prev_C = f_C;
                         f_C = r_A & 1;
                         r_A >>= 1;
+                        //If Rotating, set the bit-7 to the previous carry
+                        r_A = r_A | (prev_C && (op == ROR)) << 7;
                         SetZN(r_A);
-                        r_A = r_A | (f_C & op == ROR) << 7;
                     }
                     else
                     {
+                        auto prev_C = f_C;
                         operand = Read(location);
                         f_C = operand & 1;
-                        operand >>= 1;
+                        operand = operand >> 1 | (prev_C && (op == ROR)) << 7;
                         SetZN(operand);
-                        Write(location, operand | (f_C & op == ROR) << 7);
+                        Write(location, operand);
                     }
                     break;
                 case STX:
@@ -496,14 +554,14 @@ namespace sn
                     break;
                 case DEC:
                     {
-                        auto tmp = --Read(location);
+                        auto tmp = Read(location) - 1;
                         SetZN(tmp);
                         Write(location, tmp);
                     }
                     break;
                 case INC:
                     {
-                        auto tmp = ++Read(location);
+                        auto tmp = Read(location) + 1;
                         SetZN(tmp);
                         Write(location, tmp);
                     }
@@ -518,20 +576,18 @@ namespace sn
 
     bool CPU::ExecuteType0(Byte opcode)
     {
-        if (opcode & InstructionModeMask == 0x0)
+        if ((opcode & InstructionModeMask) == 0x0)
         {
-            Operation0 op = (opcode & OperationMask) >> OperationShift;
             Address location = 0;
-            switch (static_cast<AddrMode2>(AddrMode0 addr_mode =
-                                (opcode & AddrModeMask) >> AddrModeShift));
+            switch (static_cast<AddrMode2>((opcode & AddrModeMask) >> AddrModeShift))
             {
-                case Immediate:
+                case Immediate_:
                     location = r_PC++;
                     break;
-                case ZeroPage:
+                case ZeroPage_:
                     location = Read(r_PC++);
                     break;
-                case Absolute:
+                case Absolute_:
                     location = ReadAddress(r_PC);
                     r_PC += 2;
                     break;
@@ -556,13 +612,13 @@ namespace sn
                     return false;
             }
             uint16_t operand = 0;
-            switch (op)
+            switch (static_cast<Operation0>((opcode & OperationMask) >> OperationShift))
             {
                 case BIT:
                     operand = Read(location);
-                    f_Z = r_A & operand;
+                    f_Z = !(r_A & operand);
                     f_V = operand & 0x40;
-                    f_C = operand & 0x80;
+                    f_N = operand & 0x80;
                     break;
                 case STY:
                     Write(location, r_Y);
@@ -572,16 +628,24 @@ namespace sn
                     SetZN(r_Y);
                     break;
                 case CPY:
-                    SubtractAndSet(r_Y, Read(location));
+                    {
+                        uint16_t diff = r_Y - Read(location);
+                        f_C = !(diff & 0x100);
+                        SetZN(diff);
+                    }
                     break;
                 case CPX:
-                    SubtractAndSet(r_X, Read(location));
+                    {
+                        uint16_t diff = r_X - Read(location);
+                        f_C = !(diff & 0x100);
+                        SetZN(diff);
+                    }
                     break;
                 default:
                     return false;
             }
 
-            return true
+            return true;
         }
         return false;
     }
@@ -598,6 +662,6 @@ namespace sn
 
     void CPU::Write(Address addr, Byte value)
     {
-        m_MemoryRAM[addr] = value;
+        m_Memory[addr] = value;
     }
 };

@@ -12,14 +12,17 @@ namespace sn
             {
                 IRQ,
                 NMI,
-                BRK
+                BRK_
             };
 
             CPU(MainMemory &mem);
             CPU(MainMemory &mem, Address start_addr);
 
             void Execute();
-
+            void Reset();
+            void Reset(Address start_addr);
+            void Log();
+        private:
             //Instructions are split into five sets to make decoding easier.
             //These functions return true if they succeed
             bool ExecuteImplied(Byte opcode);
@@ -27,10 +30,8 @@ namespace sn
             bool ExecuteType0(Byte opcode);
             bool ExecuteType1(Byte opcode);
             bool ExecuteType2(Byte opcode);
-        private:
+
             //Assuming sequential execution, for asynchronously calling this with Execute, further work needed
-            void Reset();
-            void Reset(Address start_addr);
             void Interrupt(InterruptType type);
 
             Byte Read(Address addr);
@@ -44,10 +45,9 @@ namespace sn
             //If a and b are in different pages, increases the m_SkipCycles by inc
             void SetPageCrossed(Address a, Address b, int inc = 1);
             void SetZN(Byte value);
-            //Returns a - b and sets flags correspondingly
-            Byte SubtractAndSet(Byte a, Byte b);
 
             int m_SkipCycles;
+            int m_Cycles;
 
             //Registers
             Address r_PC;
@@ -61,12 +61,12 @@ namespace sn
             bool f_C;
             bool f_Z;
             bool f_I;
-            bool f_B;
+//            bool f_B;
+            bool f_D;
             bool f_V;
             bool f_N;
 
             MainMemory &m_Memory;
-            //Byte m_RAM[2048];
     };
 
 };

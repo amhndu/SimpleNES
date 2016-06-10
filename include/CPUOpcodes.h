@@ -11,8 +11,9 @@ namespace sn
     const auto AddrModeMask = 0x1c;
     const auto AddrModeShift = 2;
 
-    const auto BranchInstructionMask = 0x10;
-    const auto BranchConditionMask = 0x40;
+    const auto BranchInstructionMask = 0x1f;
+    const auto BranchInstructionMaskResult = 0x10;
+    const auto BranchConditionMask = 0x20;
     const auto BranchOnFlagShift = 6;
 
     const auto NMIVector = 0xfffa;
@@ -65,30 +66,21 @@ namespace sn
 
     enum AddrMode2
     {
-        Immediate,
-        ZeroPage,
+        Immediate_,
+        ZeroPage_,
         Accumulator,
-        Absolute,
+        Absolute_,
         Indexed         = 5,
         AbsoluteIndexed = 7,
     };
 
     enum Operation0
     {
-        BIT  = 2,
+        BIT  = 1,
         STY  = 4,
         LDY,
         CPY,
         CPX,
-    };
-
-    enum AddrMode0
-    {
-        Immediate,
-        ZeroPage,
-        Absolute        = 3,
-        Indexed         = 5,
-        AbsoluteIndexed = 7,
     };
 
     enum OperationImplied
@@ -131,21 +123,21 @@ namespace sn
     //0 implies unused opcode
     int OperationCycles[0x100] = {
             7, 6, 0, 0, 0, 3, 5, 0, 3, 2, 2, 0, 0, 4, 6, 0,
-            6, 0, 3, 0, 2, 0, 4, 0, 5, 0, 4, 0, 4, 0, 4, 0,
-            0, 3, 3, 0, 6, 5, 0, 0, 0, 4, 6, 0, 5, 2, 4, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 2, 6, 0, 2, 4, 0, 0, 4, 5, 6, 0, 6, 3, 2, 0,
-            3, 0, 5, 0, 4, 0, 2, 0, 4, 0, 6, 0, 4, 0, 4, 0,
-            5, 4, 0, 0, 0, 2, 2, 0, 7, 3, 3, 0, 0, 6, 4, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            3, 5, 0, 0, 4, 4, 7, 0, 2, 4, 0, 0, 0, 4, 3, 0,
-            2, 0, 4, 0, 5, 0, 3, 0, 4, 0, 4, 0, 6, 0, 4, 0,
-            2, 4, 6, 0, 6, 6, 3, 0, 0, 4, 2, 0, 4, 5, 3, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 4, 5, 0, 6, 4, 0, 0, 0, 6, 4, 0, 2, 4, 0, 0,
-            4, 0, 2, 0, 3, 0, 6, 0, 4, 0, 5, 0, 4, 0, 5, 0,
-            6, 4, 4, 0, 2, 4, 4, 0, 3, 4, 3, 0, 0, 5, 2, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            2, 5, 0, 0, 0, 4, 6, 0, 2, 4, 0, 0, 0, 4, 7, 0,
+            6, 6, 0, 0, 3, 3, 5, 0, 4, 2, 2, 0, 4, 4, 6, 0,
+            2, 5, 0, 0, 0, 4, 6, 0, 2, 4, 0, 0, 0, 4, 7, 0,
+            6, 6, 0, 0, 0, 3, 5, 0, 3, 2, 2, 0, 3, 4, 6, 0,
+            2, 5, 0, 0, 0, 4, 6, 0, 2, 4, 0, 0, 0, 4, 7, 0,
+            6, 6, 0, 0, 0, 3, 5, 0, 4, 2, 2, 0, 5, 4, 6, 0,
+            2, 5, 0, 0, 0, 4, 6, 0, 2, 4, 0, 0, 0, 4, 7, 0,
+            0, 6, 0, 0, 3, 3, 3, 0, 2, 0, 2, 0, 4, 4, 4, 0,
+            2, 6, 0, 0, 4, 4, 4, 0, 2, 5, 2, 0, 0, 5, 0, 0,
+            2, 6, 2, 0, 3, 3, 3, 0, 2, 2, 2, 0, 4, 4, 4, 0,
+            2, 5, 0, 0, 4, 4, 4, 0, 2, 4, 2, 0, 4, 4, 4, 0,
+            2, 6, 0, 0, 3, 3, 5, 0, 2, 2, 2, 0, 4, 4, 6, 0,
+            2, 5, 0, 0, 0, 4, 6, 0, 2, 4, 0, 0, 0, 4, 7, 0,
+            2, 6, 0, 0, 3, 3, 5, 0, 2, 2, 2, 2, 4, 4, 6, 0,
+            2, 5, 0, 0, 0, 4, 6, 0, 2, 4, 0, 0, 0, 4, 7, 0,
         };
 };
 

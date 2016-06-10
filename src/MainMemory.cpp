@@ -8,8 +8,10 @@ namespace sn
     {
     }
 
-    Byte MainMemory::operator[](Address addr)
+    Byte& MainMemory::operator[](Address addr)
     {
+        if (addr < 0x2000)
+            return mem[addr & 0xfff];
         return mem[addr];
     }
 
