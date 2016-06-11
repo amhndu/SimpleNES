@@ -181,9 +181,12 @@ namespace sn
             case JMPI:
                 {
                     Address location = ReadAddress(r_PC);
-                    PRINT_VAR(location)
-                    r_PC = ReadAddress(location);
-                    PRINT_VAR(r_PC)
+                    //6502 has a bug such that the when the vector of anindirect address begins at the last byte of a page,
+                    //the second byte is fetched from the beginning of that page rather than the beginning of the next
+                    //Recreating here:
+                    Address Page = location & 0xff00;
+                    r_PC = Read(location) |
+                           Read(Page | ((location + 1) & 0xff)) << 8;
                 }
                 break;
             case PHP:
@@ -329,7 +332,7 @@ namespace sn
     {
         if ((opcode & InstructionModeMask) == 0x1)
         {
-            Address location = 0;
+            Address location = 0; //Location of the operand, could be in RAM, 
             switch (static_cast<AddrMode1>(
                     (opcode & AddrModeMask) >> AddrModeShift))
             {
@@ -359,25 +362,20 @@ namespace sn
                     }
                     break;
                 case IndexedX:
-                    location = Read(r_PC++) + r_X;
+                    // Address wraps around in the zero page
+                    location = (Read(r_PC++) + r_X) & 0xff;
                     break;
                 case AbsoluteY:
-                    {
-                        Address addr = ReadAddress(r_PC);
-                        r_PC += 2;
-                        location = ReadAddress(addr);
-                        SetPageCrossed(location, location + r_Y);
-                        location += r_Y;
-                    }
+                    location = ReadAddress(r_PC);
+                    r_PC += 2;
+                    SetPageCrossed(location, location + r_Y);
+                    location += r_Y;
                     break;
                 case AbsoluteX:
-                    {
-                        Address addr = ReadAddress(r_PC);
-                        r_PC += 2;
-                        location = ReadAddress(addr);
-                        SetPageCrossed(location, location + r_X);
-                        location += r_X;
-                    }
+                    location = ReadAddress(r_PC);
+                    r_PC += 2;
+                    SetPageCrossed(location, location + r_X);
+                    location += r_X;
                     break;
                 default:
                     return false;
@@ -471,22 +469,20 @@ namespace sn
                     break;
                 case Indexed:
                     {
-                        Byte zero_addr = Read(r_PC++);
-                        location = ReadAddress(zero_addr);
+                        location = Read(r_PC++);
                         Byte index;
                         if (op == LDX || op == STX)
                             index = r_Y;
                         else
                             index = r_X;
-                        SetPageCrossed(location, location + index);
-                        location += index;
+                        //The mask wraps address around zero page
+                        location = (location + index) & 0xff;
                     }
                     break;
                 case AbsoluteIndexed:
                     {
-                        Address addr = ReadAddress(r_PC);
+                        location = ReadAddress(r_PC);
                         r_PC += 2;
-                        location = ReadAddress(addr);
                         Byte index;
                         if (op == LDX || op == STX)
                             index = r_Y;
@@ -592,21 +588,14 @@ namespace sn
                     r_PC += 2;
                     break;
                 case Indexed:
-                    {
-                        Byte zero_addr = Read(r_PC++);
-                        location = ReadAddress(zero_addr);
-                        SetPageCrossed(location, location + r_X);
-                        location += r_X;
-                    }
+                    // Address wraps around in the zero page
+                    location = (Read(r_PC++) + r_X) & 0xff;
                     break;
                 case AbsoluteIndexed:
-                    {
-                        Address addr = ReadAddress(r_PC);
-                        r_PC += 2;
-                        location = ReadAddress(addr);
-                        SetPageCrossed(location, location + r_X);
-                        location += r_X;
-                    }
+                    location = ReadAddress(r_PC);
+                    r_PC += 2;
+                    SetPageCrossed(location, location + r_X);
+                    location += r_X;
                     break;
                 default:
                     return false;
