@@ -18,36 +18,36 @@ namespace sn
             CPU(MainMemory &mem);
             CPU(MainMemory &mem, Address start_addr);
 
-            void Execute();
-            void Reset();
-            void Reset(Address start_addr);
-            void Log();
+            void execute();
+            void reset();
+            void reset(Address start_addr);
+            void log();
         private:
             //Instructions are split into five sets to make decoding easier.
             //These functions return true if they succeed
-            bool ExecuteImplied(Byte opcode);
-            bool ExecuteBranch(Byte opcode);
-            bool ExecuteType0(Byte opcode);
-            bool ExecuteType1(Byte opcode);
-            bool ExecuteType2(Byte opcode);
+            bool executeImplied(Byte opcode);
+            bool executeBranch(Byte opcode);
+            bool executeType0(Byte opcode);
+            bool executeType1(Byte opcode);
+            bool executeType2(Byte opcode);
 
             //Assuming sequential execution, for asynchronously calling this with Execute, further work needed
-            void Interrupt(InterruptType type);
+            void interrupt(InterruptType type);
 
-            Byte Read(Address addr);
-            Address ReadAddress(Address addr);
+            Byte read(Address addr);
+            Address readAddress(Address addr);
 
-            void Write(Address addr, Byte value);
+            void write(Address addr, Byte value);
 
-            void PushStack(Byte value);
-            Byte PullStack();
+            void pushStack(Byte value);
+            Byte pullStack();
 
             //If a and b are in different pages, increases the m_SkipCycles by inc
-            void SetPageCrossed(Address a, Address b, int inc = 1);
-            void SetZN(Byte value);
+            void setPageCrossed(Address a, Address b, int inc = 1);
+            void setZN(Byte value);
 
-            int m_SkipCycles;
-            int m_Cycles;
+            int m_skipCycles;
+            int m_cycles;
 
             //Registers
             Address r_PC;
@@ -66,7 +66,7 @@ namespace sn
             bool f_V;
             bool f_N;
 
-            MainMemory &m_Memory;
+            MainMemory &m_memory;
     };
 
 };
