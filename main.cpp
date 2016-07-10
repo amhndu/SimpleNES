@@ -1,6 +1,6 @@
 #include <iostream>
 #include "CPU.h"
-#include <fstream>
+#include "Cartridge.h"
 
 int main()
 {
