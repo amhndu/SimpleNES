@@ -9,7 +9,7 @@
 
 namespace sn
 {
-    CPU::CPU(MainMemory &mem) :
+    CPU::CPU(MainBus &mem) :
         m_skipCycles(0),
         m_cycles(0),
         m_memory(mem)
@@ -17,7 +17,7 @@ namespace sn
         reset();
     }
 
-    CPU::CPU(MainMemory &mem, Address start_addr) :
+    CPU::CPU(MainBus &mem, Address start_addr) :
         m_skipCycles(0),
         m_cycles(0),
         m_memory(mem)
@@ -36,8 +36,7 @@ namespace sn
         f_I = true;
         r_PC = start_addr;
         r_SP = 0xfd; //for TESTING only! REMOVE this later
-        m_skipCycles = 3; //for TESTING only! REMOVE this later
-    }
+   }
 
     void CPU::interrupt(InterruptType type)
     {
@@ -98,10 +97,10 @@ namespace sn
         if ((a & 0xff00) != (b & 0xff00))
             m_skipCycles += inc;
     }
-    void CPU::execute()
+    void CPU::step()
     {
-//        if (m_SkipCycles-- > 0)
-//            return;
+       if (m_SkipCycles-- > 0)
+           return;
 
         int psw =    f_N << 7 |
                      f_V << 6 |
@@ -332,7 +331,7 @@ namespace sn
     {
         if ((opcode & InstructionModeMask) == 0x1)
         {
-            Address location = 0; //Location of the operand, could be in RAM, 
+            Address location = 0; //Location of the operand, could be in RAM,
             switch (static_cast<AddrMode1>(
                     (opcode & AddrModeMask) >> AddrModeShift))
             {
@@ -641,16 +640,16 @@ namespace sn
 
     Byte CPU::read(Address addr)
     {
-        return m_memory[addr];
+        return m_memory.read(addr);
     }
 
     Address CPU::readAddress(Address addr)
     {
-        return m_memory[addr] | m_memory[addr + 1] << 8;
+        return m_memory.read(addr) | m_memory(addr + 1) << 8;
     }
 
     void CPU::write(Address addr, Byte value)
     {
-        m_memory[addr] = value;
+        m_memory.write(addr, value);
     }
 };

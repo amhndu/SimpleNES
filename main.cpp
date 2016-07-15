@@ -4,7 +4,7 @@
 
 int main()
 {
-    sn::MainMemory memory;
+    sn::MainBus memory;
     sn::CPU cpu(memory, 0xc000);
     sn::Byte rom[0x4000];
 
@@ -18,7 +18,7 @@ int main()
 //    std::cout << "Press Enter to complete one instruction...\n";
     for (int i = 0; i < 5000; ++i)
     {
-        cpu.execute();
+        cpu.step();
 //        std::cout << "(0x2): " << int(memory[0x2]) << std::endl
 //                  << "(0x3): " << int(memory[0x3]) << std::endl;
     }

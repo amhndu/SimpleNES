@@ -27,6 +27,16 @@ namespace sn
         return m_mapper;
     }
 
+    Byte Cartridge::getNameTableMirroring()
+    {
+        return m_nameTableMirroring;
+    }
+
+    bool Cartridge::hasExtendedRAM()
+    {
+        return m_extendedRAM;
+    }
+
     bool Cartridge::loadFromFile(std::string path)
     {
         std::ifstream romFile (path);
@@ -59,7 +69,7 @@ namespace sn
         Byte vbanks = header[5];
         m_nameTableMirroring = header[6] & 0x9;
         m_mapper = ((header[6] >> 4) & 0xf) | (header[7] & 0xf0);
-        m_extendedRAM = header[6] & 0x2; //we don't care
+        m_extendedRAM = header[6] & 0x2;
         if (header[6] & 0x4)
         {
             std::cerr << "Trainer is not supported." << std::endl;

@@ -1,6 +1,6 @@
 #ifndef CPU_H
 #define CPU_H
-#include "MainMemory.h"
+#include "MainBus.h"
 
 namespace sn
 {
@@ -15,10 +15,10 @@ namespace sn
                 BRK_
             };
 
-            CPU(MainMemory &mem);
-            CPU(MainMemory &mem, Address start_addr);
+            CPU(MainBus &mem);
+            CPU(MainBus &mem, Address start_addr);
 
-            void execute();
+            void step();
             void reset();
             void reset(Address start_addr);
             void log();
@@ -66,7 +66,7 @@ namespace sn
             bool f_V;
             bool f_N;
 
-            MainMemory &m_memory;
+            MainBus &m_memory;
     };
 
 };
