@@ -6,6 +6,7 @@ namespace sn
     {
         m_vertices.resize(w * h * 6);
         m_screenSize = {w, h};
+        m_vertices.setPrimitiveType(sf::Triangles);
         m_tileWidth = tile_w;
         for (std::size_t x = 0; x < w; ++x)
         {

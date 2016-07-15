@@ -10,16 +10,12 @@
 namespace sn
 {
     CPU::CPU(MainBus &mem) :
-        m_skipCycles(0),
-        m_cycles(0),
         m_memory(mem)
     {
         reset();
     }
 
     CPU::CPU(MainBus &mem, Address start_addr) :
-        m_skipCycles(0),
-        m_cycles(0),
         m_memory(mem)
     {
         reset(start_addr);
@@ -27,15 +23,16 @@ namespace sn
 
     void CPU::reset()
     {
-        f_I = true;
-        r_PC = readAddress(ResetVector);
+        reset(readAddress(ResetVector));
     }
 
     void CPU::reset(Address start_addr)
     {
+        m_skipCycles = 0;
+        m_cycles = 0;
         f_I = true;
         r_PC = start_addr;
-        r_SP = 0xfd; //for TESTING only! REMOVE this later
+        r_SP = 0xfd; //documented startup state
    }
 
     void CPU::interrupt(InterruptType type)
@@ -99,7 +96,7 @@ namespace sn
     }
     void CPU::step()
     {
-       if (m_SkipCycles-- > 0)
+       if (m_skipCycles-- > 0)
            return;
 
         int psw =    f_N << 7 |
@@ -653,3 +650,4 @@ namespace sn
         m_memory.write(addr, value);
     }
 };
+
