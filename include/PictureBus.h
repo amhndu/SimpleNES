@@ -21,10 +21,14 @@ namespace sn
             bool loadCartridge(Cartridge *cart);
         private:
             std::vector<Byte> m_RAM;
-            std::size_t NameTable0, NameTable1, NameTable2, NameTable3; //indices where they start
-            std::vector<Byte> m_characterRAM;
-            bool m_usesCharacterRAM;
             NameTableMirroring m_mirroring;
+            std::size_t NameTable0, NameTable1, NameTable2, NameTable3; //indices where they start in RAM vector
+
+            bool m_usesCharacterRAM;
+            std::vector<Byte> m_characterRAM;
+
+            std::vector<Byte> m_palette;
+
             Cartridge* m_cartride;
     };
 }

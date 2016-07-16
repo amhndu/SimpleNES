@@ -5,8 +5,9 @@ namespace sn
 {
 
     PictureBus::PictureBus() :
+        m_RAM(0x800),
+        m_palette(0x20),
         m_cartride(nullptr),
-        m_RAM(0x800)
     {}
 
     Byte PictureBus::read(Address addr)
@@ -18,7 +19,7 @@ namespace sn
             else
                 return m_cartride->getVROM()[addr];
         }
-        else if (addr < 0x3000)
+        else if (addr < 0x3eff) //Name tables upto 0x3000, then mirrored upto 3eff
         {
             auto index = addr & 0x3ff;
             if (addr < 0x2400)      //NT0
@@ -29,6 +30,37 @@ namespace sn
                 return m_RAM[NameTable2 + index];
             else                    //NT3
                 return m_RAM[NameTable3 + index];
+        }
+        else if (addr < 0x3fff)
+        {
+            return m_palette[addr & 0x1f];
+        }
+    }
+
+    void PictureBus::write(Address addr, Byte value)
+    {
+        if (addr < 0x2000)
+        {
+            if (m_usesCharacterRAM)
+                m_characterRAM[addr] = value;
+            else
+                m_cartride->getVROM()[addr] = value;
+        }
+        else if (addr < 0x3eff) //Name tables upto 0x3000, then mirrored upto 3eff
+        {
+            auto index = addr & 0x3ff;
+            if (addr < 0x2400)      //NT0
+                m_RAM[NameTable0 + index] = value;
+            else if (addr < 0x2800) //NT1
+                m_RAM[NameTable1 + index] = value;
+            else if (addr < 0x2c00) //NT2
+                m_RAM[NameTable2 + index] = value;
+            else                    //NT3
+                m_RAM[NameTable3 + index] = value;
+        }
+        else if (addr < 0x3fff)
+        {
+            m_palette[addr & 0x1f] = value;
         }
     }
 
@@ -43,8 +75,7 @@ namespace sn
         m_cartride = cart;
 
         auto mirroring = cart->getNameTableMirroring();
-        if (mirroring & FourScreen)
-            mirroring = FourScreen;
+        mirroring = (mirroring & FourScreen) ? FourScreen : mirroring;
         m_mirroring = static_cast<NameTableMirroring>(mirroring);
         switch (m_mirroring)
         {
