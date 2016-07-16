@@ -40,5 +40,35 @@ namespace sn
         return 0;
     }
 
+    Byte PPU::getData()
+    {
+
+    }
+
+    Byte PPU::getOAMData()
+    {
+
+    }
+
+    void PPU::setData(Byte data)
+    {
+
+    }
+
+    void PPU::setOAMAddress(Byte Address)
+    {
+
+    }
+
+    void PPU::setScroll(Byte scroll)
+    {
+
+    }
+    
+    void PPU::step()
+    {
+
+    }
+
 
 }
