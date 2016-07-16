@@ -5,11 +5,14 @@ namespace sn
     PPU::PPU(PictureBus& bus, VirtualScreen& screen) :
         m_bus(bus),
         m_screen(screen),
-        m_vblankInterrupt(false),
-        m_dataAddrIncrement(0),
         m_longSprites(0),
+        m_vblankInterrupt(false),
+        m_greyscaleMode(false),
+        m_showSprites(true),
+        m_showBackground(true),
         m_bgPage(Low),
-        m_sprPage(Low),
+        m_sprPage(High),
+        m_dataAddrIncrement(0),
         m_baseNameTable(0)
     {}
 

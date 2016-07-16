@@ -4,8 +4,9 @@ namespace sn
 {
     Emulator::Emulator() :
         m_cpu(m_bus),
-        m_ppu(m_pictureBus),
-        m_cycleTimer(0)
+        m_ppu(m_pictureBus, m_emulatorScreen),
+        m_cycleTimer(),
+        m_cpuCycleDuration(559)
     {
         m_bus.setReadCallback(PPUSTATUS, [&m_ppu](void) {return m_ppu.getStatus();});
         m_bus.setReadCallback(PPUDATA, [&m_ppu](void) {return m_ppu.getData();});
@@ -42,16 +43,21 @@ namespace sn
             auto elapsed_time = std::chrono::high_resolution_clock::now() - std::chrono::high_resolution_clock::time_point;
             TimePoint = std::chrono::high_resolution_clock::now();
 
-            while (elapsed_time > m_cpuCycleDuration)
+            m_cpu.reset(0xc000);
+            int cycles = 5000;
+            while (elapsed_time > m_cpuCycleDuration && cycles > 0)
             {
-                m_ppu.step();
-                m_ppu.step();
-                m_ppu.step();
+//                 m_ppu.step();
+//                 m_ppu.step();
+//                 m_ppu.step();
 
                 m_cpu.step();
-
+                --cycles;
                 elapsed_time -= m_cpuCycleDuration;
             }
+
+            m_window.draw(m_emulatorScreen);
+            m_window.display();
         }
     }
 

@@ -18,13 +18,13 @@ namespace sn
         {
             if (addr < 0x4000) //PPU registers, mirrored
             {
-                auto it = m_readCallbacks.find(addr & 0x4007);
+                auto it = m_readCallbacks.find(static_cast<IORegisters>(addr & 0x4007));
                 if (it != m_readCallbacks.end())
-                    return (*it -> second)();
+                    return (it -> second)();
                     //Second object is the pointer to the function object
                     //Dereference the function pointer and call it
                 else
-                    std::cerr << "No callback registered for IORegister: " << addr & 0x4007 << std::endl;
+                    std::cerr << "No callback registered for IORegister: " << int(addr & 0x4007) << std::endl;
             }
         }
         else if (addr < 0x6000)
@@ -38,13 +38,14 @@ namespace sn
                 return m_extRAM[addr - 0x8000];
             }
         }
-        else if (addr < 0x10000)
+        else
         {
             if (!one_bank)
                 return m_cartride->getROM()[addr - 0x8000];
             else //mirrored
                 return m_cartride->getROM()[(addr - 0x8000) & 0x3fff];
         }
+        return 0;
     }
 
     void MainBus::write(Address addr, Byte value)
@@ -55,13 +56,13 @@ namespace sn
         {
             if (addr < 0x4000) //PPU registers, mirrored
             {
-                auto it = m_writeCallbacks.find(addr & 0x4007);
+                auto it = m_writeCallbacks.find(static_cast<IORegisters>(addr & 0x4007));
                 if (it != m_writeCallbacks.end())
-                    (*it -> second)(value);
+                    (it -> second)(value);
                     //Second object is the pointer to the function object
                     //Dereference the function pointer and call it
                 else
-                    std::cerr << "No callback register for IORegister: " << addr & 0x4007 << std::endl;
+                    std::cerr << "No callback register for IORegister: " << int(addr & 0x4007) << std::endl;
             }
         }
         else if (addr < 0x6000)
@@ -77,7 +78,7 @@ namespace sn
         }
         else
         {
-            std::cerr << "Invalid memory write attempt\n" << std::endl;
+            std::cerr << "ROM memory write attempt\n" << std::endl;
         }
     }
 
@@ -103,6 +104,7 @@ namespace sn
         {
             one_bank = false;
         }
+        return true;
     }
 
     void MainBus::setWriteCallback(IORegisters reg, std::function<void(Byte)> callback)

@@ -642,7 +642,7 @@ namespace sn
 
     Address CPU::readAddress(Address addr)
     {
-        return m_memory.read(addr) | m_memory(addr + 1) << 8;
+        return m_memory.read(addr) | m_memory.read(addr + 1) << 8;
     }
 
     void CPU::write(Address addr, Byte value)

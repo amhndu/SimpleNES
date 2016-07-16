@@ -3,7 +3,7 @@
 #include <vector>
 #include <string>
 
-namespace
+namespace sn
 {
     using Byte = uint8_t;
     using Address = uint16_t;
@@ -27,6 +27,6 @@ namespace
             bool m_chrRAM;
     };
 
-}
+};
 
 #endif // CARTRIDGE_H

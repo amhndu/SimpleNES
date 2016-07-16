@@ -25,9 +25,11 @@ namespace sn
         Cartridge m_cartridge;
 
         sf::RenderWindow m_window;
+        VirtualScreen m_emulatorScreen;
+
         TimePoint m_cycleTimer;
 
-        const auto m_cpuCycleDuration = std::chrono::nanoseconds(558.73);
+        std::chrono::nanoseconds m_cpuCycleDuration;
     };
 }
 #endif // EMULATOR_H

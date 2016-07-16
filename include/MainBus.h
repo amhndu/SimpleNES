@@ -5,21 +5,20 @@
 #include <functional>
 #include "Cartridge.h"
 
-enum IORegisters
-{
-    PPUCTRL = 0x2000,
-    PPUMASK,
-    PPUSTATUS,
-    OAMADDR,
-    OAMDATA,
-    PPUSCROL,
-    PPUADDR,
-    PPUDATA,
-    OAMDMA = 0x4014,
-};
-
 namespace sn
 {
+    enum IORegisters
+    {
+        PPUCTRL = 0x2000,
+        PPUMASK,
+        PPUSTATUS,
+        OAMADDR,
+        OAMDATA,
+        PPUSCROL,
+        PPUADDR,
+        PPUDATA,
+        OAMDMA = 0x4014,
+    };
 
     class MainBus
     {

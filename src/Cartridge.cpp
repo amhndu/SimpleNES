@@ -51,7 +51,7 @@ namespace sn
 
         //Header
         header.resize(0x10);
-        if (!romFile.read(&header[0], 0x10))
+        if (!romFile.read(reinterpret_cast<char*>(&header[0]), 0x10))
         {
             std::cerr << "Reading iNES header failed." << std::endl;
             return false;
@@ -100,7 +100,7 @@ namespace sn
 
         //PRG-ROM
         m_PRG_ROM.resize(0x4000 * banks);
-        if (!romFile.read(&m_PRG_ROM[0], 0x4000 * banks))
+        if (!romFile.read(reinterpret_cast<char*>(&m_PRG_ROM[0]), 0x4000 * banks))
         {
             std::cerr << "Reading PRG-ROM from image file failed." << std::endl;
             return false;
@@ -110,12 +110,12 @@ namespace sn
         if (vbanks)
         {
             m_CHR_ROM.reserve(0x2000 * vbanks);
-            if (!romFile.read(&m_CHR_ROM[0], 0x2000 * vbanks))
+            if (!romFile.read(reinterpret_cast<char*>(&m_CHR_ROM[0]), 0x2000 * vbanks))
             {
                 std::cerr << "Reading CHR-ROM from image file failed." << std::endl;
                 return false;
             }
         }
+        return true;
     }
-
 }

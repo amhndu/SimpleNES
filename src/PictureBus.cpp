@@ -7,7 +7,7 @@ namespace sn
     PictureBus::PictureBus() :
         m_RAM(0x800),
         m_palette(0x20),
-        m_cartride(nullptr),
+        m_cartride(nullptr)
     {}
 
     Byte PictureBus::read(Address addr)
@@ -35,6 +35,7 @@ namespace sn
         {
             return m_palette[addr & 0x1f];
         }
+        return 0;
     }
 
     void PictureBus::write(Address addr, Byte value)
@@ -44,7 +45,7 @@ namespace sn
             if (m_usesCharacterRAM)
                 m_characterRAM[addr] = value;
             else
-                m_cartride->getVROM()[addr] = value;
+                std::cout << "Read-only memory write attempt at " << addr << std::endl;
         }
         else if (addr < 0x3eff) //Name tables upto 0x3000, then mirrored upto 3eff
         {
@@ -96,7 +97,7 @@ namespace sn
 
         if (cart->getVROM().size() == 0)
         {
-            m_characterRAM = true;
+            m_usesCharacterRAM = true;
             m_characterRAM.resize(0x2000);
         }
         return true;
