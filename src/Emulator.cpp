@@ -8,15 +8,15 @@ namespace sn
         m_cycleTimer(),
         m_cpuCycleDuration(559)
     {
-        m_bus.setReadCallback(PPUSTATUS, [&m_ppu](void) {return m_ppu.getStatus();});
-        m_bus.setReadCallback(PPUDATA, [&m_ppu](void) {return m_ppu.getData();});
-        m_bus.setReadCallback(OAMDATA, [&m_ppu](void) {return m_ppu.getOAMData();});
+        m_bus.setReadCallback(PPUSTATUS, [&](void) {return m_ppu.getStatus();});
+        m_bus.setReadCallback(PPUDATA, [&](void) {return m_ppu.getData();});
+        m_bus.setReadCallback(OAMDATA, [&](void) {return m_ppu.getOAMData();});
 
-        m_bus.setWriteCallback(PPUCTRL, [&m_ppu](Byte b) {m_ppu.control(b);});
-        m_bus.setWriteCallback(PPUMASK, [&m_ppu](Byte b) {m_ppu.setMask(b);});
-        m_bus.setWriteCallback(OAMADDR, [&m_ppu](Byte b) {m_ppu.setOAMAddress(b);});
-        m_bus.setWriteCallback(PPUSCROL, [&m_ppu](Byte b) {m_ppu.setScroll(b);});
-        m_bus.setWriteCallback(PPUDATA, [&m_ppu](Byte b) {m_ppu.setData(b);});
+        m_bus.setWriteCallback(PPUCTRL, [&](Byte b) {m_ppu.control(b);});
+        m_bus.setWriteCallback(PPUMASK, [&](Byte b) {m_ppu.setMask(b);});
+        m_bus.setWriteCallback(OAMADDR, [&](Byte b) {m_ppu.setOAMAddress(b);});
+        m_bus.setWriteCallback(PPUSCROL, [&](Byte b) {m_ppu.setScroll(b);});
+        m_bus.setWriteCallback(PPUDATA, [&](Byte b) {m_ppu.setData(b);});
 
     }
 
@@ -40,8 +40,8 @@ namespace sn
                     m_window.close();
             }
 
-            auto elapsed_time = std::chrono::high_resolution_clock::now() - std::chrono::high_resolution_clock::time_point;
-            TimePoint = std::chrono::high_resolution_clock::now();
+            auto elapsed_time = std::chrono::high_resolution_clock::now() - m_cycleTimer;
+            m_cycleTimer = std::chrono::high_resolution_clock::now();
 
             m_cpu.reset(0xc000);
             int cycles = 5000;
