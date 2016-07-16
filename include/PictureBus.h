@@ -5,6 +5,13 @@
 
 namespace sn
 {
+    enum NameTableMirroring
+    {
+        Vertical    = 0,
+        Horizontal  = 1,
+        FourScreen  = 1 << 3,
+    };
+
     class PictureBus
     {
         public:
@@ -14,7 +21,10 @@ namespace sn
             bool loadCartridge(Cartridge *cart);
         private:
             std::vector<Byte> m_RAM;
-            bool m_usesRAM;
+            std::size_t NameTable0, NameTable1, NameTable2, NameTable3; //indices where they start
+            std::vector<Byte> m_characterRAM;
+            bool m_usesCharacterRAM;
+            NameTableMirroring m_mirroring;
             Cartridge* m_cartride;
     };
 }

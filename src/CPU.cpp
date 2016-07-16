@@ -129,7 +129,7 @@ namespace sn
             m_skipCycles += CycleLength;
             m_cycles += m_skipCycles;
             m_cycles %= 340; //compatibility with Nintendulator log
-            m_skipCycles = 0; //for testing only, remove later
+            //m_skipCycles = 0; //for TESTING
         }
         else
         {

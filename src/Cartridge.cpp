@@ -47,6 +47,7 @@ namespace sn
         }
 
         std::vector<Byte> header;
+        std::cout << "Reading ROM from path: " << path << std::endl;
 
         //Header
         header.resize(0x10);
@@ -60,21 +61,42 @@ namespace sn
             std::cerr << "Not a valid iNES image.\n" << std::endl;
             return false;
         }
+
+        std::cout << "Reading header, it dictates: \n";
+
         Byte banks = header[4];
+        std::cout << "PRG-ROM Banks: " << banks << std::endl;
         if (!banks)
         {
             std::cerr << "ROM has no PRG-ROM banks. Loading ROM failed." << std::endl;
             return false;
         }
+
         Byte vbanks = header[5];
+        std::cout << "CHR-ROM Banks: " << vbanks << std::endl;
+
         m_nameTableMirroring = header[6] & 0x9;
+        std::cout << "Name Table Mirroring: " << m_nameTableMirroring << std::endl;
+
         m_mapper = ((header[6] >> 4) & 0xf) | (header[7] & 0xf0);
+        std::cout << "Mapper #: " << m_mapper << std::endl;
+
         m_extendedRAM = header[6] & 0x2;
+        std::cout << "Extended RAM: " << std::boolalpha << m_extendedRAM << std::endl;
+
         if (header[6] & 0x4)
         {
             std::cerr << "Trainer is not supported." << std::endl;
             return false;
         }
+
+        if ((header[0xA] & 0x3) == 0x2 || (header[0xA] & 0x1))
+        {
+            std::cerr << "PAL ROM not supported." << std::endl;
+            return false;
+        }
+        else
+            std::cout << "ROM is NTSC compatible.\n";
 
         //PRG-ROM
         m_PRG_ROM.resize(0x4000 * banks);
