@@ -56,16 +56,19 @@ namespace sn
             std::cerr << "Reading iNES header failed." << std::endl;
             return false;
         }
-        if (std::string{&header[0], &header[3]} != "NES\x1A")
+        if (std::string{&header[0], &header[4]} != "NES\x1A")
         {
-            std::cerr << "Not a valid iNES image.\n" << std::endl;
+            std::cerr << "Not a valid iNES image. Magic number: "
+                      << std::hex << header[0] << " "
+                      << header[1] << " " << header[2] << " " << int(header[3]) << std::endl
+                      << "Valid magic number : N E S 1a" << std::endl;
             return false;
         }
 
         std::cout << "Reading header, it dictates: \n";
 
         Byte banks = header[4];
-        std::cout << "PRG-ROM Banks: " << banks << std::endl;
+        std::cout << "PRG-ROM Banks: " << +banks << std::endl;
         if (!banks)
         {
             std::cerr << "ROM has no PRG-ROM banks. Loading ROM failed." << std::endl;
@@ -73,13 +76,13 @@ namespace sn
         }
 
         Byte vbanks = header[5];
-        std::cout << "CHR-ROM Banks: " << vbanks << std::endl;
+        std::cout << "CHR-ROM Banks: " << +vbanks << std::endl;
 
         m_nameTableMirroring = header[6] & 0x9;
-        std::cout << "Name Table Mirroring: " << m_nameTableMirroring << std::endl;
+        std::cout << "Name Table Mirroring: " << +m_nameTableMirroring << std::endl;
 
         m_mapper = ((header[6] >> 4) & 0xf) | (header[7] & 0xf0);
-        std::cout << "Mapper #: " << m_mapper << std::endl;
+        std::cout << "Mapper #: " << +m_mapper << std::endl;
 
         m_extendedRAM = header[6] & 0x2;
         std::cout << "Extended RAM: " << std::boolalpha << m_extendedRAM << std::endl;

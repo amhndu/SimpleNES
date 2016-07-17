@@ -16,7 +16,6 @@ namespace sn
             };
 
             CPU(MainBus &mem);
-            CPU(MainBus &mem, Address start_addr);
 
             void step();
             void reset();

@@ -11,15 +11,7 @@ namespace sn
 {
     CPU::CPU(MainBus &mem) :
         m_memory(mem)
-    {
-        reset();
-    }
-
-    CPU::CPU(MainBus &mem, Address start_addr) :
-        m_memory(mem)
-    {
-        reset(start_addr);
-    }
+    {}
 
     void CPU::reset()
     {
@@ -30,6 +22,7 @@ namespace sn
     {
         m_skipCycles = 0;
         m_cycles = 0;
+        r_A = r_X = r_Y = 0;
         f_I = true;
         r_PC = start_addr;
         r_SP = 0xfd; //documented startup state

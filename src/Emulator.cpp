@@ -25,13 +25,17 @@ namespace sn
         if (!m_cartridge.loadFromFile(rom_path))
             return;
 
-        if (m_bus.loadCartridge(&m_cartridge) &&
-            m_pictureBus.loadCartridge(&m_cartridge))
+        if (!m_bus.loadCartridge(&m_cartridge) ||
+            !m_pictureBus.loadCartridge(&m_cartridge))
             return;
 
-        //The Loop (R) (tm)
+        m_cpu.reset(0xc000);
+        //m_ppu.reset();
+
+        m_window.create(sf::VideoMode(256 * 2, 240 * 2), "SimpleNES", sf::Style::Titlebar | sf::Style::Close);
+
         sf::Event event;
-        while (m_window.isOpen())
+        while (m_window.isOpen())        //The Loop (R) (tm)
         {
             while (m_window.pollEvent(event))
             {
@@ -43,9 +47,8 @@ namespace sn
             auto elapsed_time = std::chrono::high_resolution_clock::now() - m_cycleTimer;
             m_cycleTimer = std::chrono::high_resolution_clock::now();
 
-            m_cpu.reset(0xc000);
             int cycles = 5000;
-            while (elapsed_time > m_cpuCycleDuration && cycles > 0)
+            while (/*elapsed_time > m_cpuCycleDuration*/cycles > 0)
             {
 //                 m_ppu.step();
 //                 m_ppu.step();
