@@ -11,12 +11,14 @@ namespace sn
         public:
             PPU(PictureBus &bus, VirtualScreen &screen);
             void step();
+            void reset();
 
             //Callbacks mapped to CPU address space
             //Addresses written to by the program
             void control(Byte ctrl);
             void setMask(Byte mask);
-            void setOAMAddress(Byte Address);
+            void setOAMAddress(Byte addr);
+            void setDataAddress(Byte addr);
             void setScroll(Byte scroll);
             void setData(Byte data);
             //Read by the program
@@ -27,7 +29,12 @@ namespace sn
             PictureBus &m_bus;
             VirtualScreen &m_screen;
 
-            //Flags and setup variables
+            bool m_vblank;
+            bool m_sprZeroHit;
+
+            Address m_dataAddress;
+
+            //Setup flags and variables
             bool m_longSprites;
             bool m_vblankInterrupt;
             bool m_greyscaleMode;
@@ -37,9 +44,10 @@ namespace sn
             {
                 Low,
                 High,
-            } m_bgPage, m_sprPage;
+            } m_bgPage,
+              m_sprPage;
             Address m_dataAddrIncrement;
-            Byte m_baseNameTable;
+            Byte    m_baseNameTable;
     };
 }
 

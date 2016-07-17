@@ -4,7 +4,7 @@
 int main()
 {
     sn::Log::get().openFile("simplenes.log");
-    sn::Log::get().setLevel(sn::CpuTrace);
+    sn::Log::get().setLevel(sn::Info);
 
     sn::Emulator emulator;
 

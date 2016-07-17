@@ -15,6 +15,7 @@ namespace sn
         m_bus.setWriteCallback(PPUCTRL, [&](Byte b) {m_ppu.control(b);});
         m_bus.setWriteCallback(PPUMASK, [&](Byte b) {m_ppu.setMask(b);});
         m_bus.setWriteCallback(OAMADDR, [&](Byte b) {m_ppu.setOAMAddress(b);});
+        m_bus.setWriteCallback(PPUADDR, [&](Byte b) {m_ppu.setDataAddress(b);});
         m_bus.setWriteCallback(PPUSCROL, [&](Byte b) {m_ppu.setScroll(b);});
         m_bus.setWriteCallback(PPUDATA, [&](Byte b) {m_ppu.setData(b);});
 
@@ -30,38 +31,37 @@ namespace sn
             return;
 
         m_cpu.reset(0xc000);
-        //m_ppu.reset();
+        m_ppu.reset();
 
-//         m_window.create(sf::VideoMode(256 * 2, 240 * 2), "SimpleNES", sf::Style::Titlebar | sf::Style::Close);
-//
-//         sf::Event event;
-//         while (m_window.isOpen())        //The Loop (R) (tm)
-//         {
-//             while (m_window.pollEvent(event))
-//             {
-//                 if (event.type == sf::Event::Closed ||
-//                 (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape))
-//                     m_window.close();
-//             }
-//
-//             auto elapsed_time = std::chrono::high_resolution_clock::now() - m_cycleTimer;
-//             m_cycleTimer = std::chrono::high_resolution_clock::now();
+        m_window.create(sf::VideoMode(256 * 2, 240 * 2), "SimpleNES", sf::Style::Titlebar | sf::Style::Close);
 
-            int cycles = 20300;
-            while (/*elapsed_time > m_cpuCycleDuration*/cycles > 0)
+        sf::Event event;
+        while (m_window.isOpen())        //The Loop (R) (tm)
+        {
+            while (m_window.pollEvent(event))
             {
-//                 m_ppu.step();
-//                 m_ppu.step();
-//                 m_ppu.step();
+                if (event.type == sf::Event::Closed ||
+                (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape))
+                    m_window.close();
+            }
+
+            auto elapsed_time = std::chrono::high_resolution_clock::now() - m_cycleTimer;
+            m_cycleTimer = std::chrono::high_resolution_clock::now();
+
+            while (elapsed_time > m_cpuCycleDuration)
+            {
+                m_ppu.step();
+                m_ppu.step();
+                m_ppu.step();
 
                 m_cpu.step();
                 --cycles;
-//                 elapsed_time -= m_cpuCycleDuration;
+                elapsed_time -= m_cpuCycleDuration;
             }
-/*
+
             m_window.draw(m_emulatorScreen);
             m_window.display();
-        }*/
+        }
     }
 
 }
