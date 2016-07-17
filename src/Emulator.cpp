@@ -32,22 +32,22 @@ namespace sn
         m_cpu.reset(0xc000);
         //m_ppu.reset();
 
-        m_window.create(sf::VideoMode(256 * 2, 240 * 2), "SimpleNES", sf::Style::Titlebar | sf::Style::Close);
+//         m_window.create(sf::VideoMode(256 * 2, 240 * 2), "SimpleNES", sf::Style::Titlebar | sf::Style::Close);
+//
+//         sf::Event event;
+//         while (m_window.isOpen())        //The Loop (R) (tm)
+//         {
+//             while (m_window.pollEvent(event))
+//             {
+//                 if (event.type == sf::Event::Closed ||
+//                 (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape))
+//                     m_window.close();
+//             }
+//
+//             auto elapsed_time = std::chrono::high_resolution_clock::now() - m_cycleTimer;
+//             m_cycleTimer = std::chrono::high_resolution_clock::now();
 
-        sf::Event event;
-        while (m_window.isOpen())        //The Loop (R) (tm)
-        {
-            while (m_window.pollEvent(event))
-            {
-                if (event.type == sf::Event::Closed ||
-                (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape))
-                    m_window.close();
-            }
-
-            auto elapsed_time = std::chrono::high_resolution_clock::now() - m_cycleTimer;
-            m_cycleTimer = std::chrono::high_resolution_clock::now();
-
-            int cycles = 5000;
+            int cycles = 5300;
             while (/*elapsed_time > m_cpuCycleDuration*/cycles > 0)
             {
 //                 m_ppu.step();
@@ -56,12 +56,12 @@ namespace sn
 
                 m_cpu.step();
                 --cycles;
-                elapsed_time -= m_cpuCycleDuration;
+//                 elapsed_time -= m_cpuCycleDuration;
             }
-
+/*
             m_window.draw(m_emulatorScreen);
             m_window.display();
-        }
+        }*/
     }
 
 }

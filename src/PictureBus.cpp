@@ -1,5 +1,5 @@
 #include "PictureBus.h"
-#include <iostream>
+#include "Log.h"
 
 namespace sn
 {
@@ -45,7 +45,7 @@ namespace sn
             if (m_usesCharacterRAM)
                 m_characterRAM[addr] = value;
             else
-                std::cout << "Read-only memory write attempt at " << addr << std::endl;
+                LOG(Log::Info) << "Read-only memory write attempt at " << addr << std::endl;
         }
         else if (addr < 0x3eff) //Name tables upto 0x3000, then mirrored upto 3eff
         {
@@ -83,12 +83,12 @@ namespace sn
             case Vertical:
                 NameTable0 = NameTable2 = 0;
                 NameTable1 = NameTable3 = 0x400;
-                std::cout << "Vertical Name Table mirroring set." << std::endl;
+                LOG(Log::Info) << "Vertical Name Table mirroring set." << std::endl;
                 break;
             case Horizontal:
                 NameTable0 = NameTable1 = 0;
                 NameTable2 = NameTable3 = 0x400;
-                std::cout << "Horizontal Name Table mirroring set." << std::endl;
+                LOG(Log::Info) << "Horizontal Name Table mirroring set." << std::endl;
                 break;
             default:
                 std::cerr << "Unsupported Name Table mirroring." << std::endl;

@@ -1,11 +1,7 @@
 #include "CPU.h"
 #include "CPUOpcodes.h"
-#include <iostream>
+#include "Log.h"
 #include <iomanip>
-
-#define LINE_LOG {std::cout << __LINE__ << " was executed" << std::endl;}
-#define PRINT_VAR(x) {std::cout << #x << ": " << x << std::endl;}
-#define PRINT_BYTE(x) {std::cout << #x << ": " << int(x) << std::endl;}
 
 namespace sn
 {
@@ -20,10 +16,10 @@ namespace sn
 
     void CPU::reset(Address start_addr)
     {
-        m_skipCycles = 0;
-        m_cycles = 0;
+        m_skipCycles = m_cycles = 0;
         r_A = r_X = r_Y = 0;
         f_I = true;
+        f_C = f_D = f_N = f_V = f_Z = false;
         r_PC = start_addr;
         r_SP = 0xfd; //documented startup state
    }
@@ -89,39 +85,44 @@ namespace sn
     }
     void CPU::step()
     {
-       if (m_skipCycles-- > 0)
-           return;
+        ++m_cycles;
+        if (m_skipCycles-- > 0)
+            return;
 
-        int psw =    f_N << 7 |
+        m_skipCycles = 0;
+        int psw = 0;
+        psw =        f_N << 7 |
                      f_V << 6 |
                        1 << 5 |
                      f_D << 3 |
                      f_I << 2 |
                      f_Z << 1 |
                      f_C;
-        std::cout << std::hex << std::setfill('0') << std::uppercase
-                  << std::setw(4) << int(r_PC)
+
+        LOG(Log::CpuTrace) << std::hex << std::setfill('0') << std::uppercase
+                  << std::setw(4) << +r_PC
                   << "    "
-                  << std::setw(2) << int(read(r_PC))
+                  << std::setw(2) << +read(r_PC)
                   << "    "
-                  << "A:"   << std::setw(2) << int(r_A) << " "
-                  << "X:"   << std::setw(2) << int(r_X) << " "
-                  << "Y:"   << std::setw(2) << int(r_Y) << " "
+                  << "A:"   << std::setw(2) << +r_A << " "
+                  << "X:"   << std::setw(2) << +r_X << " "
+                  << "Y:"   << std::setw(2) << +r_Y << " "
                   << "P:"   << std::setw(2) << psw << " "
-                  << "SP:"  << std::setw(2) << int(r_SP) /* << " "
-                  << "CYC:" << std::setw(3) << std::setfill(' ') << std::dec << m_Cycles*/
+                  << "SP:"  << std::setw(2) << +r_SP  << " "
+                  << "CYC:" << std::setw(3) << std::setfill(' ') << std::dec << (m_cycles*3)%341
                   << std::endl;
+
         Byte opcode = read(r_PC++);
 
         auto CycleLength = OperationCycles[opcode];
+
         //Using short-circuit evaluation, call the other function only if the first failed
         //ExecuteImplied must be called first and ExecuteBranch must be before ExecuteType0
         if (CycleLength && (executeImplied(opcode) || executeBranch(opcode) ||
                         executeType1(opcode) || executeType2(opcode) || executeType0(opcode)))
         {
             m_skipCycles += CycleLength;
-            m_cycles += m_skipCycles;
-            m_cycles %= 340; //compatibility with Nintendulator log
+            //m_cycles %= 340; //compatibility with Nintendulator log
             //m_skipCycles = 0; //for TESTING
         }
         else

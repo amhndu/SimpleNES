@@ -1,6 +1,6 @@
 #include "Cartridge.h"
+#include "Log.h"
 #include <fstream>
-#include <iostream>
 #include <string>
 
 namespace sn
@@ -47,7 +47,7 @@ namespace sn
         }
 
         std::vector<Byte> header;
-        std::cout << "Reading ROM from path: " << path << std::endl;
+        LOG(Log::Info) << "Reading ROM from path: " << path << std::endl;
 
         //Header
         header.resize(0x10);
@@ -65,10 +65,10 @@ namespace sn
             return false;
         }
 
-        std::cout << "Reading header, it dictates: \n";
+        LOG(Log::Info) << "Reading header, it dictates: \n";
 
         Byte banks = header[4];
-        std::cout << "PRG-ROM Banks: " << +banks << std::endl;
+        LOG(Log::Info) << "PRG-ROM Banks: " << +banks << std::endl;
         if (!banks)
         {
             std::cerr << "ROM has no PRG-ROM banks. Loading ROM failed." << std::endl;
@@ -76,16 +76,16 @@ namespace sn
         }
 
         Byte vbanks = header[5];
-        std::cout << "CHR-ROM Banks: " << +vbanks << std::endl;
+        LOG(Log::Info) << "CHR-ROM Banks: " << +vbanks << std::endl;
 
         m_nameTableMirroring = header[6] & 0x9;
-        std::cout << "Name Table Mirroring: " << +m_nameTableMirroring << std::endl;
+        LOG(Log::Info) << "Name Table Mirroring: " << +m_nameTableMirroring << std::endl;
 
         m_mapper = ((header[6] >> 4) & 0xf) | (header[7] & 0xf0);
-        std::cout << "Mapper #: " << +m_mapper << std::endl;
+        LOG(Log::Info) << "Mapper #: " << +m_mapper << std::endl;
 
         m_extendedRAM = header[6] & 0x2;
-        std::cout << "Extended RAM: " << std::boolalpha << m_extendedRAM << std::endl;
+        LOG(Log::Info) << "Extended RAM: " << std::boolalpha << m_extendedRAM << std::endl;
 
         if (header[6] & 0x4)
         {
@@ -99,7 +99,7 @@ namespace sn
             return false;
         }
         else
-            std::cout << "ROM is NTSC compatible.\n";
+            LOG(Log::Info) << "ROM is NTSC compatible.\n";
 
         //PRG-ROM
         m_PRG_ROM.resize(0x4000 * banks);
