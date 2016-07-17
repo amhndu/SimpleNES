@@ -2,7 +2,7 @@
 
 namespace sn
 {
-    void VirtualScreen::create(uint w, uint h, uint pixel_size, sf::Color default_color)
+    void VirtualScreen::create(uint w, uint h, float pixel_size, sf::Color default_color)
     {
         m_vertices.resize(w * h * 6);
         m_screenSize = {w, h};
@@ -20,8 +20,7 @@ namespace sn
     void VirtualScreen::setPixel(std::size_t x, std::size_t y, sf::Color color)
     {
         auto index = (x * m_screenSize.y + y) * 6;
-        auto pixel_size_f = static_cast<float>(m_pixelSize); //rid us of casting in each line we use it
-        sf::Vector2f coord2d (x * pixel_size_f, y * pixel_size_f);
+        sf::Vector2f coord2d (x * m_pixelSize, y * m_pixelSize);
 
         //Triangle-1
         //top-left
@@ -29,20 +28,20 @@ namespace sn
         m_vertices[index].color    = color;
 
         //top-right
-        m_vertices[index + 1].position = coord2d + sf::Vector2f{pixel_size_f, 0};
+        m_vertices[index + 1].position = coord2d + sf::Vector2f{m_pixelSize, 0};
         m_vertices[index + 1].color = color;
 
         //bottom-right
-        m_vertices[index + 2].position = coord2d + sf::Vector2f{pixel_size_f, pixel_size_f};
+        m_vertices[index + 2].position = coord2d + sf::Vector2f{m_pixelSize, m_pixelSize};
         m_vertices[index + 2].color = color;
 
         //Triangle-2
         //bottom-right
-        m_vertices[index + 3].position = coord2d + sf::Vector2f{pixel_size_f, pixel_size_f};
+        m_vertices[index + 3].position = coord2d + sf::Vector2f{m_pixelSize, m_pixelSize};
         m_vertices[index + 3].color = color;
 
         //bottom-left
-        m_vertices[index + 4].position = coord2d + sf::Vector2f{0, pixel_size_f};
+        m_vertices[index + 4].position = coord2d + sf::Vector2f{0, m_pixelSize};
         m_vertices[index + 4].color = color;
 
         //top-left
