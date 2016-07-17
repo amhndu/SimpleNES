@@ -47,7 +47,7 @@ namespace sn
 //             auto elapsed_time = std::chrono::high_resolution_clock::now() - m_cycleTimer;
 //             m_cycleTimer = std::chrono::high_resolution_clock::now();
 
-            int cycles = 5300;
+            int cycles = 20300;
             while (/*elapsed_time > m_cpuCycleDuration*/cycles > 0)
             {
 //                 m_ppu.step();

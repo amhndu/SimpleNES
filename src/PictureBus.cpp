@@ -45,7 +45,7 @@ namespace sn
             if (m_usesCharacterRAM)
                 m_characterRAM[addr] = value;
             else
-                LOG(Log::Info) << "Read-only memory write attempt at " << addr << std::endl;
+                LOG(Info) << "Read-only memory write attempt at " << addr << std::endl;
         }
         else if (addr < 0x3eff) //Name tables upto 0x3000, then mirrored upto 3eff
         {
@@ -70,7 +70,7 @@ namespace sn
         if (!cart)
         {
             return false;
-            std::cerr << "Cartride argument is nullptr" << std::endl;
+            LOG(Error) << "Cartride argument is nullptr" << std::endl;
         }
 
         m_cartride = cart;
@@ -83,15 +83,15 @@ namespace sn
             case Vertical:
                 NameTable0 = NameTable2 = 0;
                 NameTable1 = NameTable3 = 0x400;
-                LOG(Log::Info) << "Vertical Name Table mirroring set." << std::endl;
+                LOG(Info) << "Vertical Name Table mirroring set." << std::endl;
                 break;
             case Horizontal:
                 NameTable0 = NameTable1 = 0;
                 NameTable2 = NameTable3 = 0x400;
-                LOG(Log::Info) << "Horizontal Name Table mirroring set." << std::endl;
+                LOG(Info) << "Horizontal Name Table mirroring set." << std::endl;
                 break;
             default:
-                std::cerr << "Unsupported Name Table mirroring." << std::endl;
+                LOG(Error) << "Unsupported Name Table mirroring." << std::endl;
                 return false;
         }
 

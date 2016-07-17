@@ -42,70 +42,70 @@ namespace sn
         std::ifstream romFile (path);
         if (!romFile)
         {
-            std::cerr << "Could not open ROM file" << std::endl;
+            LOG(Error) << "Could not open ROM file" << std::endl;
             return false;
         }
 
         std::vector<Byte> header;
-        LOG(Log::Info) << "Reading ROM from path: " << path << std::endl;
+        LOG(Info) << "Reading ROM from path: " << path << std::endl;
 
         //Header
         header.resize(0x10);
         if (!romFile.read(reinterpret_cast<char*>(&header[0]), 0x10))
         {
-            std::cerr << "Reading iNES header failed." << std::endl;
+            LOG(Error) << "Reading iNES header failed." << std::endl;
             return false;
         }
         if (std::string{&header[0], &header[4]} != "NES\x1A")
         {
-            std::cerr << "Not a valid iNES image. Magic number: "
+            LOG(Error) << "Not a valid iNES image. Magic number: "
                       << std::hex << header[0] << " "
                       << header[1] << " " << header[2] << " " << int(header[3]) << std::endl
                       << "Valid magic number : N E S 1a" << std::endl;
             return false;
         }
 
-        LOG(Log::Info) << "Reading header, it dictates: \n";
+        LOG(Info) << "Reading header, it dictates: \n";
 
         Byte banks = header[4];
-        LOG(Log::Info) << "PRG-ROM Banks: " << +banks << std::endl;
+        LOG(Info) << "PRG-ROM Banks: " << +banks << std::endl;
         if (!banks)
         {
-            std::cerr << "ROM has no PRG-ROM banks. Loading ROM failed." << std::endl;
+            LOG(Error) << "ROM has no PRG-ROM banks. Loading ROM failed." << std::endl;
             return false;
         }
 
         Byte vbanks = header[5];
-        LOG(Log::Info) << "CHR-ROM Banks: " << +vbanks << std::endl;
+        LOG(Info) << "CHR-ROM Banks: " << +vbanks << std::endl;
 
         m_nameTableMirroring = header[6] & 0x9;
-        LOG(Log::Info) << "Name Table Mirroring: " << +m_nameTableMirroring << std::endl;
+        LOG(Info) << "Name Table Mirroring: " << +m_nameTableMirroring << std::endl;
 
         m_mapper = ((header[6] >> 4) & 0xf) | (header[7] & 0xf0);
-        LOG(Log::Info) << "Mapper #: " << +m_mapper << std::endl;
+        LOG(Info) << "Mapper #: " << +m_mapper << std::endl;
 
         m_extendedRAM = header[6] & 0x2;
-        LOG(Log::Info) << "Extended RAM: " << std::boolalpha << m_extendedRAM << std::endl;
+        LOG(Info) << "Extended RAM: " << std::boolalpha << m_extendedRAM << std::endl;
 
         if (header[6] & 0x4)
         {
-            std::cerr << "Trainer is not supported." << std::endl;
+            LOG(Error) << "Trainer is not supported." << std::endl;
             return false;
         }
 
         if ((header[0xA] & 0x3) == 0x2 || (header[0xA] & 0x1))
         {
-            std::cerr << "PAL ROM not supported." << std::endl;
+            LOG(Error) << "PAL ROM not supported." << std::endl;
             return false;
         }
         else
-            LOG(Log::Info) << "ROM is NTSC compatible.\n";
+            LOG(Info) << "ROM is NTSC compatible.\n";
 
         //PRG-ROM
         m_PRG_ROM.resize(0x4000 * banks);
         if (!romFile.read(reinterpret_cast<char*>(&m_PRG_ROM[0]), 0x4000 * banks))
         {
-            std::cerr << "Reading PRG-ROM from image file failed." << std::endl;
+            LOG(Error) << "Reading PRG-ROM from image file failed." << std::endl;
             return false;
         }
 
@@ -115,7 +115,7 @@ namespace sn
             m_CHR_ROM.reserve(0x2000 * vbanks);
             if (!romFile.read(reinterpret_cast<char*>(&m_CHR_ROM[0]), 0x2000 * vbanks))
             {
-                std::cerr << "Reading CHR-ROM from image file failed." << std::endl;
+                LOG(Error) << "Reading CHR-ROM from image file failed." << std::endl;
                 return false;
             }
         }

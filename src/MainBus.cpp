@@ -1,6 +1,6 @@
 #include "MainBus.h"
 #include <cstring>
-#include <iostream>
+#include "Log.h"
 
 namespace sn
 {
@@ -24,12 +24,12 @@ namespace sn
                     //Second object is the pointer to the function object
                     //Dereference the function pointer and call it
                 else
-                    std::cerr << "No callback registered for IORegister: " << int(addr & 0x4007) << std::endl;
+                    LOG(Error) << "No callback registered for IORegister: " << int(addr & 0x4007) << std::endl;
             }
         }
         else if (addr < 0x6000)
         {
-            std::cerr << "Expansion ROM read attempted. This is currently unsupported" << std::endl;
+            LOG(Error) << "Expansion ROM read attempted. This is currently unsupported" << std::endl;
         }
         else if (addr < 0x8000)
         {
@@ -62,12 +62,12 @@ namespace sn
                     //Second object is the pointer to the function object
                     //Dereference the function pointer and call it
                 else
-                    std::cerr << "No callback register for IORegister: " << int(addr & 0x4007) << std::endl;
+                    LOG(Error) << "No callback register for IORegister: " << int(addr & 0x4007) << std::endl;
             }
         }
         else if (addr < 0x6000)
         {
-            std::cerr << "Expansion ROM access attempted. This is currently unsupported" << std::endl;
+            LOG(Error) << "Expansion ROM access attempted. This is currently unsupported" << std::endl;
         }
         else if (addr < 0x8000)
         {
@@ -78,7 +78,7 @@ namespace sn
         }
         else
         {
-            std::cerr << "ROM memory write attempt\n" << std::endl;
+            LOG(Error) << "ROM memory write attempt\n" << std::endl;
         }
     }
 
@@ -89,7 +89,7 @@ namespace sn
         auto rom = cart->getROM();
         if (m_mapper != 0)
         {
-            std::cerr << "Mapper not supported" << std::endl;
+            LOG(Error) << "Mapper not supported" << std::endl;
             return false;
         }
 
@@ -111,7 +111,7 @@ namespace sn
     {
         if (!callback)
         {
-            std::cerr << "callback argument is nullptr" << std::endl;
+            LOG(Error) << "callback argument is nullptr" << std::endl;
             return;
         }
         m_writeCallbacks.insert({reg, callback});
@@ -121,7 +121,7 @@ namespace sn
     {
         if (!callback)
         {
-            std::cerr << "callback argument is nullptr" << std::endl;
+            LOG(Error) << "callback argument is nullptr" << std::endl;
             return;
         }
         m_readCallbacks.insert({reg, callback});
