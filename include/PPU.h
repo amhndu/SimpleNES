@@ -7,6 +7,14 @@
 
 namespace sn
 {
+    const int ScanlineCycleLength = 341;
+    const int ScanlineEndCycle = 340;
+    const int VisibleScanlines = 240;
+    const int ScanlineVisibleDots = 256;
+    const int FrameEndScanline = 261;
+
+    const int AttributeOffset = 0x3C0;
+
     class PPU
     {
         public:
@@ -27,8 +35,20 @@ namespace sn
             Byte getData();
             Byte getOAMData();
         private:
+            Byte read(Address addr);
             PictureBus &m_bus;
             VirtualScreen &m_screen;
+
+            enum State
+            {
+                PreRender,
+                Render,
+                PostRender,
+                VerticalBlank
+            } m_pipelineState;
+            int m_cycle;
+            int m_scanline;
+            bool m_evenFrame;
 
             bool m_vblank;
             bool m_sprZeroHit;
@@ -38,17 +58,20 @@ namespace sn
             //Setup flags and variables
             bool m_longSprites;
             bool m_vblankInterrupt;
+
             bool m_greyscaleMode;
             bool m_showSprites;
             bool m_showBackground;
+
             enum CharacterPage
             {
                 Low,
                 High,
             } m_bgPage,
               m_sprPage;
+
             Address m_dataAddrIncrement;
-            Byte    m_baseNameTable;
+            Address m_baseNameTable;
     };
 }
 

@@ -30,13 +30,13 @@ namespace sn
             !m_pictureBus.loadCartridge(&m_cartridge))
             return;
 
-        m_cpu.reset(0xc000);
+        m_cpu.reset();
         m_ppu.reset();
 
         m_window.create(sf::VideoMode(256 * 2, 240 * 2), "SimpleNES", sf::Style::Titlebar | sf::Style::Close);
 
         sf::Event event;
-        while (m_window.isOpen())        //The Loop (R) (tm)
+        while (m_window.isOpen())
         {
             while (m_window.pollEvent(event))
             {
@@ -55,7 +55,6 @@ namespace sn
                 m_ppu.step();
 
                 m_cpu.step();
-                --cycles;
                 elapsed_time -= m_cpuCycleDuration;
             }
 

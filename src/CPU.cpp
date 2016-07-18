@@ -85,11 +85,10 @@ namespace sn
     }
     void CPU::step()
     {
+        ++m_cycles;
+        
         if (m_skipCycles-- > 1)
-        {
-            ++m_cycles;
             return;
-        }
 
         m_skipCycles = 0;
 
@@ -110,7 +109,7 @@ namespace sn
                   << "Y:"   << std::setw(2) << +r_Y << " "
                   << "P:"   << std::setw(2) << psw << " "
                   << "SP:"  << std::setw(2) << +r_SP  << " "
-                  << "CYC:" << std::setw(3) << std::setfill(' ') << std::dec << (m_cycles * 3) % 341
+                  << "CYC:" << std::setw(3) << std::setfill(' ') << std::dec << ((m_cycles - 1) * 3) % 341
                   << std::endl;
 
         Byte opcode = read(r_PC++);
@@ -130,8 +129,6 @@ namespace sn
         {
             LOG(Error) << "Unrecognized opcode: " << std::hex << +opcode << std::endl;
         }
-
-        ++m_cycles;
     }
 
     bool CPU::executeImplied(Byte opcode)
