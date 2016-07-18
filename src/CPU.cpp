@@ -86,7 +86,7 @@ namespace sn
     void CPU::step()
     {
         ++m_cycles;
-        
+
         if (m_skipCycles-- > 1)
             return;
 
@@ -389,7 +389,7 @@ namespace sn
                 case ADC:
                     {
                         Byte operand = read(location);
-                        uint16_t sum = r_A + operand + f_C;
+                        std::uint16_t sum = r_A + operand + f_C;
                         //Carry forward or UNSIGNED overflow
                         f_C = sum & 0x100;
                         //SIGNED overflow, would only happen if the sign of sum is
@@ -409,7 +409,7 @@ namespace sn
                 case SBC:
                     {
                         //High carry means "no borrow", thus negate and subtract
-                        uint16_t subtrahend = read(location),
+                        std::uint16_t subtrahend = read(location),
                                  diff = r_A - subtrahend - !f_C;
                         //if the ninth bit is 1, the resulting number is negative => borrow => low carry
                         f_C = !(diff & 0x100);
@@ -422,7 +422,7 @@ namespace sn
                     break;
                 case CMP:
                     {
-                        uint16_t diff = r_A - read(location);
+                        std::uint16_t diff = r_A - read(location);
                         f_C = !(diff & 0x100);
                         setZN(diff);
                     }
@@ -486,7 +486,7 @@ namespace sn
                     return false;
             }
 
-            uint16_t operand = 0;
+            std::uint16_t operand = 0;
             switch (op)
             {
                 case ASL:
@@ -590,7 +590,7 @@ namespace sn
                 default:
                     return false;
             }
-            uint16_t operand = 0;
+            std::uint16_t operand = 0;
             switch (static_cast<Operation0>((opcode & OperationMask) >> OperationShift))
             {
                 case BIT:
@@ -608,14 +608,14 @@ namespace sn
                     break;
                 case CPY:
                     {
-                        uint16_t diff = r_Y - read(location);
+                        std::uint16_t diff = r_Y - read(location);
                         f_C = !(diff & 0x100);
                         setZN(diff);
                     }
                     break;
                 case CPX:
                     {
-                        uint16_t diff = r_X - read(location);
+                        std::uint16_t diff = r_X - read(location);
                         f_C = !(diff & 0x100);
                         setZN(diff);
                     }

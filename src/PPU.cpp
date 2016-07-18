@@ -35,17 +35,17 @@ namespace sn
             case Render:
                 if (m_showBackground && m_cycle > 0 && m_cycle <= ScanlineVisibleDots)
                 {
-                    //fetch nametable
+                    //fetch tile number from nametable
                     Address addr = m_baseNameTable + m_cycle / 8 + m_scanline * VisibleScanlines / 8;
                     Byte tile = read(addr);
 
-                    //fetch pattern
+                    //fetch pattern and calculate lower two bits
                     addr = tile * 16 + m_scanline % 8;
                     if (m_bgPage == High) addr += 0x1000;
                     Byte color = (read(addr) >> (m_cycle % 8)) & 1;
                     color |= ((read(addr + 8) >> (m_cycle % 8)) & 1) << 1;
 
-                    //fetch attribute
+                    //fetch attribute and calculate higher two bits of palette
                     addr = m_baseNameTable + AttributeOffset + m_cycle / 32 + m_scanline * 8 / 32;
                     Byte attribute = read(addr);
                     int shift = (((m_scanline % 32) / 16) << 1 + (m_cycle % 32) / 16) << 1;

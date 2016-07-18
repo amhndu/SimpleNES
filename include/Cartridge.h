@@ -2,11 +2,12 @@
 #define CARTRIDGE_H
 #include <vector>
 #include <string>
+#include <cstdint>
 
 namespace sn
 {
-    using Byte = uint8_t;
-    using Address = uint16_t;
+    using Byte = std::uint8_t;
+    using Address = std::uint16_t;
 
     class Cartridge
     {
