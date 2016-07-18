@@ -3,6 +3,7 @@
 #include "PictureBus.h"
 #include "MainBus.h"
 #include "VirtualScreen.h"
+#include "PaletteColors.h"
 
 namespace sn
 {
