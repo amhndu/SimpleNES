@@ -99,7 +99,11 @@ namespace sn
         {
             m_usesCharacterRAM = true;
             m_characterRAM.resize(0x2000);
+            LOG(Info) << "Uses character RAM" << std::endl;
         }
+        else
+            m_usesCharacterRAM = false;
+        
         return true;
     }
 

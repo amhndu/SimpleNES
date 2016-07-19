@@ -85,7 +85,7 @@ namespace sn
         LOG(Info) << "Mapper #: " << +m_mapper << std::endl;
 
         m_extendedRAM = header[6] & 0x2;
-        LOG(Info) << "Extended RAM: " << std::boolalpha << m_extendedRAM << std::endl;
+        LOG(Info) << "Extended (CPU) RAM: " << std::boolalpha << m_extendedRAM << std::endl;
 
         if (header[6] & 0x4)
         {
@@ -112,7 +112,7 @@ namespace sn
         //CHR-ROM
         if (vbanks)
         {
-            m_CHR_ROM.reserve(0x2000 * vbanks);
+            m_CHR_ROM.resize(0x2000 * vbanks);
             if (!romFile.read(reinterpret_cast<char*>(&m_CHR_ROM[0]), 0x2000 * vbanks))
             {
                 LOG(Error) << "Reading CHR-ROM from image file failed." << std::endl;

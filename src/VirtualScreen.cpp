@@ -47,6 +47,9 @@ namespace sn
     void VirtualScreen::setPixel(std::size_t x, std::size_t y, sf::Color color)
     {
         auto index = (x * m_screenSize.y + y) * 6;
+        if (index >= m_vertices.getVertexCount())
+            return;
+        
         sf::Vector2f coord2d (x * m_pixelSize, y * m_pixelSize);
 
         //Triangle-1

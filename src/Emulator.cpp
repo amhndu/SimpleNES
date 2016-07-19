@@ -1,4 +1,5 @@
 #include "Emulator.h"
+#include "Log.h"
 
 namespace sn
 {
@@ -8,17 +9,20 @@ namespace sn
         m_cycleTimer(),
         m_cpuCycleDuration(559)
     {
-        m_bus.setReadCallback(PPUSTATUS, [&](void) {return m_ppu.getStatus();});
-        m_bus.setReadCallback(PPUDATA, [&](void) {return m_ppu.getData();});
-        m_bus.setReadCallback(OAMDATA, [&](void) {return m_ppu.getOAMData();});
+        if(!m_bus.setReadCallback(PPUSTATUS, [&](void) {return m_ppu.getStatus();}) ||
+            !m_bus.setReadCallback(PPUDATA, [&](void) {return m_ppu.getData();}) ||
+            !m_bus.setReadCallback(OAMDATA, [&](void) {return m_ppu.getOAMData();}))
+            LOG(Error) << "Critical error: Failed to set I/O callbacks" << std::endl;
 
-        m_bus.setWriteCallback(PPUCTRL, [&](Byte b) {m_ppu.control(b);});
-        m_bus.setWriteCallback(PPUMASK, [&](Byte b) {m_ppu.setMask(b);});
-        m_bus.setWriteCallback(OAMADDR, [&](Byte b) {m_ppu.setOAMAddress(b);});
-        m_bus.setWriteCallback(PPUADDR, [&](Byte b) {m_ppu.setDataAddress(b);});
-        m_bus.setWriteCallback(PPUSCROL, [&](Byte b) {m_ppu.setScroll(b);});
-        m_bus.setWriteCallback(PPUDATA, [&](Byte b) {m_ppu.setData(b);});
+        if(!m_bus.setWriteCallback(PPUCTRL, [&](Byte b) {m_ppu.control(b);}) ||
+            !m_bus.setWriteCallback(PPUMASK, [&](Byte b) {m_ppu.setMask(b);}) ||
+            !m_bus.setWriteCallback(OAMADDR, [&](Byte b) {m_ppu.setOAMAddress(b);}) ||
+            !m_bus.setWriteCallback(PPUADDR, [&](Byte b) {m_ppu.setDataAddress(b);}) ||
+            !m_bus.setWriteCallback(PPUSCROL, [&](Byte b) {m_ppu.setScroll(b);}) ||
+            !m_bus.setWriteCallback(PPUDATA, [&](Byte b) {m_ppu.setData(b);}))
+            LOG(Error) << "Critical error: Failed to set I/O callbacks" << std::endl;
 
+        m_ppu.setInterruptCallback([&](){ m_cpu.interrupt(CPU::NMI); });
     }
 
     void Emulator::run(std::string rom_path)
@@ -34,8 +38,12 @@ namespace sn
         m_ppu.reset();
 
         m_window.create(sf::VideoMode(256 * 2, 240 * 2), "SimpleNES", sf::Style::Titlebar | sf::Style::Close);
+        m_emulatorScreen.create(ScanlineVisibleDots, VisibleScanlines, 2, sf::Color::Magenta);
+
+        m_cycleTimer = std::chrono::high_resolution_clock::now();
 
         sf::Event event;
+        int step = -1;
         while (m_window.isOpen())
         {
             while (m_window.pollEvent(event))
@@ -43,10 +51,17 @@ namespace sn
                 if (event.type == sf::Event::Closed ||
                 (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape))
                     m_window.close();
+                else if (event.type == sf::Event::KeyReleased && event.key.code == sf::Keyboard::Space && step != -1)
+                    ++step;
+                else if (event.type == sf::Event::KeyReleased && event.key.code == sf::Keyboard::R)
+                {
+                    //Run automatically
+                    m_cycleTimer = std::chrono::high_resolution_clock::now();
+                    step = -1;
+                }
             }
 
             auto elapsed_time = std::chrono::high_resolution_clock::now() - m_cycleTimer;
-            m_cycleTimer = std::chrono::high_resolution_clock::now();
 
             while (elapsed_time > m_cpuCycleDuration)
             {
@@ -55,9 +70,17 @@ namespace sn
                 m_ppu.step();
 
                 m_cpu.step();
+
+//                 if (m_cpu.getPC() == 0xC2E9) //Breakpoint
+//                     step = 1;
+
+                if (step != -1) --step;
                 elapsed_time -= m_cpuCycleDuration;
             }
 
+            m_cycleTimer = std::chrono::high_resolution_clock::now();
+
+            m_window.clear();
             m_window.draw(m_emulatorScreen);
             m_window.display();
         }

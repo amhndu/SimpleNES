@@ -18,13 +18,13 @@ namespace sn
         {
             if (addr < 0x4000) //PPU registers, mirrored
             {
-                auto it = m_readCallbacks.find(static_cast<IORegisters>(addr & 0x4007));
+                auto it = m_readCallbacks.find(static_cast<IORegisters>(addr & 0x2007));
                 if (it != m_readCallbacks.end())
                     return (it -> second)();
                     //Second object is the pointer to the function object
                     //Dereference the function pointer and call it
                 else
-                    LOG(Error) << "No callback registered for IORegister: " << int(addr & 0x4007) << std::endl;
+                    LOG(Error) << "No read callback registered for I/O register at: " << std::hex << +addr << std::endl;
             }
         }
         else if (addr < 0x6000)
@@ -35,7 +35,7 @@ namespace sn
         {
             if (m_cartride->hasExtendedRAM())
             {
-                return m_extRAM[addr - 0x8000];
+                return m_extRAM[addr - 0x6000];
             }
         }
         else
@@ -56,13 +56,13 @@ namespace sn
         {
             if (addr < 0x4000) //PPU registers, mirrored
             {
-                auto it = m_writeCallbacks.find(static_cast<IORegisters>(addr & 0x4007));
+                auto it = m_writeCallbacks.find(static_cast<IORegisters>(addr & 0x2007));
                 if (it != m_writeCallbacks.end())
                     (it -> second)(value);
                     //Second object is the pointer to the function object
                     //Dereference the function pointer and call it
                 else
-                    LOG(Error) << "No callback register for IORegister: " << int(addr & 0x4007) << std::endl;
+                    LOG(Error) << "No write callback registered for I/O register at: " << std::hex << +addr << std::endl;
             }
         }
         else if (addr < 0x6000)
@@ -107,24 +107,24 @@ namespace sn
         return true;
     }
 
-    void MainBus::setWriteCallback(IORegisters reg, std::function<void(Byte)> callback)
+    bool MainBus::setWriteCallback(IORegisters reg, std::function<void(Byte)> callback)
     {
         if (!callback)
         {
             LOG(Error) << "callback argument is nullptr" << std::endl;
-            return;
+            return false;
         }
-        m_writeCallbacks.insert({reg, callback});
+        return m_writeCallbacks.insert({reg, callback}).second;
     }
 
-    void MainBus::setReadCallback(IORegisters reg, std::function<Byte(void)> callback)
+    bool MainBus::setReadCallback(IORegisters reg, std::function<Byte(void)> callback)
     {
         if (!callback)
         {
             LOG(Error) << "callback argument is nullptr" << std::endl;
-            return;
+            return false;
         }
-        m_readCallbacks.insert({reg, callback});
+        return m_readCallbacks.insert({reg, callback}).second;
     }
 
 };

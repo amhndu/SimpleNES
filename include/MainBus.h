@@ -27,8 +27,8 @@ namespace sn
             Byte read(Address addr);
             void write(Address addr, Byte value);
             bool loadCartridge(Cartridge *cart);
-            void setWriteCallback(IORegisters reg, std::function<void(Byte)> callback);
-            void setReadCallback(IORegisters reg, std::function<Byte(void)> callback);
+            bool setWriteCallback(IORegisters reg, std::function<void(Byte)> callback);
+            bool setReadCallback(IORegisters reg, std::function<Byte(void)> callback);
 
         private:
             std::vector<Byte> m_RAM;

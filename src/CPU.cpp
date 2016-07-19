@@ -99,11 +99,11 @@ namespace sn
                      f_I << 2 |
                      f_Z << 1 |
                      f_C;
-        LOG(CpuTrace) << std::hex << std::setfill('0') << std::uppercase
+        LOG_CPU << std::hex << std::setfill('0') << std::uppercase
                   << std::setw(4) << +r_PC
-                  << "    "
+                  << "  "
                   << std::setw(2) << +read(r_PC)
-                  << "    "
+                  << "  "
                   << "A:"   << std::setw(2) << +r_A << " "
                   << "X:"   << std::setw(2) << +r_X << " "
                   << "Y:"   << std::setw(2) << +r_Y << " "
@@ -112,7 +112,7 @@ namespace sn
                   << "CYC:" << std::setw(3) << std::setfill(' ') << std::dec << ((m_cycles - 1) * 3) % 341
                   << std::endl;
 
-        Byte opcode = read(r_PC++);
+       Byte opcode = read(r_PC++);
 
         auto CycleLength = OperationCycles[opcode];
 
@@ -305,11 +305,11 @@ namespace sn
 
             if (branch)
             {
-                Byte offset = read(r_PC++);
+                int8_t offset = read(r_PC++);
                 ++m_skipCycles;
-
-                setPageCrossed(r_PC, r_PC + offset, 2);
-                r_PC += offset;
+                auto newPC = static_cast<Address>(r_PC + offset);
+                setPageCrossed(r_PC, newPC, 2);
+                r_PC = newPC;
             }
             else
                 ++r_PC;

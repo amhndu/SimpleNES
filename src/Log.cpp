@@ -16,9 +16,23 @@ namespace sn
         return *m_instance;
     }
 
-    void Log::openFile(std::string path)
+    std::ostream& Log::getCpuTraceStream()
+    {
+        return std::cout;//m_cpuTrace;
+    }
+    std::ostream& Log::getStream()
+    {
+        return m_logFile;
+    }
+
+    void Log::setLogFile(std::string path)
     {
         m_logFile.open(path);
+    }
+
+    void Log::setCpuTraceFile(std::string path)
+    {
+        m_cpuTrace.open(path);
     }
 
     Log& Log::setLevel(Level level)

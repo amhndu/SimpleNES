@@ -5,18 +5,23 @@ namespace sn
 {
     PPU::PPU(PictureBus& bus, VirtualScreen& screen) :
         m_bus(bus),
-        m_screen(screen),
+        m_screen(screen)
     {}
 
     void PPU::reset()
     {
-        m_longSprites = m_vblankInterrupt = m_greyscaleMode = m_vblank = false;
+        m_longSprites = m_generateInterrupt = m_greyscaleMode = m_vblank = false;
         m_showBackground = m_showSprites = m_evenFrame = true;
         m_bgPage = m_sprPage = Low;
         m_dataAddress = m_cycle = m_scanline = 0;
         m_baseNameTable = 0x2000;
         m_dataAddrIncrement = 1;
         m_pipelineState = PreRender;
+    }
+
+    void PPU::setInterruptCallback(std::function<void(void)> cb)
+    {
+        m_vblankCallback = cb;
     }
 
     void PPU::step()
@@ -35,23 +40,25 @@ namespace sn
             case Render:
                 if (m_showBackground && m_cycle > 0 && m_cycle <= ScanlineVisibleDots)
                 {
+                    int x = m_cycle - 1;
+                    int y = m_scanline;
                     //fetch tile number from nametable
-                    Address addr = m_baseNameTable + m_cycle / 8 + m_scanline * VisibleScanlines / 8;
+                    Address addr = m_baseNameTable + x / 8 + y * (ScanlineVisibleDots / 8);
                     Byte tile = read(addr);
 
                     //fetch pattern and calculate lower two bits
-                    addr = tile * 16 + m_scanline % 8;
+                    addr = tile * 16 + y % 8;
                     if (m_bgPage == High) addr += 0x1000;
-                    Byte color = (read(addr) >> (m_cycle % 8)) & 1;
-                    color |= ((read(addr + 8) >> (m_cycle % 8)) & 1) << 1;
+                    Byte color = (read(addr) >> (x % 8)) & 1; //bit 0 of palette entry
+                    color |= ((read(addr + 8) >> (x % 8)) & 1) << 1; //bit 1
 
                     //fetch attribute and calculate higher two bits of palette
-                    addr = m_baseNameTable + AttributeOffset + m_cycle / 32 + m_scanline * 8 / 32;
+                    addr = m_baseNameTable + AttributeOffset + x / 32 + (y * 8) / 32;
                     Byte attribute = read(addr);
-                    int shift = (((m_scanline % 32) / 16) << 1 + (m_cycle % 32) / 16) << 1;
+                    int shift = ((((y % 32) / 16) << 1) + (x % 32) / 16) << 1;
                     color |= (attribute >> shift) << 2;
 
-                    m_screen.setPixel(m_cycle, m_scanline, sf::Color(colors[read(color)]));
+                    m_screen.setPixel(x, y, sf::Color(colors[read(0x3f00 | color)]));
                 }
 
                 if (m_cycle >= ScanlineEndCycle)
@@ -74,9 +81,12 @@ namespace sn
 
                 break;
             case VerticalBlank:
-                if (m_cycle == 0 && m_vblankInterrupt)
-                    ;//generate NMI
-                if (m_cycle >= ScanlineEndCycle)
+                if (m_cycle == 1)
+                {
+                    m_vblank = true;
+                    if (m_generateInterrupt) m_vblankCallback();
+                }
+                else if (m_cycle >= ScanlineEndCycle)
                 {
                     ++m_scanline;
                     m_cycle = 0;
@@ -86,6 +96,7 @@ namespace sn
                 {
                     m_pipelineState = PreRender;
                     m_scanline = 0;
+                    m_vblank = false;
                 }
 
                 break;
@@ -98,11 +109,15 @@ namespace sn
 
     void PPU::control(Byte ctrl)
     {
-        m_vblankInterrupt = ctrl & 0x80;
+        m_generateInterrupt = ctrl & 0x80;
         m_longSprites = ctrl & 0x20;
         m_bgPage = static_cast<CharacterPage>(!!(ctrl & 0x10));
         m_sprPage = static_cast<CharacterPage>(!!(ctrl & 0x8));
-        m_dataAddrIncrement = 0x8 * (ctrl & 0x4); //result will be 0x20 if bit is set, 0 otherwise
+        if (ctrl & 0x4)
+            m_dataAddrIncrement = 0x20;
+        else
+            m_dataAddrIncrement = 1;
+        //m_dataAddrIncrement = 1 << (5 * (((ctrl & 0x4) >> 2) & 1)); //result will be 0x20 if bit is set, 1 otherwise
         m_baseNameTable = (ctrl & 0x3) * 0x400 + 0x2000;
     }
 
@@ -138,12 +153,13 @@ namespace sn
 
     Byte PPU::getOAMData()
     {
-
+        return 0;
     }
 
     void PPU::setData(Byte data)
     {
         m_bus.write(m_dataAddress, data);
+        m_dataAddress += m_dataAddrIncrement;
     }
 
     void PPU::setOAMAddress(Byte addr)

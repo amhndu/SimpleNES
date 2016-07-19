@@ -16,11 +16,16 @@ namespace sn
             };
 
             CPU(MainBus &mem);
+            
+            //Assuming sequential execution, for asynchronously calling this with Execute, further work needed
+            void interrupt(InterruptType type);
 
             void step();
             void reset();
             void reset(Address start_addr);
             void log();
+
+            Address getPC() { return r_PC; }
         private:
             //Instructions are split into five sets to make decoding easier.
             //These functions return true if they succeed
@@ -29,9 +34,6 @@ namespace sn
             bool executeType0(Byte opcode);
             bool executeType1(Byte opcode);
             bool executeType2(Byte opcode);
-
-            //Assuming sequential execution, for asynchronously calling this with Execute, further work needed
-            void interrupt(InterruptType type);
 
             Byte read(Address addr);
             Address readAddress(Address addr);

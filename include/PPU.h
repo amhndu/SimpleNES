@@ -1,5 +1,6 @@
 #ifndef PPU_H
 #define PPU_H
+#include <functional>
 #include "PictureBus.h"
 #include "MainBus.h"
 #include "VirtualScreen.h"
@@ -22,6 +23,8 @@ namespace sn
             void step();
             void reset();
 
+            void setInterruptCallback(std::function<void(void)> cb);
+
             //Callbacks mapped to CPU address space
             //Addresses written to by the program
             void control(Byte ctrl);
@@ -38,6 +41,8 @@ namespace sn
             Byte read(Address addr);
             PictureBus &m_bus;
             VirtualScreen &m_screen;
+
+            std::function<void(void)> m_vblankCallback;
 
             enum State
             {
@@ -57,7 +62,7 @@ namespace sn
 
             //Setup flags and variables
             bool m_longSprites;
-            bool m_vblankInterrupt;
+            bool m_generateInterrupt;
 
             bool m_greyscaleMode;
             bool m_showSprites;
