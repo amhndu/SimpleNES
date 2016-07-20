@@ -43,7 +43,7 @@ namespace sn
         m_cycleTimer = std::chrono::high_resolution_clock::now();
 
         sf::Event event;
-        int step = -1;
+//         int step = -1;
         while (m_window.isOpen())
         {
             while (m_window.pollEvent(event))
@@ -51,14 +51,14 @@ namespace sn
                 if (event.type == sf::Event::Closed ||
                 (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape))
                     m_window.close();
-                else if (event.type == sf::Event::KeyReleased && event.key.code == sf::Keyboard::Space && step != -1)
-                    ++step;
-                else if (event.type == sf::Event::KeyReleased && event.key.code == sf::Keyboard::R)
-                {
-                    //Run automatically
-                    m_cycleTimer = std::chrono::high_resolution_clock::now();
-                    step = -1;
-                }
+//                 else if (event.type == sf::Event::KeyReleased && event.key.code == sf::Keyboard::Space && step != -1)
+//                     ++step;
+//                 else if (event.type == sf::Event::KeyReleased && event.key.code == sf::Keyboard::R)
+//                 {
+//                     //Run automatically
+//                     m_cycleTimer = std::chrono::high_resolution_clock::now();
+//                     step = -1;
+//                 }
             }
 
             auto elapsed_time = std::chrono::high_resolution_clock::now() - m_cycleTimer;
@@ -74,13 +74,12 @@ namespace sn
 //                 if (m_cpu.getPC() == 0xC2E9) //Breakpoint
 //                     step = 1;
 
-                if (step != -1) --step;
+//                 if (step != -1) --step;
                 elapsed_time -= m_cpuCycleDuration;
             }
 
             m_cycleTimer = std::chrono::high_resolution_clock::now();
 
-            m_window.clear();
             m_window.draw(m_emulatorScreen);
             m_window.display();
         }

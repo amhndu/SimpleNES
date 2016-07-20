@@ -42,15 +42,16 @@ namespace sn
                 {
                     int x = m_cycle - 1;
                     int y = m_scanline;
+
                     //fetch tile number from nametable
-                    Address addr = m_baseNameTable + x / 8 + y * (ScanlineVisibleDots / 8);
+                    Address addr = m_baseNameTable + x / 8 + (y / 8) * (ScanlineVisibleDots / 8);
                     Byte tile = read(addr);
 
                     //fetch pattern and calculate lower two bits
                     addr = tile * 16 + y % 8;
                     if (m_bgPage == High) addr += 0x1000;
-                    Byte color = (read(addr) >> (x % 8)) & 1; //bit 0 of palette entry
-                    color |= ((read(addr + 8) >> (x % 8)) & 1) << 1; //bit 1
+                    Byte color = (read(addr) >> (7 - x % 8)) & 1; //bit 0 of palette entry
+                    color |= ((read(addr + 8) >> (7 - x % 8)) & 1) << 1; //bit 1
 
                     //fetch attribute and calculate higher two bits of palette
                     addr = m_baseNameTable + AttributeOffset + x / 32 + (y * 8) / 32;
