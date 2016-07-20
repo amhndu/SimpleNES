@@ -78,7 +78,7 @@ namespace sn
         Byte vbanks = header[5];
         LOG(Info) << "CHR-ROM Banks: " << +vbanks << std::endl;
 
-        m_nameTableMirroring = header[6] & 0x9;
+        m_nameTableMirroring = header[6] & 0xB;
         LOG(Info) << "Name Table Mirroring: " << +m_nameTableMirroring << std::endl;
 
         m_mapper = ((header[6] >> 4) & 0xf) | (header[7] & 0xf0);
@@ -119,6 +119,8 @@ namespace sn
                 return false;
             }
         }
+        else
+            LOG(Info) << "Cartridge with CHR-RAM." << std::endl;
         return true;
     }
 }

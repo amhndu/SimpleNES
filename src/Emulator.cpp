@@ -62,6 +62,7 @@ namespace sn
             }
 
             auto elapsed_time = std::chrono::high_resolution_clock::now() - m_cycleTimer;
+            m_cycleTimer = std::chrono::high_resolution_clock::now();
 
             while (elapsed_time > m_cpuCycleDuration)
             {
@@ -71,14 +72,13 @@ namespace sn
 
                 m_cpu.step();
 
-//                 if (m_cpu.getPC() == 0xC2E9) //Breakpoint
-//                     step = 1;
+//                 if (m_cpu.getPC() == 0xC3E2) //Breakpoint
+//                     m_window.close();
 
 //                 if (step != -1) --step;
                 elapsed_time -= m_cpuCycleDuration;
             }
 
-            m_cycleTimer = std::chrono::high_resolution_clock::now();
 
             m_window.draw(m_emulatorScreen);
             m_window.display();

@@ -31,6 +31,7 @@ namespace sn
 
         if (type == BRK_) //Add one if BRK, a quirk of 6502
             ++r_PC;
+
         pushStack(r_PC >> 8);
         pushStack(r_PC);
 
@@ -108,9 +109,9 @@ namespace sn
                   << "X:"   << std::setw(2) << +r_X << " "
                   << "Y:"   << std::setw(2) << +r_Y << " "
                   << "P:"   << std::setw(2) << psw << " "
-                  << "SP:"  << std::setw(2) << +r_SP  << " "
+                  << "SP:"  << std::setw(2) << +r_SP  << std::endl;/*" "
                   << "CYC:" << std::setw(3) << std::setfill(' ') << std::dec << ((m_cycles - 1) * 3) % 341
-                  << std::endl;
+                  << std::endl;*/
 
        Byte opcode = read(r_PC++);
 

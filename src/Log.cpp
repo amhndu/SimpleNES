@@ -18,7 +18,7 @@ namespace sn
 
     std::ostream& Log::getCpuTraceStream()
     {
-        return std::cout;//m_cpuTrace;
+        return m_cpuTrace;
     }
     std::ostream& Log::getStream()
     {

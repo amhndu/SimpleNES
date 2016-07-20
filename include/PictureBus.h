@@ -7,9 +7,9 @@ namespace sn
 {
     enum NameTableMirroring
     {
-        Vertical    = 0,
-        Horizontal  = 1,
-        FourScreen  = 1 << 3,
+        Horizontal  = 0,
+        Vertical    = 1,
+        FourScreen  = 8,
     };
 
     class PictureBus

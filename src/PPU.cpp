@@ -29,6 +29,9 @@ namespace sn
         switch (m_pipelineState)
         {
             case PreRender:
+                if (m_cycle == 1)
+                    m_vblank = false;
+
                 if ((m_cycle >= ScanlineEndCycle && m_evenFrame) || //if rendering is on, every other frame is one cycle shorter
                     (m_cycle == ScanlineEndCycle - 1 && !m_evenFrame && m_showBackground && m_showSprites))
                 {
@@ -50,14 +53,15 @@ namespace sn
                     //fetch pattern and calculate lower two bits
                     addr = tile * 16 + y % 8;
                     if (m_bgPage == High) addr += 0x1000;
-                    Byte color = (read(addr) >> (7 - x % 8)) & 1; //bit 0 of palette entry
-                    color |= ((read(addr + 8) >> (7 - x % 8)) & 1) << 1; //bit 1
+                    Byte color = (read(addr) >> (7 ^ x % 8)) & 1; //bit 0 of palette entry
+                    color |= ((read(addr + 8) >> (7 ^ x % 8)) & 1) << 1; //bit 1
 
                     //fetch attribute and calculate higher two bits of palette
-                    addr = m_baseNameTable + AttributeOffset + x / 32 + (y * 8) / 32;
+                    addr = m_baseNameTable + AttributeOffset + x / 32 + ((y / 32) * 8);
                     Byte attribute = read(addr);
                     int shift = ((((y % 32) / 16) << 1) + (x % 32) / 16) << 1;
-                    color |= (attribute >> shift) << 2;
+
+                    color |= ((attribute >> shift) & 0x3) << 2;
 
                     m_screen.setPixel(x, y, sf::Color(colors[read(0x3f00 | color)]));
                 }
@@ -97,7 +101,7 @@ namespace sn
                 {
                     m_pipelineState = PreRender;
                     m_scanline = 0;
-                    m_vblank = false;
+//                     m_vblank = false;
                 }
 
                 break;

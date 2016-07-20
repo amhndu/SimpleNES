@@ -45,7 +45,7 @@ namespace sn
             if (m_usesCharacterRAM)
                 m_characterRAM[addr] = value;
             else
-                LOG(Info) << "Read-only memory write attempt at " << addr << std::endl;
+                LOG(Info) << "Read-only memory write attempt at " << std::hex << addr << std::endl;
         }
         else if (addr < 0x3eff) //Name tables upto 0x3000, then mirrored upto 3eff
         {
@@ -76,19 +76,19 @@ namespace sn
         m_cartride = cart;
 
         auto mirroring = cart->getNameTableMirroring();
-        mirroring = (mirroring & FourScreen) ? FourScreen : mirroring;
+//         mirroring = (mirroring & FourScreen) ? FourScreen : mirroring;
         m_mirroring = static_cast<NameTableMirroring>(mirroring);
         switch (m_mirroring)
         {
-            case Vertical:
-                NameTable0 = NameTable2 = 0;
-                NameTable1 = NameTable3 = 0x400;
-                LOG(Info) << "Vertical Name Table mirroring set." << std::endl;
-                break;
             case Horizontal:
                 NameTable0 = NameTable1 = 0;
                 NameTable2 = NameTable3 = 0x400;
                 LOG(Info) << "Horizontal Name Table mirroring set." << std::endl;
+                break;
+            case Vertical:
+                NameTable0 = NameTable2 = 0;
+                NameTable1 = NameTable3 = 0x400;
+                LOG(Info) << "Vertical Name Table mirroring set." << std::endl;
                 break;
             default:
                 LOG(Error) << "Unsupported Name Table mirroring." << std::endl;
@@ -103,7 +103,7 @@ namespace sn
         }
         else
             m_usesCharacterRAM = false;
-        
+
         return true;
     }
 

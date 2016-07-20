@@ -17,14 +17,24 @@ std::string return_current_time_and_date() //courtesy of SO
     return ss.str();
 }
 
-int main()
+int main(int argc, char** argv)
 {
     sn::Log::get().setLogFile("simplenes.log"/* + return_current_time_and_date()*/);
     sn::Log::get().setCpuTraceFile("sn.cpudump"/* + return_current_time_and_date()*/);
-    sn::Log::get().setLevel(sn::CpuTrace);
+    sn::Log::get().setLevel(sn::Info);
+
+    std::string path;
+
+    if (argc < 2)
+    {
+        std::cout << "No ROM path given." << std::endl;
+        return 0;
+    }
+    else
+        path = argv[1];
 
     sn::Emulator emulator;
 
-    emulator.run("nestest.nes");
+    emulator.run(path);
     return 0;
 }

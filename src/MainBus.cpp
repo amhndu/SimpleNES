@@ -87,6 +87,7 @@ namespace sn
         m_cartride = cart;
         m_mapper = cart->getMapper();
         auto rom = cart->getROM();
+        
         if (m_mapper != 0)
         {
             LOG(Error) << "Mapper not supported" << std::endl;

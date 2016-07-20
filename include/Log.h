@@ -12,7 +12,7 @@
 
 #define LOG(level) \
 if (level > sn::Log::get().getLevel()) ; \
-else sn::Log::get().getStream() << __FILENAME__ << ":" << std::dec << __LINE__ << " -- "
+else sn::Log::get().getStream() << '[' << __FILENAME__ << ":" << std::dec << __LINE__ << "] "
 
 #define LOG_CPU \
 if (sn::CpuTrace != sn::Log::get().getLevel()) ; \
