@@ -29,6 +29,7 @@ namespace sn
 
         TimePoint m_cycleTimer;
 
+        std::chrono::high_resolution_clock::duration m_elapsedTime;
         std::chrono::nanoseconds m_cpuCycleDuration;
     };
 }
