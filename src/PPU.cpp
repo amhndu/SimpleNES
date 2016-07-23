@@ -80,7 +80,7 @@ namespace sn
                         {
                             Byte spr_x =     m_spriteMemory[i * 4 + 3];
 
-                            if (x - spr_x >= 8)
+                            if (0 > x - spr_x || x - spr_x >= 8)
                                 continue;
 
                             Byte spr_y     = m_spriteMemory[i * 4 + 0],
@@ -89,7 +89,7 @@ namespace sn
 
                             int length = (m_longSprites) ? 16 : 8;
 
-                            int x_shift = (x - spr_x) % 8, y_offset = (spr_y - y) % length;
+                            int x_shift = (x - spr_x) % 8, y_offset = (y - spr_y) % length;
 
                             if ((attribute & 0x40) == 0) //If NOT flipping horizontally
                                 x_shift ^= 7; //same as subtracting from 7 since x_shift is < 8
@@ -113,7 +113,8 @@ namespace sn
 
                     Byte paletteAddr = bgColor;
 
-                    if ( (spritesFound && (bgColor & 0x3) == 0 && (sprColor & 0x3) != 0) || (spritesFound && (bgColor & 0x3) != 0 && (sprColor & 0x3) != 0) )
+                    if ( (spritesFound && (bgColor & 0x3) == 0 && (sprColor & 0x3) != 0) ||
+                         (spritesFound && (bgColor & 0x3) != 0 && (sprColor & 0x3) != 0) )
                         paletteAddr = sprColor;
                     //else bgColor
 
