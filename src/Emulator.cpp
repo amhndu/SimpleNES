@@ -58,7 +58,10 @@ namespace sn
             {
                 if (event.type == sf::Event::Closed ||
                 (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape))
+                {
                     m_window.close();
+                    return;
+                }
 //                 else if (event.type == sf::Event::KeyReleased && event.key.code == sf::Keyboard::Space && step != -1)
 //                     ++step;
 //                 else if (event.type == sf::Event::KeyReleased && event.key.code == sf::Keyboard::R)

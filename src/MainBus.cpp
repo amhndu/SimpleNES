@@ -64,6 +64,16 @@ namespace sn
                 else
                     LOG(Error) << "No write callback registered for I/O register at: " << std::hex << +addr << std::endl;
             }
+            else if (addr == OAMDMA)
+            {
+                auto it = m_writeCallbacks.find(static_cast<IORegisters>(OAMDMA));
+                if (it != m_writeCallbacks.end())
+                    (it -> second)(value);
+                    //Second object is the pointer to the function object
+                    //Dereference the function pointer and call it
+                else
+                    LOG(Error) << "No write callback registered for OAMDMA" << std::endl;
+            }
         }
         else if (addr < 0x6000)
         {

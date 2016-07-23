@@ -38,6 +38,11 @@ namespace sn
         return 0;
     }
 
+    Byte PictureBus::readPalette(Byte paletteAddr)
+    {
+        return m_palette[paletteAddr];
+    }
+
     void PictureBus::write(Address addr, Byte value)
     {
         if (addr < 0x2000)
@@ -86,12 +91,12 @@ namespace sn
             case Horizontal:
                 NameTable0 = NameTable1 = 0;
                 NameTable2 = NameTable3 = 0x400;
-                LOG(Info) << "Horizontal Name Table mirroring set." << std::endl;
+                LOG(Info) << "Horizontal Name Table mirroring set. (Vertical Scrolling)" << std::endl;
                 break;
             case Vertical:
                 NameTable0 = NameTable2 = 0;
                 NameTable1 = NameTable3 = 0x400;
-                LOG(Info) << "Vertical Name Table mirroring set." << std::endl;
+                LOG(Info) << "Vertical Name Table mirroring set. (Horizontal Scrolling)" << std::endl;
                 break;
             default:
                 LOG(Error) << "Unsupported Name Table mirroring." << std::endl;

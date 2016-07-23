@@ -20,6 +20,7 @@ namespace sn
             void write(Address addr, Byte value);
 
             bool loadCartridge(Cartridge *cart);
+            Byte readPalette(Byte paletteAddr);
         private:
             std::vector<Byte> m_RAM;
             NameTableMirroring m_mirroring;

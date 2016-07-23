@@ -18,6 +18,8 @@ namespace sn
         m_baseNameTable = 0x2000;
         m_dataAddrIncrement = 1;
         m_pipelineState = PreRender;
+        m_scanlineSprites.reserve(8);
+        m_scanlineSprites.resize(0);
     }
 
     void PPU::setInterruptCallback(std::function<void(void)> cb)
@@ -40,12 +42,15 @@ namespace sn
                     m_cycle = m_scanline = 0;
                 }
                 break;
-
+                //TODO Caching of tile/attribute/nametable data
             case Render:
                 if (m_cycle > 0 && m_cycle <= ScanlineVisibleDots)
                 {
-                    Byte bgColor, sprColor;
-                    enum {Backgroud, Sprite} priority;
+                    Byte bgColor = 0, sprColor = 0;
+
+                    bool spritePriorityHigh = false;
+                    bool spritesFound = false;
+
                     int x = m_cycle - 1;
                     int y = m_scanline;
 
@@ -71,14 +76,79 @@ namespace sn
 
                     if (m_showSprites)
                     {
+                        for (auto i : m_scanlineSprites)
+                        {
+                            Byte spr_x =     m_spriteMemory[i * 4 + 3];
 
+                            if (x - spr_x >= 8)
+                                continue;
+
+                            Byte spr_y     = m_spriteMemory[i * 4 + 0],
+                                 tile      = m_spriteMemory[i * 4 + 1],
+                                 attribute = m_spriteMemory[i * 4 + 2];
+
+                            int length = (m_longSprites) ? 16 : 8;
+
+                            int x_shift = (x - spr_x) % 8, y_offset = (spr_y - y) % length;
+
+                            if ((attribute & 0x40) == 0) //If NOT flipping horizontally
+                                x_shift ^= 7; //same as subtracting from 7 since x_shift is < 8
+                            if ((attribute & 0x80) != 0) //IF flipping vertically
+                                y_offset ^= (length - 1);
+
+                            Address addr = tile * 16 + y_offset;
+                            if (m_sprPage == High) addr += 0x1000;
+
+                            sprColor = 0x10; //Select sprite palette
+                            sprColor |= (read(addr) >> (x_shift)) & 1; //bit 0 of palette entry
+                            sprColor |= ((read(addr + 8) >> (x_shift)) & 1) << 1; //bit 1
+                            sprColor |= (attribute & 0x3) << 2; //bits 2-3
+
+                            spritePriorityHigh = !(attribute & 0x20);
+
+                            spritesFound = true;
+                            break; //Exit now since we've found the highest priority sprite
+                        }
                     }
 
-                    m_screen.setPixel(x, y, sf::Color(colors[read(0x3f00 | bgColor)]));
+                    Byte paletteAddr = bgColor;
+
+//                     if ( ((bgColor & 0x3) == 0 && (sprColor & 0x3) != 0) || ((bgColor & 0x3) != 0 && (sprColor & 0x3) != 0) )
+//                         paletteAddr = sprColor;
+//                     //else bgColor
+
+//                     if (spritesFound)
+//                         paletteAddr = sprColor;
+
+                    m_screen.setPixel(x, y, sf::Color(colors[m_bus.readPalette(paletteAddr)]));
                 }
 
                 if (m_cycle >= ScanlineEndCycle)
                 {
+                    //Find and index sprites that are on the next Scanline
+                    //This isn't where/when this indexing, actually copying in 2C02 is done
+                    //but (I think) it shouldn't hurt any games if this is done here
+
+                    m_scanlineSprites.resize(0);
+
+                    int range = 8;
+                    if (m_longSprites)
+                        range = 16;
+                    
+                    std::size_t j = 0;
+                    for (std::size_t i = 0; i < 64; ++i)
+                    {
+                        if (m_scanline - m_spriteMemory[i * 4] < range)
+                        {
+                            m_scanlineSprites.push_back(i);
+                            if (++j == 8)
+                            {
+                                //TODO overflow bit handling
+                                break;
+                            }
+                        }
+                    }
+
                     ++m_scanline;
                     m_cycle = 0;
                 }

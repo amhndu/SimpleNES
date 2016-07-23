@@ -1,6 +1,7 @@
 #ifndef PPU_H
 #define PPU_H
 #include <functional>
+#include <array>
 #include "PictureBus.h"
 #include "MainBus.h"
 #include "VirtualScreen.h"
@@ -50,6 +51,8 @@ namespace sn
             std::function<void(void)> m_vblankCallback;
 
             std::vector<Byte> m_spriteMemory;
+
+            std::vector<Byte> m_scanlineSprites;
 
             enum State
             {
