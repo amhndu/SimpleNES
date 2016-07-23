@@ -113,9 +113,9 @@ namespace sn
 
                     Byte paletteAddr = bgColor;
 
-//                     if ( ((bgColor & 0x3) == 0 && (sprColor & 0x3) != 0) || ((bgColor & 0x3) != 0 && (sprColor & 0x3) != 0) )
+//                     if ( (spritesFound && (bgColor & 0x3) == 0 && (sprColor & 0x3) != 0) || (spritesFound && (bgColor & 0x3) != 0 && (sprColor & 0x3) != 0) )
 //                         paletteAddr = sprColor;
-//                     //else bgColor
+                    //else bgColor
 
 //                     if (spritesFound)
 //                         paletteAddr = sprColor;
@@ -134,7 +134,7 @@ namespace sn
                     int range = 8;
                     if (m_longSprites)
                         range = 16;
-                    
+
                     std::size_t j = 0;
                     for (std::size_t i = 0; i < 64; ++i)
                     {
