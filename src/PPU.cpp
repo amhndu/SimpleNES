@@ -91,9 +91,9 @@ namespace sn
                             int x_shift = (x - spr_x) % 8, y_offset = (y - spr_y) % length;
 
                             if ((attribute & 0x40) == 0) //If NOT flipping horizontally
-                                x_shift = 7 - x_shift;
+                                x_shift ^= 7;
                             if ((attribute & 0x80) != 0) //IF flipping vertically
-                                y_offset = (length - 1) - y_offset;
+                                y_offset ^= (length - 1);
 
                             Address addr = tile * 16 + y_offset;
                             if (m_sprPage == High) addr += 0x1000;
