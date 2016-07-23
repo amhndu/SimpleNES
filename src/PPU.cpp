@@ -5,7 +5,8 @@ namespace sn
 {
     PPU::PPU(PictureBus& bus, VirtualScreen& screen) :
         m_bus(bus),
-        m_screen(screen)
+        m_screen(screen),
+        m_spriteMemory(64 * 4)
     {}
 
     void PPU::reset()
@@ -13,7 +14,7 @@ namespace sn
         m_longSprites = m_generateInterrupt = m_greyscaleMode = m_vblank = false;
         m_showBackground = m_showSprites = m_evenFrame = true;
         m_bgPage = m_sprPage = Low;
-        m_dataAddress = m_cycle = m_scanline = 0;
+        m_dataAddress = m_cycle = m_scanline = m_spriteDataAddress = 0;
         m_baseNameTable = 0x2000;
         m_dataAddrIncrement = 1;
         m_pipelineState = PreRender;
@@ -41,29 +42,39 @@ namespace sn
                 break;
 
             case Render:
-                if (m_showBackground && m_cycle > 0 && m_cycle <= ScanlineVisibleDots)
+                if (m_cycle > 0 && m_cycle <= ScanlineVisibleDots)
                 {
+                    Byte bgColor, sprColor;
+                    enum {Backgroud, Sprite} priority;
                     int x = m_cycle - 1;
                     int y = m_scanline;
 
-                    //fetch tile number from nametable
-                    Address addr = m_baseNameTable + x / 8 + (y / 8) * (ScanlineVisibleDots / 8);
-                    Byte tile = read(addr);
+                    if (m_showBackground)
+                    {
+                        //fetch tile number from nametable
+                        Address addr = m_baseNameTable + x / 8 + (y / 8) * (ScanlineVisibleDots / 8);
+                        Byte tile = read(addr);
 
-                    //fetch pattern and calculate lower two bits
-                    addr = tile * 16 + y % 8;
-                    if (m_bgPage == High) addr += 0x1000;
-                    Byte color = (read(addr) >> (7 ^ x % 8)) & 1; //bit 0 of palette entry
-                    color |= ((read(addr + 8) >> (7 ^ x % 8)) & 1) << 1; //bit 1
+                        //fetch pattern and calculate lower two bits
+                        addr = tile * 16 + y % 8;
+                        if (m_bgPage == High) addr += 0x1000;
+                        bgColor = (read(addr) >> (7 ^ x % 8)) & 1; //bit 0 of palette entry
+                        bgColor |= ((read(addr + 8) >> (7 ^ x % 8)) & 1) << 1; //bit 1
 
-                    //fetch attribute and calculate higher two bits of palette
-                    addr = m_baseNameTable + AttributeOffset + x / 32 + ((y / 32) * 8);
-                    Byte attribute = read(addr);
-                    int shift = ((((y % 32) / 16) << 1) + (x % 32) / 16) << 1;
+                        //fetch attribute and calculate higher two bits of palette
+                        addr = m_baseNameTable + AttributeOffset + x / 32 + ((y / 32) * 8);
+                        Byte attribute = read(addr);
+                        int shift = ((((y % 32) / 16) << 1) + (x % 32) / 16) << 1;
 
-                    color |= ((attribute >> shift) & 0x3) << 2;
+                        bgColor |= ((attribute >> shift) & 0x3) << 2;
+                    }
 
-                    m_screen.setPixel(x, y, sf::Color(colors[read(0x3f00 | color)]));
+                    if (m_showSprites)
+                    {
+
+                    }
+
+                    m_screen.setPixel(x, y, sf::Color(colors[read(0x3f00 | bgColor)]));
                 }
 
                 if (m_cycle >= ScanlineEndCycle)
@@ -112,6 +123,22 @@ namespace sn
         ++m_cycle;
     }
 
+    Byte PPU::readOAM(Byte addr)
+    {
+        return m_spriteMemory[addr];
+    }
+
+    void PPU::writeOAM(Byte addr, Byte value)
+    {
+        m_spriteMemory[addr] = value;
+    }
+
+    void PPU::doDMA(const Byte* page_ptr)
+    {
+        //TODO Start at m_spriteAddress (and wraparound ?)
+        std::copy(page_ptr, page_ptr + 8, m_spriteMemory.data());
+    }
+
     void PPU::control(Byte ctrl)
     {
         m_generateInterrupt = ctrl & 0x80;
@@ -153,12 +180,20 @@ namespace sn
     {
         auto data = m_bus.read(m_dataAddress);
         m_dataAddress += m_dataAddrIncrement;
+
+        //Reads are delayed by one byte/read when address is in this range
+        if (m_dataAddress < 0x3f00)
+        {
+            //Return from the data buffer and store the current value in the buffer
+            std::swap(data, m_dataBuffer);
+        }
+
         return data;
     }
 
     Byte PPU::getOAMData()
     {
-        return 0;
+        return readOAM(m_spriteDataAddress);
     }
 
     void PPU::setData(Byte data)
@@ -169,7 +204,12 @@ namespace sn
 
     void PPU::setOAMAddress(Byte addr)
     {
+        m_spriteDataAddress = addr;
+    }
 
+    void PPU::setOAMData(Byte value)
+    {
+        writeOAM(m_spriteDataAddress, value);
     }
 
     void PPU::setScroll(Byte scroll)

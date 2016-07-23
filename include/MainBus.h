@@ -29,7 +29,7 @@ namespace sn
             bool loadCartridge(Cartridge *cart);
             bool setWriteCallback(IORegisters reg, std::function<void(Byte)> callback);
             bool setReadCallback(IORegisters reg, std::function<Byte(void)> callback);
-
+            const Byte* getPagePtr(Byte page);
         private:
             std::vector<Byte> m_RAM;
             std::vector<Byte> m_extRAM;

@@ -18,6 +18,7 @@ namespace sn
             PictureBus();
             Byte read(Address addr);
             void write(Address addr, Byte value);
+
             bool loadCartridge(Cartridge *cart);
         private:
             std::vector<Byte> m_RAM;
@@ -26,7 +27,6 @@ namespace sn
 
             bool m_usesCharacterRAM;
             std::vector<Byte> m_characterRAM;
-
             std::vector<Byte> m_palette;
 
             Cartridge* m_cartride;

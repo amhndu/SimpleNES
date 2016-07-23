@@ -84,6 +84,13 @@ namespace sn
         if ((a & 0xff00) != (b & 0xff00))
             m_skipCycles += inc;
     }
+
+    void CPU::skipDMACycles()
+    {
+        m_skipCycles += 513; //256 read + 256 write + 1 dummy read
+        m_skipCycles += (m_cycles & 1); //+1 if on odd cycle
+    }
+
     void CPU::step()
     {
         ++m_cycles;

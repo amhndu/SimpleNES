@@ -25,6 +25,8 @@ namespace sn
 
             void setInterruptCallback(std::function<void(void)> cb);
 
+            void doDMA(const Byte* page_ptr);
+
             //Callbacks mapped to CPU address space
             //Addresses written to by the program
             void control(Byte ctrl);
@@ -37,12 +39,17 @@ namespace sn
             Byte getStatus();
             Byte getData();
             Byte getOAMData();
+            void setOAMData(Byte value);
         private:
+            Byte readOAM(Byte addr);
+            void writeOAM(Byte addr, Byte value);
             Byte read(Address addr);
             PictureBus &m_bus;
             VirtualScreen &m_screen;
 
             std::function<void(void)> m_vblankCallback;
+
+            std::vector<Byte> m_spriteMemory;
 
             enum State
             {
@@ -59,6 +66,9 @@ namespace sn
             bool m_sprZeroHit;
 
             Address m_dataAddress;
+            Byte m_dataBuffer;
+
+            Byte m_spriteDataAddress;
 
             //Setup flags and variables
             bool m_longSprites;

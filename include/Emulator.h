@@ -18,6 +18,8 @@ namespace sn
         Emulator();
         void run(std::string rom_path);
     private:
+        void DMA(Byte page);
+
         MainBus m_bus;
         PictureBus m_pictureBus;
         CPU m_cpu;

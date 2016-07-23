@@ -82,12 +82,42 @@ namespace sn
         }
     }
 
+    const Byte* MainBus::getPagePtr(Byte page)
+    {
+        Address addr = page << 8;
+        if (addr < 0x2000)
+            return &m_RAM[addr & 0x7ff];
+        else if (addr < 0x4020)
+        {
+            LOG(Error) << "Register address memory pointer access attempt" << std::endl;
+        }
+        else if (addr < 0x6000)
+        {
+            LOG(Error) << "Expansion ROM access attempted, which is unsupported" << std::endl;
+        }
+        else if (addr < 0x8000)
+        {
+            if (m_cartride->hasExtendedRAM())
+            {
+                return &m_extRAM[addr - 0x8000];
+            }
+        }
+        else
+        {
+            if (!one_bank)
+                return &m_cartride->getROM()[addr - 0x8000];
+            else //mirrored
+                return &m_cartride->getROM()[(addr - 0x8000) & 0x3fff];
+        }
+        return nullptr;
+    }
+
     bool MainBus::loadCartridge(Cartridge* cart)
     {
         m_cartride = cart;
         m_mapper = cart->getMapper();
         auto rom = cart->getROM();
-        
+
         if (m_mapper != 0)
         {
             LOG(Error) << "Mapper not supported" << std::endl;

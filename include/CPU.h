@@ -26,6 +26,7 @@ namespace sn
             void log();
 
             Address getPC() { return r_PC; }
+            void skipDMACycles();
         private:
             //Instructions are split into five sets to make decoding easier.
             //These functions return true if they succeed

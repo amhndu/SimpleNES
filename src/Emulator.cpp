@@ -22,7 +22,9 @@ namespace sn
             !m_bus.setWriteCallback(OAMADDR, [&](Byte b) {m_ppu.setOAMAddress(b);}) ||
             !m_bus.setWriteCallback(PPUADDR, [&](Byte b) {m_ppu.setDataAddress(b);}) ||
             !m_bus.setWriteCallback(PPUSCROL, [&](Byte b) {m_ppu.setScroll(b);}) ||
-            !m_bus.setWriteCallback(PPUDATA, [&](Byte b) {m_ppu.setData(b);}))
+            !m_bus.setWriteCallback(PPUDATA, [&](Byte b) {m_ppu.setData(b);}) ||
+            !m_bus.setWriteCallback(OAMDMA, [&](Byte b) {DMA(b);}) ||
+            !m_bus.setWriteCallback(OAMDATA, [&](Byte b) {m_ppu.setOAMData(b);}))
         {
             LOG(Error) << "Critical error: Failed to set I/O callbacks" << std::endl;
         }
@@ -89,6 +91,13 @@ namespace sn
             m_window.draw(m_emulatorScreen);
             m_window.display();
         }
+    }
+
+    void Emulator::DMA(Byte page)
+    {
+        m_cpu.skipDMACycles();
+        auto page_ptr = m_bus.getPagePtr(page);
+        m_ppu.doDMA(page_ptr);
     }
 
 }
