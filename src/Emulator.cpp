@@ -98,6 +98,7 @@ namespace sn
 
     void Emulator::DMA(Byte page)
     {
+        LOG(Info) << "DMA Page: " << +page << std::endl;
         m_cpu.skipDMACycles();
         auto page_ptr = m_bus.getPagePtr(page);
         m_ppu.doDMA(page_ptr);

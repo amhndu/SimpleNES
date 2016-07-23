@@ -113,8 +113,8 @@ namespace sn
 
                     Byte paletteAddr = bgColor;
 
-//                     if ( (spritesFound && (bgColor & 0x3) == 0 && (sprColor & 0x3) != 0) || (spritesFound && (bgColor & 0x3) != 0 && (sprColor & 0x3) != 0) )
-//                         paletteAddr = sprColor;
+                    if ( (spritesFound && (bgColor & 0x3) == 0 && (sprColor & 0x3) != 0) || (spritesFound && (bgColor & 0x3) != 0 && (sprColor & 0x3) != 0) )
+                        paletteAddr = sprColor;
                     //else bgColor
 
 //                     if (spritesFound)
@@ -138,10 +138,12 @@ namespace sn
                     std::size_t j = 0;
                     for (std::size_t i = 0; i < 64; ++i)
                     {
-                        if (m_scanline - m_spriteMemory[i * 4] < range)
+                        auto diff = (m_scanline - m_spriteMemory[i * 4]);
+                        if (0 <= diff && diff < range)
                         {
                             m_scanlineSprites.push_back(i);
-                            if (++j == 8)
+                            ++j;
+                            if (j >= 8)
                             {
                                 //TODO overflow bit handling
                                 break;
@@ -205,8 +207,8 @@ namespace sn
 
     void PPU::doDMA(const Byte* page_ptr)
     {
-        //TODO Start at m_spriteAddress (and wraparound ?)
-        std::copy(page_ptr, page_ptr + 8, m_spriteMemory.data());
+        LOG(Info) << "DMA Address: " << +m_spriteDataAddress << std::endl;
+        std::memcpy(m_spriteMemory.data(), page_ptr, 256);
     }
 
     void PPU::control(Byte ctrl)
@@ -263,7 +265,7 @@ namespace sn
 
     Byte PPU::getOAMData()
     {
-        return readOAM(m_spriteDataAddress);
+        return readOAM(m_spriteDataAddress++);
     }
 
     void PPU::setData(Byte data)
@@ -279,7 +281,7 @@ namespace sn
 
     void PPU::setOAMData(Byte value)
     {
-        writeOAM(m_spriteDataAddress, value);
+        writeOAM(m_spriteDataAddress++, value);
     }
 
     void PPU::setScroll(Byte scroll)
