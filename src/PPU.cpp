@@ -49,7 +49,6 @@ namespace sn
                     Byte bgColor = 0, sprColor = 0;
 
                     bool spritePriorityHigh = false;
-                    bool spritesFound = false;
 
                     int x = m_cycle - 1;
                     int y = m_scanline;
@@ -83,7 +82,7 @@ namespace sn
                             if (0 > x - spr_x || x - spr_x >= 8)
                                 continue;
 
-                            Byte spr_y     = m_spriteMemory[i * 4 + 0],
+                            Byte spr_y     = m_spriteMemory[i * 4 + 0] + 1,
                                  tile      = m_spriteMemory[i * 4 + 1],
                                  attribute = m_spriteMemory[i * 4 + 2];
 
@@ -92,9 +91,9 @@ namespace sn
                             int x_shift = (x - spr_x) % 8, y_offset = (y - spr_y) % length;
 
                             if ((attribute & 0x40) == 0) //If NOT flipping horizontally
-                                x_shift ^= 7; //same as subtracting from 7 since x_shift is < 8
+                                x_shift = 7 - x_shift;
                             if ((attribute & 0x80) != 0) //IF flipping vertically
-                                y_offset ^= (length - 1);
+                                y_offset = (length - 1) - y_offset;
 
                             Address addr = tile * 16 + y_offset;
                             if (m_sprPage == High) addr += 0x1000;
@@ -106,15 +105,14 @@ namespace sn
 
                             spritePriorityHigh = !(attribute & 0x20);
 
-                            spritesFound = true;
                             break; //Exit now since we've found the highest priority sprite
                         }
                     }
 
                     Byte paletteAddr = bgColor;
 
-                    if ( (spritesFound && (bgColor & 0x3) == 0 && (sprColor & 0x3) != 0) ||
-                         (spritesFound && (bgColor & 0x3) != 0 && (sprColor & 0x3) != 0) )
+                    if ( ((bgColor & 0x3) == 0 && (sprColor & 0x3) != 0) ||
+                         ((bgColor & 0x3) != 0 && (sprColor & 0x3) != 0) )
                         paletteAddr = sprColor;
                     //else bgColor
 
