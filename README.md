@@ -33,12 +33,14 @@ $ cd SimpleNES
 $ mkdir build/ && cd build/
 $ cmake -DCMAKE_BUILD_TYPE=Release ..
 $ make -j4    #Replace 4 with however many cores you have to spare
+```
 
 Running
 -----------------
 
 Just pass the path a .nes image
 like
+
 ```
 $ ./SimpleNES ~/Games/Mario\ Bros.\ \(World\).nes
 ```
