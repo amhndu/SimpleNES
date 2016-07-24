@@ -6,7 +6,7 @@
 namespace sn
 {
     CPU::CPU(MainBus &mem) :
-        m_memory(mem)
+        m_bus(mem)
     {}
 
     void CPU::reset()
@@ -63,13 +63,13 @@ namespace sn
 
     void CPU::pushStack(Byte value)
     {
-        write(0x100 | r_SP, value);
+        m_bus.write(0x100 | r_SP, value);
         --r_SP; //Hardware stacks grow downward!
     }
 
     Byte CPU::pullStack()
     {
-        return read(0x100 | ++r_SP);
+        return m_bus.read(0x100 | ++r_SP);
     }
 
     void CPU::setZN(Byte value)
@@ -110,7 +110,7 @@ namespace sn
         LOG_CPU << std::hex << std::setfill('0') << std::uppercase
                   << std::setw(4) << +r_PC
                   << "  "
-                  << std::setw(2) << +read(r_PC)
+                  << std::setw(2) << +m_bus.read(r_PC)
                   << "  "
                   << "A:"   << std::setw(2) << +r_A << " "
                   << "X:"   << std::setw(2) << +r_X << " "
@@ -120,7 +120,7 @@ namespace sn
                   << "CYC:" << std::setw(3) << std::setfill(' ') << std::dec << ((m_cycles - 1) * 3) % 341
                   << std::endl;*/
 
-       Byte opcode = read(r_PC++);
+       Byte opcode = m_bus.read(r_PC++);
 
         auto CycleLength = OperationCycles[opcode];
 
@@ -183,8 +183,8 @@ namespace sn
                     //the second byte is fetched from the beginning of that page rather than the beginning of the next
                     //Recreating here:
                     Address Page = location & 0xff00;
-                    r_PC = read(location) |
-                           read(Page | ((location + 1) & 0xff)) << 8;
+                    r_PC = m_bus.read(location) |
+                           m_bus.read(Page | ((location + 1) & 0xff)) << 8;
                 }
                 break;
             case PHP:
@@ -313,7 +313,7 @@ namespace sn
 
             if (branch)
             {
-                int8_t offset = read(r_PC++);
+                int8_t offset = m_bus.read(r_PC++);
                 ++m_skipCycles;
                 auto newPC = static_cast<Address>(r_PC + offset);
                 setPageCrossed(r_PC, newPC, 2);
@@ -336,13 +336,13 @@ namespace sn
             {
                 case IndexedIndirectX:
                     {
-                        Byte zero_addr = r_X + read(r_PC++);
+                        Byte zero_addr = r_X + m_bus.read(r_PC++);
                         //Addresses wrap in zero page mode, thus pass through a mask
-                        location = read(zero_addr & 0xff) | read((zero_addr + 1) & 0xff) << 8;
+                        location = m_bus.read(zero_addr & 0xff) | m_bus.read((zero_addr + 1) & 0xff) << 8;
                     }
                     break;
                 case ZeroPage:
-                    location = read(r_PC++);
+                    location = m_bus.read(r_PC++);
                     break;
                 case Immediate:
                     location = r_PC++;
@@ -353,15 +353,15 @@ namespace sn
                     break;
                 case IndirectY:
                     {
-                        Byte zero_addr = read(r_PC++);
-                        location = read(zero_addr & 0xff) | read((zero_addr + 1) & 0xff) << 8;
+                        Byte zero_addr = m_bus.read(r_PC++);
+                        location = m_bus.read(zero_addr & 0xff) | m_bus.read((zero_addr + 1) & 0xff) << 8;
                         setPageCrossed(location, location + r_Y);
                         location += r_Y;
                     }
                     break;
                 case IndexedX:
                     // Address wraps around in the zero page
-                    location = (read(r_PC++) + r_X) & 0xff;
+                    location = (m_bus.read(r_PC++) + r_X) & 0xff;
                     break;
                 case AbsoluteY:
                     location = readAddress(r_PC);
@@ -383,20 +383,20 @@ namespace sn
                                 (opcode & OperationMask) >> OperationShift))
             {
                 case ORA:
-                    r_A |= read(location);
+                    r_A |= m_bus.read(location);
                     setZN(r_A);
                     break;
                 case AND:
-                    r_A &= read(location);
+                    r_A &= m_bus.read(location);
                     setZN(r_A);
                     break;
                 case EOR:
-                    r_A ^= read(location);
+                    r_A ^= m_bus.read(location);
                     setZN(r_A);
                     break;
                 case ADC:
                     {
-                        Byte operand = read(location);
+                        Byte operand = m_bus.read(location);
                         std::uint16_t sum = r_A + operand + f_C;
                         //Carry forward or UNSIGNED overflow
                         f_C = sum & 0x100;
@@ -408,16 +408,16 @@ namespace sn
                     }
                     break;
                 case STA:
-                    write(location, r_A);
+                    m_bus.write(location, r_A);
                     break;
                 case LDA:
-                    r_A = read(location);
+                    r_A = m_bus.read(location);
                     setZN(r_A);
                     break;
                 case SBC:
                     {
                         //High carry means "no borrow", thus negate and subtract
-                        std::uint16_t subtrahend = read(location),
+                        std::uint16_t subtrahend = m_bus.read(location),
                                  diff = r_A - subtrahend - !f_C;
                         //if the ninth bit is 1, the resulting number is negative => borrow => low carry
                         f_C = !(diff & 0x100);
@@ -430,7 +430,7 @@ namespace sn
                     break;
                 case CMP:
                     {
-                        std::uint16_t diff = r_A - read(location);
+                        std::uint16_t diff = r_A - m_bus.read(location);
                         f_C = !(diff & 0x100);
                         setZN(diff);
                     }
@@ -457,7 +457,7 @@ namespace sn
                     location = r_PC++;
                     break;
                 case ZeroPage_:
-                    location = read(r_PC++);
+                    location = m_bus.read(r_PC++);
                     break;
                 case Accumulator:
                     break;
@@ -467,7 +467,7 @@ namespace sn
                     break;
                 case Indexed:
                     {
-                        location = read(r_PC++);
+                        location = m_bus.read(r_PC++);
                         Byte index;
                         if (op == LDX || op == STX)
                             index = r_Y;
@@ -511,11 +511,11 @@ namespace sn
                     else
                     {
                         auto prev_C = f_C;
-                        operand = read(location);
+                        operand = m_bus.read(location);
                         f_C = operand & 0x80;
                         operand = operand << 1 | (prev_C && (op == ROL));
                         setZN(operand);
-                        write(location, operand);
+                        m_bus.write(location, operand);
                     }
                     break;
                 case LSR:
@@ -532,32 +532,32 @@ namespace sn
                     else
                     {
                         auto prev_C = f_C;
-                        operand = read(location);
+                        operand = m_bus.read(location);
                         f_C = operand & 1;
                         operand = operand >> 1 | (prev_C && (op == ROR)) << 7;
                         setZN(operand);
-                        write(location, operand);
+                        m_bus.write(location, operand);
                     }
                     break;
                 case STX:
-                    write(location, r_X);
+                    m_bus.write(location, r_X);
                     break;
                 case LDX:
-                    r_X = read(location);
+                    r_X = m_bus.read(location);
                     setZN(r_X);
                     break;
                 case DEC:
                     {
-                        auto tmp = read(location) - 1;
+                        auto tmp = m_bus.read(location) - 1;
                         setZN(tmp);
-                        write(location, tmp);
+                        m_bus.write(location, tmp);
                     }
                     break;
                 case INC:
                     {
-                        auto tmp = read(location) + 1;
+                        auto tmp = m_bus.read(location) + 1;
                         setZN(tmp);
-                        write(location, tmp);
+                        m_bus.write(location, tmp);
                     }
                     break;
                 default:
@@ -579,7 +579,7 @@ namespace sn
                     location = r_PC++;
                     break;
                 case ZeroPage_:
-                    location = read(r_PC++);
+                    location = m_bus.read(r_PC++);
                     break;
                 case Absolute_:
                     location = readAddress(r_PC);
@@ -587,7 +587,7 @@ namespace sn
                     break;
                 case Indexed:
                     // Address wraps around in the zero page
-                    location = (read(r_PC++) + r_X) & 0xff;
+                    location = (m_bus.read(r_PC++) + r_X) & 0xff;
                     break;
                 case AbsoluteIndexed:
                     location = readAddress(r_PC);
@@ -602,28 +602,28 @@ namespace sn
             switch (static_cast<Operation0>((opcode & OperationMask) >> OperationShift))
             {
                 case BIT:
-                    operand = read(location);
+                    operand = m_bus.read(location);
                     f_Z = !(r_A & operand);
                     f_V = operand & 0x40;
                     f_N = operand & 0x80;
                     break;
                 case STY:
-                    write(location, r_Y);
+                    m_bus.write(location, r_Y);
                     break;
                 case LDY:
-                    r_Y = read(location);
+                    r_Y = m_bus.read(location);
                     setZN(r_Y);
                     break;
                 case CPY:
                     {
-                        std::uint16_t diff = r_Y - read(location);
+                        std::uint16_t diff = r_Y - m_bus.read(location);
                         f_C = !(diff & 0x100);
                         setZN(diff);
                     }
                     break;
                 case CPX:
                     {
-                        std::uint16_t diff = r_X - read(location);
+                        std::uint16_t diff = r_X - m_bus.read(location);
                         f_C = !(diff & 0x100);
                         setZN(diff);
                     }
@@ -637,19 +637,10 @@ namespace sn
         return false;
     }
 
-    Byte CPU::read(Address addr)
-    {
-        return m_memory.read(addr);
-    }
-
     Address CPU::readAddress(Address addr)
     {
-        return m_memory.read(addr) | m_memory.read(addr + 1) << 8;
+        return m_bus.read(addr) | m_bus.read(addr + 1) << 8;
     }
 
-    void CPU::write(Address addr, Byte value)
-    {
-        m_memory.write(addr, value);
-    }
 };
 

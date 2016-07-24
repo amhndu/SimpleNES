@@ -16,7 +16,7 @@ namespace sn
             };
 
             CPU(MainBus &mem);
-            
+
             //Assuming sequential execution, for asynchronously calling this with Execute, further work needed
             void interrupt(InterruptType type);
 
@@ -36,10 +36,7 @@ namespace sn
             bool executeType1(Byte opcode);
             bool executeType2(Byte opcode);
 
-            Byte read(Address addr);
             Address readAddress(Address addr);
-
-            void write(Address addr, Byte value);
 
             void pushStack(Byte value);
             Byte pullStack();
@@ -68,7 +65,7 @@ namespace sn
             bool f_V;
             bool f_N;
 
-            MainBus &m_memory;
+            MainBus &m_bus;
     };
 
 };
