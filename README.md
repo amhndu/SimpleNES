@@ -8,7 +8,9 @@ Only games with atmost 2 program banks and 1 character banks and no "mapper" are
 and only one controller is setup at the moment, with no scrolling so unfortunately no Super Mario Bros. :(
 Examples of games that run (but not limited to):
 
+
 * Mario Bros.
+* Donky Kong
 * Donkey Kong Jr.
 * Balloon Fight
 * Tennis
@@ -55,4 +57,4 @@ These keybindings are hard-coded (for Player 1)
  Up            | W
  Down          | S
  Left          | A
- Righy         | D
+ Right         | D
