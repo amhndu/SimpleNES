@@ -29,11 +29,12 @@ namespace sn
 
     void PPU::step()
     {
+        //TODO Optimize this function
         switch (m_pipelineState)
         {
             case PreRender:
                 if (m_cycle == 1)
-                    m_vblank = false;
+                    m_vblank = m_sprZeroHit = false;
 
                 if ((m_cycle >= ScanlineEndCycle && m_evenFrame) || //if rendering is on, every other frame is one cycle shorter
                     (m_cycle == ScanlineEndCycle - 1 && !m_evenFrame && m_showBackground && m_showSprites))
@@ -113,8 +114,14 @@ namespace sn
                             sprColor |= (attribute & 0x3) << 2; //bits 2-3
 
                             spriteForeground = !(attribute & 0x20);
-                            //TODO Sprite-0 hit
-                            break; //Exit now since we've found the highest priority sprite
+
+                            //Sprite-0 hit detection
+                            if (!m_sprZeroHit && m_showBackground && i == 0 && sprOpaque && bgOpaque)
+                            {
+                                m_sprZeroHit = true;
+                            }
+
+                            break; //Exit the loop now since we've found the highest priority sprite
                         }
                     }
 

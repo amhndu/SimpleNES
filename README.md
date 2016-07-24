@@ -3,7 +3,7 @@ SimpleNES
 
 
 An NES emulator written in C++ for purely educational purposes.
-Currently WIP.
+Currently WIP.  
 Only games with atmost 2 program banks and 1 character banks and no "mapper" are supported,
 and only one controller is setup at the moment, with no scrolling so unfortunately no Super Mario Bros. :(
 Examples of games that run (but not limited to):
