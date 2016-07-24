@@ -6,14 +6,14 @@ namespace sn
         m_keyStates(0)
     {
         //TODO Make key bindings user-configurable (or load from a config file)
-        m_keyBindings[A] = sf::Keyboard::Z;
-        m_keyBindings[B] = sf::Keyboard::X;
+        m_keyBindings[A] = sf::Keyboard::Numpad4;
+        m_keyBindings[B] = sf::Keyboard::Numpad5;
         m_keyBindings[Select] = sf::Keyboard::RShift;
         m_keyBindings[Start] = sf::Keyboard::Return;
-        m_keyBindings[Up] = sf::Keyboard::Up;
-        m_keyBindings[Down] = sf::Keyboard::Down;
-        m_keyBindings[Left] = sf::Keyboard::Left;
-        m_keyBindings[Right] = sf::Keyboard::Right;
+        m_keyBindings[Up] = sf::Keyboard::W;
+        m_keyBindings[Down] = sf::Keyboard::S;
+        m_keyBindings[Left] = sf::Keyboard::A;
+        m_keyBindings[Right] = sf::Keyboard::D;
     }
 
     void Controller::strobe(Byte b)
@@ -38,7 +38,7 @@ namespace sn
             ret = sf::Keyboard::isKeyPressed(m_keyBindings[A]);
         else
         {
-            ret = m_keyStates & 1;
+            ret = (m_keyStates & 1);
             m_keyStates >>= 1;
         }
         return ret;
