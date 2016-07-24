@@ -22,6 +22,7 @@ namespace sn
             Down,
             Left,
             Right,
+            TotalButtons,
         };
 
         void strobe(Byte b);
@@ -30,7 +31,7 @@ namespace sn
         bool m_strobe;
         unsigned int m_keyStates;
 
-        std::map<Buttons, sf::Keyboard::Key> m_keyBindings;
+        sf::Keyboard::Key m_keyBindings[TotalButtons];
     };
 }
 
