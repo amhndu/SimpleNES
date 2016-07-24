@@ -170,16 +170,21 @@ namespace sn
                     ++m_scanline;
                     m_cycle = 0;
                     m_pipelineState = VerticalBlank;
+                    //Should technically be done at first dot of VBlank, but this is close enough
+                    m_vblank = true;
+                    if (m_generateInterrupt) m_vblankCallback();
+
                 }
 
                 break;
             case VerticalBlank:
-                if (m_cycle == 1)
-                {
-                    m_vblank = true;
-                    if (m_generateInterrupt) m_vblankCallback();
-                }
-                else if (m_cycle >= ScanlineEndCycle)
+//                 if (m_cycle == 1 && m_scanline == VisibleScanlines + 2)
+//                 {
+//                     m_vblank = true;
+//                     if (m_generateInterrupt) m_vblankCallback();
+//                 }
+
+                if (m_cycle >= ScanlineEndCycle)
                 {
                     ++m_scanline;
                     m_cycle = 0;

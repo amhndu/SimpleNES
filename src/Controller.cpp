@@ -41,7 +41,7 @@ namespace sn
             ret = (m_keyStates & 1);
             m_keyStates >>= 1;
         }
-        return ret;
+        return ret | 0x40;
     }
 
 }
