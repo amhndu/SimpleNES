@@ -47,8 +47,8 @@ namespace sn
                 if (m_cycle > 0 && m_cycle <= ScanlineVisibleDots)
                 {
                     Byte bgColor = 0, sprColor = 0;
-
-                    bool spritePriorityHigh = false;
+                    bool bgOpaque = false, sprOpaque = true;
+                    bool spriteForeground = false;
 
                     int x = m_cycle - 1;
                     int y = m_scanline;
@@ -64,6 +64,8 @@ namespace sn
                         if (m_bgPage == High) addr += 0x1000;
                         bgColor = (read(addr) >> (7 ^ x % 8)) & 1; //bit 0 of palette entry
                         bgColor |= ((read(addr + 8) >> (7 ^ x % 8)) & 1) << 1; //bit 1
+
+                        bgOpaque = bgColor;
 
                         //fetch attribute and calculate higher two bits of palette
                         addr = m_baseNameTable + AttributeOffset + x / 32 + ((y / 32) * 8);
@@ -98,26 +100,30 @@ namespace sn
                             Address addr = tile * 16 + y_offset;
                             if (m_sprPage == High) addr += 0x1000;
 
-                            sprColor = 0x10; //Select sprite palette
                             sprColor |= (read(addr) >> (x_shift)) & 1; //bit 0 of palette entry
                             sprColor |= ((read(addr + 8) >> (x_shift)) & 1) << 1; //bit 1
+
+                            if (!(sprOpaque = sprColor))
+                            {
+                                sprColor = 0;
+                                continue;
+                            }
+
+                            sprColor |= 0x10; //Select sprite palette
                             sprColor |= (attribute & 0x3) << 2; //bits 2-3
 
-                            spritePriorityHigh = !(attribute & 0x20);
-
+                            spriteForeground = !(attribute & 0x20);
+                            //TODO Sprite-0 hit
                             break; //Exit now since we've found the highest priority sprite
                         }
                     }
 
                     Byte paletteAddr = bgColor;
 
-                    if ( ((bgColor & 0x3) == 0 && (sprColor & 0x3) != 0) ||
-                         ((bgColor & 0x3) != 0 && (sprColor & 0x3) != 0) )
+                    if ( (!bgOpaque && sprOpaque) ||
+                         (bgOpaque && sprOpaque && spriteForeground) )
                         paletteAddr = sprColor;
                     //else bgColor
-
-//                     if (spritesFound)
-//                         paletteAddr = sprColor;
 
                     m_screen.setPixel(x, y, sf::Color(colors[m_bus.readPalette(paletteAddr)]));
                 }
@@ -206,7 +212,6 @@ namespace sn
 
     void PPU::doDMA(const Byte* page_ptr)
     {
-        LOG(Info) << "DMA Address: " << +m_spriteDataAddress << std::endl;
         std::memcpy(m_spriteMemory.data(), page_ptr, 256);
     }
 

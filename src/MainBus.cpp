@@ -26,6 +26,18 @@ namespace sn
                 else
                     LOG(Error) << "No read callback registered for I/O register at: " << std::hex << +addr << std::endl;
             }
+            else if (addr < 0x4017 && addr > 0x4014) //Only *some* IO registers
+            {
+                auto it = m_readCallbacks.find(static_cast<IORegisters>(addr));
+                if (it != m_readCallbacks.end())
+                    return (it -> second)();
+                    //Second object is the pointer to the function object
+                    //Dereference the function pointer and call it
+                else
+                    LOG(Error) << "No read callback registered for I/O register at: " << std::hex << +addr << std::endl;
+            }
+            else
+                LOG(Info) << "Read access attempt at: " << std::hex << +addr << std::endl;
         }
         else if (addr < 0x6000)
         {
@@ -64,16 +76,18 @@ namespace sn
                 else
                     LOG(Error) << "No write callback registered for I/O register at: " << std::hex << +addr << std::endl;
             }
-            else if (addr == OAMDMA)
+            else if (addr < 0x4018) //Other IO registers
             {
-                auto it = m_writeCallbacks.find(static_cast<IORegisters>(OAMDMA));
+                auto it = m_writeCallbacks.find(static_cast<IORegisters>(addr));
                 if (it != m_writeCallbacks.end())
                     (it -> second)(value);
                     //Second object is the pointer to the function object
                     //Dereference the function pointer and call it
                 else
-                    LOG(Error) << "No write callback registered for OAMDMA" << std::endl;
+                    LOG(Error) << "No write callback registered for I/O register at: " << std::hex << +addr << std::endl;
             }
+            else
+                LOG(Info) << "Write access attmept at: " << std::hex << +addr << std::endl;
         }
         else if (addr < 0x6000)
         {

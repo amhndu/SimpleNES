@@ -18,6 +18,8 @@ namespace sn
         PPUADDR,
         PPUDATA,
         OAMDMA = 0x4014,
+        JOY1 = 0x4016,
+        JOY2,
     };
 
     class MainBus

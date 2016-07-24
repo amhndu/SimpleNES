@@ -7,6 +7,7 @@
 #include "PPU.h"
 #include "MainBus.h"
 #include "PictureBus.h"
+#include "Controller.h"
 
 namespace sn
 {
@@ -25,6 +26,8 @@ namespace sn
         CPU m_cpu;
         PPU m_ppu;
         Cartridge m_cartridge;
+
+        Controller m_controller1;
 
         sf::RenderWindow m_window;
         VirtualScreen m_emulatorScreen;
