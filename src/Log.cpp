@@ -6,7 +6,7 @@ namespace sn
 
     Log::~Log()
     {
-        m_logFile.flush();
+        m_logStream->flush();
     }
 
     Log& Log::get()
@@ -18,21 +18,21 @@ namespace sn
 
     std::ostream& Log::getCpuTraceStream()
     {
-        return m_cpuTrace;
+        return *m_cpuTrace;
     }
     std::ostream& Log::getStream()
     {
-        return m_logFile;
+        return *m_logStream;
     }
 
-    void Log::setLogFile(std::string path)
+    void Log::setLogStream(std::ostream& stream)
     {
-        m_logFile.open(path);
+        m_logStream = &stream;
     }
 
-    void Log::setCpuTraceFile(std::string path)
+    void Log::setCpuTraceStream(std::ostream& stream)
     {
-        m_cpuTrace.open(path);
+        m_cpuTrace = &stream;
     }
 
     Log& Log::setLevel(Level level)
@@ -45,5 +45,37 @@ namespace sn
     {
         return m_logLevel;
     }
+
+
+
+    TeeBuf::TeeBuf(std::streambuf * sb1, std::streambuf * sb2) :
+        m_sb1(sb1),
+        m_sb2(sb2)
+    {}
+    int TeeBuf::overflow(int c)
+    {
+        if (c == EOF)
+        {
+            return !EOF;
+        }
+        else
+        {
+            int const r1 = m_sb1->sputc(c);
+            int const r2 = m_sb2->sputc(c);
+            return r1 == EOF || r2 == EOF ? EOF : c;
+        }
+    }
+
+    int TeeBuf::sync()
+    {
+        int const r1 = m_sb1->pubsync();
+        int const r2 = m_sb2->pubsync();
+        return r1 == 0 && r2 == 0 ? 0 : -1;
+    }
+
+    TeeStream::TeeStream(std::ostream& o1, std::ostream& o2) :
+        std::ostream(&m_tbuf),
+        m_tbuf(o1.rdbuf(), o2.rdbuf())
+    {}
 
 }

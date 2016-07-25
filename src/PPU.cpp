@@ -130,6 +130,8 @@ namespace sn
                     if ( (!bgOpaque && sprOpaque) ||
                          (bgOpaque && sprOpaque && spriteForeground) )
                         paletteAddr = sprColor;
+                    else if (!bgOpaque && !sprOpaque)
+                        paletteAddr = 0;
                     //else bgColor
 
                     m_screen.setPixel(x, y, sf::Color(colors[m_bus.readPalette(paletteAddr)]));

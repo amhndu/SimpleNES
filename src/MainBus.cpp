@@ -24,7 +24,7 @@ namespace sn
                     //Second object is the pointer to the function object
                     //Dereference the function pointer and call it
                 else
-                    LOG(Error) << "No read callback registered for I/O register at: " << std::hex << +addr << std::endl;
+                    LOG(InfoVerbose) << "No read callback registered for I/O register at: " << std::hex << +addr << std::endl;
             }
             else if (addr < 0x4017 && addr >= 0x4014) //Only *some* IO registers
             {
@@ -34,14 +34,14 @@ namespace sn
                     //Second object is the pointer to the function object
                     //Dereference the function pointer and call it
                 else
-                    LOG(Error) << "No read callback registered for I/O register at: " << std::hex << +addr << std::endl;
+                    LOG(InfoVerbose) << "No read callback registered for I/O register at: " << std::hex << +addr << std::endl;
             }
             else
-                LOG(Info) << "Read access attempt at: " << std::hex << +addr << std::endl;
+                LOG(InfoVerbose) << "Read access attempt at: " << std::hex << +addr << std::endl;
         }
         else if (addr < 0x6000)
         {
-            LOG(Error) << "Expansion ROM read attempted. This is currently unsupported" << std::endl;
+            LOG(InfoVerbose) << "Expansion ROM read attempted. This is currently unsupported" << std::endl;
         }
         else if (addr < 0x8000)
         {
@@ -74,7 +74,7 @@ namespace sn
                     //Second object is the pointer to the function object
                     //Dereference the function pointer and call it
                 else
-                    LOG(Error) << "No write callback registered for I/O register at: " << std::hex << +addr << std::endl;
+                    LOG(InfoVerbose) << "No write callback registered for I/O register at: " << std::hex << +addr << std::endl;
             }
             else if (addr < 0x4017 && addr >= 0x4014) //only some registers
             {
@@ -84,14 +84,14 @@ namespace sn
                     //Second object is the pointer to the function object
                     //Dereference the function pointer and call it
                 else
-                    LOG(Error) << "No write callback registered for I/O register at: " << std::hex << +addr << std::endl;
+                    LOG(InfoVerbose) << "No write callback registered for I/O register at: " << std::hex << +addr << std::endl;
             }
             else
-                LOG(Info) << "Write access attmept at: " << std::hex << +addr << std::endl;
+                LOG(InfoVerbose) << "Write access attmept at: " << std::hex << +addr << std::endl;
         }
         else if (addr < 0x6000)
         {
-            LOG(Error) << "Expansion ROM access attempted. This is currently unsupported" << std::endl;
+            LOG(InfoVerbose) << "Expansion ROM access attempted. This is currently unsupported" << std::endl;
         }
         else if (addr < 0x8000)
         {
@@ -102,7 +102,7 @@ namespace sn
         }
         else
         {
-            LOG(Error) << "ROM memory write attempt\n" << std::endl;
+            LOG(InfoVerbose) << "ROM memory write attempt\n" << std::endl;
         }
     }
 

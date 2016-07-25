@@ -1,6 +1,8 @@
 #include "Emulator.h"
 #include "Log.h"
 
+//#include <thread>
+
 namespace sn
 {
     Emulator::Emulator() :
@@ -93,9 +95,10 @@ namespace sn
                 m_elapsedTime -= m_cpuCycleDuration;
             }
 
-
             m_window.draw(m_emulatorScreen);
             m_window.display();
+
+            //std::this_thread::sleep_for(m_cpuCycleDuration - m_elapsedTime);
         }
     }
 

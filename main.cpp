@@ -1,12 +1,12 @@
 #include "Emulator.h"
 #include "Log.h"
 
-#include <ctime>
-#include <sstream>
-#include <iomanip>
-#include <string>
-#include <cstring>
-#include <chrono>
+// #include <ctime>
+// #include <sstream>
+// #include <iomanip>
+// #include <string>
+// #include <cstring>
+// #include <chrono>
 
 /*std::string return_current_time_and_date() //courtesy of SO
 {
@@ -20,7 +20,14 @@
 
 int main(int argc, char** argv)
 {
-    sn::Log::get().setLogFile("simplenes.log"/* + return_current_time_and_date()*/);
+    std::ofstream logFile ("simplenes.log"), cpuTraceFile;
+    sn::TeeStream logTee (logFile, std::cout);
+
+    if (logFile.is_open() && logFile.good())
+        sn::Log::get().setLogStream(logTee);
+    else
+        sn::Log::get().setLogStream(std::cout);
+
     sn::Log::get().setLevel(sn::Info);
 
     std::string path;
@@ -30,7 +37,8 @@ int main(int argc, char** argv)
         if (std::strcmp(argv[i], "--log-cpu") == 0)
         {
             sn::Log::get().setLevel(sn::CpuTrace);
-            sn::Log::get().setCpuTraceFile("sn.cputrace"/* + return_current_time_and_date()*/);
+            cpuTraceFile.open("sn.cpudump");
+            sn::Log::get().setCpuTraceStream(cpuTraceFile);
             LOG(sn::Info) << "CPU logging set." << std::endl;
         }
         else
