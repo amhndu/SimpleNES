@@ -48,6 +48,10 @@ like
 ```
 $ ./SimpleNES ~/Games/Mario\ Bros.\ \(World\).nes
 ```
+For supported command line options, try
+```
+$ ./SimpleNES -h
+```
 
 Controller
 -----------------
