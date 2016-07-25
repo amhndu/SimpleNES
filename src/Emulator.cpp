@@ -8,6 +8,7 @@ namespace sn
     Emulator::Emulator() :
         m_cpu(m_bus),
         m_ppu(m_pictureBus, m_emulatorScreen),
+        m_screenScale(2.f),
         m_cycleTimer(),
         m_cpuCycleDuration(std::chrono::nanoseconds(559))
     {
@@ -49,8 +50,10 @@ namespace sn
         m_cpu.reset();
         m_ppu.reset();
 
-        m_window.create(sf::VideoMode(256 * 2, 240 * 2), "SimpleNES", sf::Style::Titlebar | sf::Style::Close);
-        m_emulatorScreen.create(ScanlineVisibleDots, VisibleScanlines, 2, sf::Color::Magenta);
+        m_window.create(sf::VideoMode(NESVideoWidth * m_screenScale, NESVideoHeight * m_screenScale),
+                        "SimpleNES", sf::Style::Titlebar | sf::Style::Close);
+        m_window.setVerticalSyncEnabled(true);
+        m_emulatorScreen.create(NESVideoWidth, NESVideoHeight, m_screenScale, sf::Color::Magenta);
 
         m_cycleTimer = std::chrono::high_resolution_clock::now();
         m_elapsedTime = m_cycleTimer - m_cycleTimer;
@@ -107,6 +110,21 @@ namespace sn
         m_cpu.skipDMACycles();
         auto page_ptr = m_bus.getPagePtr(page);
         m_ppu.doDMA(page_ptr);
+    }
+
+    void Emulator::setVideoHeight(int height)
+    {
+        m_screenScale = height / 240.f;
+        LOG(Info) << "Scale: " << m_screenScale << " set. Screen: "
+                  << int(NESVideoWidth * m_screenScale) << "x" << int(NESVideoHeight * m_screenScale) << std::endl;
+    }
+
+    void Emulator::setVideoWidth(int width)
+    {
+        m_screenScale = width / 256.f;
+        LOG(Info) << "Scale: " << m_screenScale << " set. Screen: "
+                  << int(NESVideoWidth * m_screenScale) << "x" << int(NESVideoHeight * m_screenScale) << std::endl;
+
     }
 
 }
