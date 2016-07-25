@@ -53,7 +53,7 @@ namespace sn
         m_window.create(sf::VideoMode(NESVideoWidth * m_screenScale, NESVideoHeight * m_screenScale),
                         "SimpleNES", sf::Style::Titlebar | sf::Style::Close);
         m_window.setVerticalSyncEnabled(true);
-        m_emulatorScreen.create(NESVideoWidth, NESVideoHeight, m_screenScale, sf::Color::Magenta);
+        m_emulatorScreen.create(NESVideoWidth, NESVideoHeight, m_screenScale, sf::Color::White);
 
         m_cycleTimer = std::chrono::high_resolution_clock::now();
         m_elapsedTime = m_cycleTimer - m_cycleTimer;

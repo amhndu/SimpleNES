@@ -6,8 +6,8 @@ namespace sn
         m_keyStates(0)
     {
         //TODO Make key bindings user-configurable (or load from a config file)
-        m_keyBindings[A] = sf::Keyboard::Numpad4;
-        m_keyBindings[B] = sf::Keyboard::Numpad5;
+        m_keyBindings[A] = sf::Keyboard::J;
+        m_keyBindings[B] = sf::Keyboard::K;
         m_keyBindings[Select] = sf::Keyboard::RShift;
         m_keyBindings[Start] = sf::Keyboard::Return;
         m_keyBindings[Up] = sf::Keyboard::W;

@@ -58,9 +58,10 @@ These keybindings are hard-coded (for Player 1)
  --------------|-------------
  Start         | Return/Enter
  Select        | Right Shift
- A             | Numpad 4
- B             | Numpad 5
+ A             | J
+ B             | K
  Up            | W
  Down          | S
  Left          | A
  Right         | D
+ 
