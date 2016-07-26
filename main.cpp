@@ -68,6 +68,7 @@ int main(int argc, char** argv)
                 emulator.setVideoWidth(width);
             else
                 LOG(sn::Error) << "Setting width from argument failed" << std::endl;
+            ++i;
         }
         else if (std::strcmp(argv[i], "-H") == 0 || std::strcmp(argv[i], "--height") == 0)
         {
@@ -77,6 +78,7 @@ int main(int argc, char** argv)
                 emulator.setVideoHeight(height);
             else
                 LOG(sn::Error) << "Setting height from argument failed" << std::endl;
+            ++i;
         }
         else
             path = argv[i];
