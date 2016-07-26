@@ -5,7 +5,6 @@ namespace sn
     Controller::Controller() :
         m_keyStates(0)
     {
-        //TODO Make key bindings user-configurable (or load from a config file)
         m_keyBindings[A] = sf::Keyboard::J;
         m_keyBindings[B] = sf::Keyboard::K;
         m_keyBindings[Select] = sf::Keyboard::RShift;

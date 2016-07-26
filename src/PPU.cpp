@@ -29,7 +29,6 @@ namespace sn
 
     void PPU::step()
     {
-        //TODO Optimize this function
         switch (m_pipelineState)
         {
             case PreRender:
@@ -43,7 +42,6 @@ namespace sn
                     m_cycle = m_scanline = 0;
                 }
                 break;
-                //TODO Caching of tile/attribute/nametable data
             case Render:
                 if (m_cycle > 0 && m_cycle <= ScanlineVisibleDots)
                 {
@@ -159,7 +157,6 @@ namespace sn
                             ++j;
                             if (j >= 8)
                             {
-                                //TODO overflow bit handling
                                 break;
                             }
                         }

@@ -66,7 +66,7 @@ namespace sn
         }
         else if (addr < 0x3fff)
         {
-            if (addr == 0x3f10) //TODO Handle palette mirroring properly (and completely)
+            if (addr == 0x3f10)
                 m_palette[0] = value;
             else
                 m_palette[addr & 0x1f] = value;

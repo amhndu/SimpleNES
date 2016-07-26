@@ -12,10 +12,12 @@ and only one controller is setup at the moment, with no scrolling so unfortunate
 
 Examples of games that run (but not limited to):
 
+(USA/Japan or World versions only i.e. NTSC compatible)
 
 * Mario Bros.
 * Donky Kong
 * Donkey Kong Jr.
+* Arkanoid
 * Balloon Fight
 * Tennis
 
@@ -42,12 +44,15 @@ $ make -j4    #Replace 4 with however many cores you have to spare
 Running
 -----------------
 
-Just pass the path a .nes image
-like
+Just pass the path to a .nes image like
 
 ```
 $ ./SimpleNES ~/Games/Mario\ Bros.\ \(World\).nes
 ```
+
+Only for demonstration purposes, [download this archive of roms](https://www.dropbox.com/s/mfzukqy8uul4ae3/demo-roms.tar.gz?dl=0)
+
+
 For supported command line options, try
 ```
 $ ./SimpleNES -h
@@ -68,4 +73,4 @@ These keybindings are hard-coded (for Player 1)
  Down          | S
  Left          | A
  Right         | D
- 
+
