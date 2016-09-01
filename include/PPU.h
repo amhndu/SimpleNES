@@ -68,7 +68,11 @@ namespace sn
             bool m_vblank;
             bool m_sprZeroHit;
 
+            //Registers
             Address m_dataAddress;
+            Address m_tempAddress;
+            Byte m_fineXScroll;
+            bool m_firstWrite;
             Byte m_dataBuffer;
 
             Byte m_spriteDataAddress;
@@ -89,7 +93,7 @@ namespace sn
               m_sprPage;
 
             Address m_dataAddrIncrement;
-            Address m_baseNameTable;
+            //Address m_baseNameTable;
     };
 }
 
