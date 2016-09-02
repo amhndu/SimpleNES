@@ -71,10 +71,12 @@ namespace sn
                         Byte tile = read(addr);
 
                         //fetch pattern
-                        //Each pattern occupies 16 bytes
-                        auto x_fine = x % 8;
-                        addr = (tile * 16) + (m_dataAddress >> 12); //Add fine y
-                        if (m_bgPage == High) addr |= 0x1000;
+                        auto x_fine = x % 8;//m_fineXScroll;
+                        //m_fineXScroll = (m_fineXScroll + 1) % 8;
+                        //Each pattern occupies 16 bytes, so multiply by 16
+                        addr = (tile * 16) + ((m_dataAddress >> 12) & 0x7); //Add fine y
+                        addr |= m_bgPage << 12; //set whether the pattern is in the high or low page
+                        //Get the corresponding bit determined by (8 - x_fine) from the right
                         bgColor = (read(addr) >> (7 ^ x_fine)) & 1; //bit 0 of palette entry
                         bgColor |= ((read(addr + 8) >> (7 ^ x_fine)) & 1) << 1; //bit 1
 
@@ -83,14 +85,13 @@ namespace sn
                         //fetch attribute and calculate higher two bits of palette
                         addr = 0x23C0 | (m_dataAddress & 0x0C00) | ((m_dataAddress >> 4) & 0x38)
                                       | ((m_dataAddress >> 2) & 0x07);
-
                         auto attribute = read(addr);
-                        int shift = ((((y % 32) / 16) << 1) + (x % 32) / 16) << 1;
-                        //int shift = (((((m_dataAddress >> 5) & 0x1f) / 16) << 1) + (m_dataAddress & 0x1f) / 16) << 1;
+                        int shift = ((m_dataAddress >> 4) & 4) | (m_dataAddress & 2);
+                        //Extract and set the upper two bits for the color
                         bgColor |= ((attribute >> shift) & 0x3) << 2;
 
                         //Increment/wrap coarse X
-                        if (!(x_fine))
+                        if (x_fine == 7)
                         {
                             if ((m_dataAddress & 0x001F) == 31) // if coarse X == 31
                             {
