@@ -59,6 +59,7 @@ namespace sn
         m_elapsedTime = m_cycleTimer - m_cycleTimer;
 
         sf::Event event;
+        bool focus = true;
 //         int step = -1;
         while (m_window.isOpen())
         {
@@ -70,6 +71,13 @@ namespace sn
                     m_window.close();
                     return;
                 }
+                else if (event.type == sf::Event::GainedFocus)
+                {
+                    focus = true;
+                    m_cycleTimer = std::chrono::high_resolution_clock::now();
+                }
+                else if (event.type == sf::Event::LostFocus)
+                    focus = false;
 //                 else if (event.type == sf::Event::KeyReleased && event.key.code == sf::Keyboard::Space && step != -1)
 //                     ++step;
 //                 else if (event.type == sf::Event::KeyReleased && event.key.code == sf::Keyboard::R)
@@ -80,26 +88,29 @@ namespace sn
 //                 }
             }
 
-            m_elapsedTime += std::chrono::high_resolution_clock::now() - m_cycleTimer;
-            m_cycleTimer = std::chrono::high_resolution_clock::now();
-
-            while (m_elapsedTime > m_cpuCycleDuration)
+            if (focus)
             {
-                m_ppu.step();
-                m_ppu.step();
-                m_ppu.step();
+                m_elapsedTime += std::chrono::high_resolution_clock::now() - m_cycleTimer;
+                m_cycleTimer = std::chrono::high_resolution_clock::now();
 
-                m_cpu.step();
+                while (m_elapsedTime > m_cpuCycleDuration)
+                {
+                    m_ppu.step();
+                    m_ppu.step();
+                    m_ppu.step();
 
-//                 if (m_cpu.getPC() == 0xC3E2) //Breakpoint
-//                     m_window.close();
+                    m_cpu.step();
 
-//                 if (step != -1) --step;
-                m_elapsedTime -= m_cpuCycleDuration;
+//                     if (m_cpu.getPC() == 0xC3E2) //Breakpoint
+//                         m_window.close();
+//
+//                     if (step != -1) --step;
+                    m_elapsedTime -= m_cpuCycleDuration;
+                }
+
+                m_window.draw(m_emulatorScreen);
+                m_window.display();
             }
-
-            m_window.draw(m_emulatorScreen);
-            m_window.display();
 
             //std::this_thread::sleep_for(m_cpuCycleDuration - m_elapsedTime);
         }
