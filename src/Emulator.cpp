@@ -60,7 +60,6 @@ namespace sn
 
         sf::Event event;
         bool focus = true;
-//         int step = -1;
         while (m_window.isOpen())
         {
             while (m_window.pollEvent(event))
@@ -78,14 +77,12 @@ namespace sn
                 }
                 else if (event.type == sf::Event::LostFocus)
                     focus = false;
-//                 else if (event.type == sf::Event::KeyReleased && event.key.code == sf::Keyboard::Space && step != -1)
-//                     ++step;
-//                 else if (event.type == sf::Event::KeyReleased && event.key.code == sf::Keyboard::R)
-//                 {
-//                     //Run automatically
-//                     m_cycleTimer = std::chrono::high_resolution_clock::now();
-//                     step = -1;
-//                 }
+                else if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::F2)
+                {
+                    focus = !focus;
+                    if (focus)
+                        m_cycleTimer = std::chrono::high_resolution_clock::now();
+                }
             }
 
             if (focus)
@@ -101,18 +98,12 @@ namespace sn
 
                     m_cpu.step();
 
-//                     if (m_cpu.getPC() == 0xC3E2) //Breakpoint
-//                         m_window.close();
-//
-//                     if (step != -1) --step;
                     m_elapsedTime -= m_cpuCycleDuration;
                 }
 
                 m_window.draw(m_emulatorScreen);
                 m_window.display();
             }
-
-            //std::this_thread::sleep_for(m_cpuCycleDuration - m_elapsedTime);
         }
     }
 
