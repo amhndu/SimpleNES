@@ -12,10 +12,10 @@ namespace sn
     void PPU::reset()
     {
         m_longSprites = m_generateInterrupt = m_greyscaleMode = m_vblank = false;
-        m_showBackground = m_showSprites = m_evenFrame = true;
+        m_showBackground = m_showSprites = m_evenFrame = m_firstWrite = true;
         m_bgPage = m_sprPage = Low;
-        m_dataAddress = m_cycle = m_scanline = m_spriteDataAddress = 0;
-        m_baseNameTable = 0x2000;
+        m_dataAddress = m_cycle = m_scanline = m_spriteDataAddress = m_fineXScroll = m_tempAddress = 0;
+        //m_baseNameTable = 0x2000;
         m_dataAddrIncrement = 1;
         m_pipelineState = PreRender;
         m_scanlineSprites.reserve(8);
@@ -34,6 +34,18 @@ namespace sn
             case PreRender:
                 if (m_cycle == 1)
                     m_vblank = m_sprZeroHit = false;
+                else if (m_cycle == ScanlineVisibleDots + 2 && m_showBackground && m_showSprites)
+                {
+                    //Set bits related to horizontal position
+                    m_dataAddress &= ~0x41f; //Unset horizontal bits
+                    m_dataAddress |= m_tempAddress & 0x41f; //Copy
+                }
+                else if (m_cycle > 280 && m_cycle <= 304 && m_showBackground && m_showSprites)
+                {
+                    //Set vertical bits
+                    m_dataAddress &= ~0x7be0; //Unset bits related to horizontal
+                    m_dataAddress |= m_tempAddress & 0x7be0; //Copy
+                }
 
                 if ((m_cycle >= ScanlineEndCycle && m_evenFrame) || //if rendering is on, every other frame is one cycle shorter
                     (m_cycle == ScanlineEndCycle - 1 && !m_evenFrame && m_showBackground && m_showSprites))
@@ -54,24 +66,40 @@ namespace sn
 
                     if (m_showBackground)
                     {
-                        //fetch tile number from nametable
-                        Address addr = m_baseNameTable + x / 8 + (y / 8) * (ScanlineVisibleDots / 8);
+                        //fetch tile
+                        auto addr = 0x2000 | (m_dataAddress & 0x0FFF); //mask off fine y
                         Byte tile = read(addr);
 
-                        //fetch pattern and calculate lower two bits
-                        addr = tile * 16 + y % 8;
-                        if (m_bgPage == High) addr += 0x1000;
-                        bgColor = (read(addr) >> (7 ^ x % 8)) & 1; //bit 0 of palette entry
-                        bgColor |= ((read(addr + 8) >> (7 ^ x % 8)) & 1) << 1; //bit 1
+                        //fetch pattern
+                        auto x_fine = (/*m_fineXScroll*/ + x) % 8;
+                        //Each pattern occupies 16 bytes, so multiply by 16
+                        addr = (tile * 16) + ((m_dataAddress >> 12) & 0x7); //Add fine y
+                        addr |= m_bgPage << 12; //set whether the pattern is in the high or low page
+                        //Get the corresponding bit determined by (8 - x_fine) from the right
+                        bgColor = (read(addr) >> (7 ^ x_fine)) & 1; //bit 0 of palette entry
+                        bgColor |= ((read(addr + 8) >> (7 ^ x_fine)) & 1) << 1; //bit 1
 
-                        bgOpaque = bgColor;
+                        bgOpaque = bgColor; //flag used to calculate final pixel with the sprite pixel
 
                         //fetch attribute and calculate higher two bits of palette
-                        addr = m_baseNameTable + AttributeOffset + x / 32 + ((y / 32) * 8);
-                        Byte attribute = read(addr);
-                        int shift = ((((y % 32) / 16) << 1) + (x % 32) / 16) << 1;
-
+                        addr = 0x23C0 | (m_dataAddress & 0x0C00) | ((m_dataAddress >> 4) & 0x38)
+                                      | ((m_dataAddress >> 2) & 0x07);
+                        auto attribute = read(addr);
+                        int shift = ((m_dataAddress >> 4) & 4) | (m_dataAddress & 2);
+                        //Extract and set the upper two bits for the color
                         bgColor |= ((attribute >> shift) & 0x3) << 2;
+
+                        //Increment/wrap coarse X
+                        if (x_fine == 7)
+                        {
+                            if ((m_dataAddress & 0x001F) == 31) // if coarse X == 31
+                            {
+                                m_dataAddress &= ~0x001F;          // coarse X = 0
+                                m_dataAddress ^= 0x0400;           // switch horizontal nametable
+                            }
+                            else
+                                m_dataAddress += 1;                // increment coarse X
+                        }
                     }
 
                     if (m_showSprites)
@@ -133,6 +161,34 @@ namespace sn
                     //else bgColor
 
                     m_screen.setPixel(x, y, sf::Color(colors[m_bus.readPalette(paletteAddr)]));
+                }
+                else if (m_cycle == ScanlineVisibleDots + 1 && m_showBackground && m_showSprites)
+                {
+                    //Shamelessly copied from nesdev wiki
+                    if ((m_dataAddress & 0x7000) != 0x7000)  // if fine Y < 7
+                        m_dataAddress += 0x1000;              // increment fine Y
+                    else
+                    {
+                        m_dataAddress &= ~0x7000;             // fine Y = 0
+                        int y = (m_dataAddress & 0x03E0) >> 5;    // let y = coarse Y
+                        if (y == 29)
+                        {
+                            y = 0;                                // coarse Y = 0
+                            m_dataAddress ^= 0x0800;              // switch vertical nametable
+                        }
+                        else if (y == 31)
+                            y = 0;                                // coarse Y = 0, nametable not switched
+                        else
+                            y += 1;                               // increment coarse Y
+                        m_dataAddress = (m_dataAddress & ~0x03E0) | (y << 5);
+                                                                // put coarse Y back into m_dataAddress
+                    }
+                }
+                else if (m_cycle == ScanlineVisibleDots + 2 && m_showBackground && m_showSprites)
+                {
+                    //Copy bits related to horizontal position
+                    m_dataAddress &= ~0x41f;
+                    m_dataAddress |= m_tempAddress & 0x41f;
                 }
 
                 if (m_cycle >= ScanlineEndCycle)
@@ -236,8 +292,11 @@ namespace sn
             m_dataAddrIncrement = 0x20;
         else
             m_dataAddrIncrement = 1;
-        //m_dataAddrIncrement = 1 << (5 * (((ctrl & 0x4) >> 2) & 1)); //result will be 0x20 if bit is set, 1 otherwise
-        m_baseNameTable = (ctrl & 0x3) * 0x400 + 0x2000;
+        //m_baseNameTable = (ctrl & 0x3) * 0x400 + 0x2000;
+
+        //Set the nametable in the temp address, this will be reflected in the data address during rendering
+        m_tempAddress &= ~0xc00;                 //Unset
+        m_tempAddress |= (ctrl & 0x3) << 10;     //Set according to ctrl bits
     }
 
     void PPU::setMask(Byte mask)
@@ -252,15 +311,29 @@ namespace sn
     {
         Byte status = m_sprZeroHit << 6 |
                       m_vblank << 7;
-        m_dataAddress = 0;
+        //m_dataAddress = 0;
         m_vblank = false;
+        m_firstWrite = true;
         //scroll = 0
         return status;
     }
 
     void PPU::setDataAddress(Byte addr)
     {
-        m_dataAddress = ((m_dataAddress << 8) & 0xff00) | addr;
+        //m_dataAddress = ((m_dataAddress << 8) & 0xff00) | addr;
+        if (m_firstWrite)
+        {
+            m_tempAddress &= ~0xff00; //Unset the upper byte
+            m_tempAddress |= (addr & 0x3f) << 8;
+            m_firstWrite = false;
+        }
+        else
+        {
+            m_tempAddress &= ~0xff; //Unset the lower byte;
+            m_tempAddress |= addr;
+            m_dataAddress = m_tempAddress;
+            m_firstWrite = true;
+        }
     }
 
     Byte PPU::getData()
@@ -301,7 +374,20 @@ namespace sn
 
     void PPU::setScroll(Byte scroll)
     {
-        //reset in getStatus
+        if (m_firstWrite)
+        {
+            m_tempAddress &= ~0x1f;
+            m_tempAddress |= (scroll >> 3) & 0x1f;
+            m_fineXScroll = scroll & 0x3;
+            m_firstWrite = false;
+        }
+        else
+        {
+            m_tempAddress &= ~0x73e0;
+            m_tempAddress |= ((scroll & 0x7) << 12) |
+                             ((scroll & 0xf8) << 2);
+            m_firstWrite = true;
+        }
     }
 
     Byte PPU::read(Address addr)
