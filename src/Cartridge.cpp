@@ -39,7 +39,7 @@ namespace sn
 
     bool Cartridge::loadFromFile(std::string path)
     {
-        std::ifstream romFile (path);
+        std::ifstream romFile (path, std::ios_base::binary | std::ios_base::in);
         if (!romFile)
         {
             LOG(Error) << "Could not open ROM file" << std::endl;
