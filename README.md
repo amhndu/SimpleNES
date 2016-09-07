@@ -2,7 +2,7 @@ SimpleNES
 =============
 
 
-An NES emulator written in C++ for purely educational purposes.
+An NES emulator written in C++ for nothing but fun.
 
 Currently WIP.
 
@@ -24,7 +24,7 @@ Examples of games that have been tested to run (but not limited to):
 * Balloon Fight
 * Tennis
 * Elevator Action
-* Excite bike
+* Excitebike
 
 Screenshots
 ------------------------
@@ -46,8 +46,9 @@ You need:
 Compiling is straight forward with cmake, just run cmake on the project directory with CMAKE_BUILD_TYPE=Release
 and you'll get Makefile or equivalent for your platform, with which you can compile the emulator
 
-For e.g., on Linux/OS X/BSDs:
+For e.g., on Linux/OS X/FreeBSD:
 ```
+$ git clone https://github.com/amhndu/SimpleNES
 $ cd SimpleNES
 $ mkdir build/ && cd build/
 $ cmake -DCMAKE_BUILD_TYPE=Release ..
@@ -63,13 +64,11 @@ Just pass the path to a .nes image like
 $ ./SimpleNES ~/Games/super_mario_bros.nes
 ```
 
-Only for demonstration purposes, [download this archive of roms](https://www.dropbox.com/s/mfzukqy8uul4ae3/demo-roms.tar.gz?dl=0)
-
-
 For supported command line options, try
 ```
 $ ./SimpleNES -h
 ```
+Download some demo ROMs [here](https://www.dropbox.com/s/mfzukqy8uul4ae3/demo-roms.zip?dl=0)
 
 Controller
 -----------------
@@ -89,3 +88,15 @@ These keybindings are hard-coded (for Player 1)
 
 F2 pauses/resumes emulation
 
+Download
+-----------
+Executables:
+
+[Windows 32-bit](https://www.dropbox.com/s/1gqhtbmvzo1ozsz/SimpleNES-win32.rar?dl=0)  
+[Linux 64-bit](https://www.dropbox.com/s/7eswcdektlkdz65/SimpleNES-linux64?dl=0)  
+
+License
+-----------------
+
+This code is in public domain until an Open Source License is picked.  
+NES ROMs are subject to the respective studio's terms.
