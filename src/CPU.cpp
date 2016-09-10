@@ -26,7 +26,7 @@ namespace sn
 
     void CPU::interrupt(InterruptType type)
     {
-        if (f_I && type != NMI)
+        if (f_I && type != NMI && type != BRK_)
             return;
 
         if (type == BRK_) //Add one if BRK, a quirk of 6502
