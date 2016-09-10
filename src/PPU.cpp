@@ -71,7 +71,7 @@ namespace sn
                         Byte tile = read(addr);
 
                         //fetch pattern
-                        auto x_fine = (/*m_fineXScroll*/ + x) % 8;
+                        auto x_fine = (m_fineXScroll + x) % 8;
                         //Each pattern occupies 16 bytes, so multiply by 16
                         addr = (tile * 16) + ((m_dataAddress >> 12) & 0x7); //Add fine y
                         addr |= m_bgPage << 12; //set whether the pattern is in the high or low page
