@@ -378,7 +378,7 @@ namespace sn
         {
             m_tempAddress &= ~0x1f;
             m_tempAddress |= (scroll >> 3) & 0x1f;
-            m_fineXScroll = scroll & 0x3;
+            m_fineXScroll = scroll & 0x7;
             m_firstWrite = false;
         }
         else
