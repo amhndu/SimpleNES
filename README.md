@@ -26,6 +26,10 @@ Examples of games that have been tested to run (but not limited to):
 * Elevator Action
 * Excitebike
 
+[Here's](http://pastebin.com/pUkJN64z) a big list of games that match the supported specs from SimpleNES.  
+(Unlike the list above, these aren't tested. Some may or may not work)
+
+
 Screenshots
 ------------------------
 ![Screenshot 1](http://amhndu.github.io/Projects/screenshots/nes4.png)
@@ -34,6 +38,16 @@ Screenshots
 ![Screenshot 4](http://amhndu.github.io/Projects/screenshots/nes1.png)
 ![Screenshot 5](http://amhndu.github.io/Projects/screenshots/nes5.png)
 
+
+Download
+-----------
+Executables:
+
+[Windows 32-bit](https://www.dropbox.com/s/1gqhtbmvzo1ozsz/SimpleNES-win32.rar?dl=0)  
+[Linux 64-bit](https://www.dropbox.com/s/7eswcdektlkdz65/SimpleNES-linux64?dl=0)  
+
+
+ROMs available [here](http://www.emuparadise.me/Nintendo_Entertainment_System_ROMs/13) for testing.
 
 Compiling
 -----------
@@ -68,7 +82,6 @@ For supported command line options, try
 ```
 $ ./SimpleNES -h
 ```
-Download some demo ROMs [here](https://www.dropbox.com/s/mfzukqy8uul4ae3/demo-roms.zip?dl=0)
 
 Controller
 -----------------
@@ -87,13 +100,6 @@ These keybindings are hard-coded (for Player 1)
  Right         | D
 
 F2 pauses/resumes emulation
-
-Download
------------
-Executables:
-
-[Windows 32-bit](https://www.dropbox.com/s/1gqhtbmvzo1ozsz/SimpleNES-win32.rar?dl=0)  
-[Linux 64-bit](https://www.dropbox.com/s/7eswcdektlkdz65/SimpleNES-linux64?dl=0)  
 
 License
 -----------------

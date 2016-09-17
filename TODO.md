@@ -15,7 +15,7 @@
 
 * Handle palette mirroring properly (and completely)
 
-* Fine x scrolling bug
+* Fix visual artefacts (look into Double Buffering etc)
 
 * APU
 

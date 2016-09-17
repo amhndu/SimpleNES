@@ -47,6 +47,10 @@ include_directories("${PROJECT_SOURCE_DIR}/include")
 # Set static if BUILD_STATIC is set
 if (BUILD_STATIC)
     set(SFML_STATIC_LIBRARIES TRUE)
+    # Link libgcc and libstc++ statically as well
+    if(CMAKE_COMPILER_IS_GNUCXX)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static-libstdc++ -static-libgcc")
+    endif()
 endif()
 
 # Find SFML
