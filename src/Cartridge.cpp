@@ -101,7 +101,7 @@ namespace sn
         else
             LOG(Info) << "ROM is NTSC compatible.\n";
 
-        //PRG-ROM
+        //PRG-ROM 16KB banks
         m_PRG_ROM.resize(0x4000 * banks);
         if (!romFile.read(reinterpret_cast<char*>(&m_PRG_ROM[0]), 0x4000 * banks))
         {
@@ -109,7 +109,7 @@ namespace sn
             return false;
         }
 
-        //CHR-ROM
+        //CHR-ROM 8KB banks
         if (vbanks)
         {
             m_CHR_ROM.resize(0x2000 * vbanks);

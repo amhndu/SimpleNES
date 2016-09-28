@@ -1,5 +1,6 @@
 #include "Mapper.h"
 #include "MapperNROM.h"
+#include "MapperUxROM.h"
 
 namespace sn
 {
@@ -10,6 +11,9 @@ namespace sn
         {
             case NROM:
                 ret.reset(new MapperNROM(cart));
+                break;
+            case UxROM:
+                ret.reset(new MapperUxROM(cart));
                 break;
             default:
                 ret.reset(nullptr);
