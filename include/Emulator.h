@@ -31,6 +31,7 @@ namespace sn
         CPU m_cpu;
         PPU m_ppu;
         Cartridge m_cartridge;
+        std::unique_ptr<Mapper> m_mapper;
 
         Controller m_controller1;
 

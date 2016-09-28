@@ -6,7 +6,7 @@ namespace sn
 {
     MainBus::MainBus() :
         m_RAM(0x800, 0),
-        m_cartride(nullptr)
+        m_mapper(nullptr)
     {
     }
 
@@ -45,17 +45,14 @@ namespace sn
         }
         else if (addr < 0x8000)
         {
-            if (m_cartride->hasExtendedRAM())
+            if (m_mapper->hasExtendedRAM())
             {
                 return m_extRAM[addr - 0x6000];
             }
         }
         else
         {
-            if (!one_bank)
-                return m_cartride->getROM()[addr - 0x8000];
-            else //mirrored
-                return m_cartride->getROM()[(addr - 0x8000) & 0x3fff];
+            return m_mapper->readPRG(addr);
         }
         return 0;
     }
@@ -95,14 +92,14 @@ namespace sn
         }
         else if (addr < 0x8000)
         {
-            if (m_cartride->hasExtendedRAM())
+            if (m_mapper->hasExtendedRAM())
             {
                 m_extRAM[addr - 0x8000] = value;
             }
         }
         else
         {
-            LOG(InfoVerbose) << "ROM memory write attempt\n" << std::endl;
+            m_mapper->writePRG(addr, value);
         }
     }
 
@@ -121,44 +118,30 @@ namespace sn
         }
         else if (addr < 0x8000)
         {
-            if (m_cartride->hasExtendedRAM())
+            if (m_mapper->hasExtendedRAM())
             {
                 return &m_extRAM[addr - 0x8000];
             }
         }
         else
         {
-            if (!one_bank)
-                return &m_cartride->getROM()[addr - 0x8000];
-            else //mirrored
-                return &m_cartride->getROM()[(addr - 0x8000) & 0x3fff];
         }
         return nullptr;
     }
 
-    bool MainBus::loadCartridge(Cartridge* cart)
+    bool MainBus::setMapper(Mapper* mapper)
     {
-        m_cartride = cart;
-        m_mapper = cart->getMapper();
-        auto rom = cart->getROM();
+        m_mapper = mapper;
 
-        if (m_mapper != 0)
+        if (!mapper)
         {
-            LOG(Error) << "Mapper not supported" << std::endl;
+            LOG(Error) << "Mapper pointer is nullptr" << std::endl;
             return false;
         }
 
-        if (cart->hasExtendedRAM())
+        if (mapper->hasExtendedRAM())
             m_extRAM.resize(0x2000);
 
-        if (rom.size() == 0x4000) //1 bank
-        {
-            one_bank = true;
-        }
-        else //2 banks
-        {
-            one_bank = false;
-        }
         return true;
     }
 

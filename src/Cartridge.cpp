@@ -7,7 +7,7 @@ namespace sn
 {
     Cartridge::Cartridge() :
         m_nameTableMirroring(0),
-        m_mapper(0),
+        m_mapperNumber(0),
         m_extendedRAM(false)
     {
 
@@ -24,7 +24,7 @@ namespace sn
 
     Byte Cartridge::getMapper()
     {
-        return m_mapper;
+        return m_mapperNumber;
     }
 
     Byte Cartridge::getNameTableMirroring()
@@ -42,7 +42,7 @@ namespace sn
         std::ifstream romFile (path, std::ios_base::binary | std::ios_base::in);
         if (!romFile)
         {
-            LOG(Error) << "Could not open ROM file" << std::endl;
+            LOG(Error) << "Could not open ROM file from path: " << path << std::endl;
             return false;
         }
 
@@ -81,8 +81,8 @@ namespace sn
         m_nameTableMirroring = header[6] & 0xB;
         LOG(Info) << "Name Table Mirroring: " << +m_nameTableMirroring << std::endl;
 
-        m_mapper = ((header[6] >> 4) & 0xf) | (header[7] & 0xf0);
-        LOG(Info) << "Mapper #: " << +m_mapper << std::endl;
+        m_mapperNumber = ((header[6] >> 4) & 0xf) | (header[7] & 0xf0);
+        LOG(Info) << "Mapper #: " << +m_mapperNumber << std::endl;
 
         m_extendedRAM = header[6] & 0x2;
         LOG(Info) << "Extended (CPU) RAM: " << std::boolalpha << m_extendedRAM << std::endl;

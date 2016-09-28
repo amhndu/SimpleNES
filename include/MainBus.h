@@ -3,7 +3,9 @@
 #include <vector>
 #include <map>
 #include <functional>
+#include <memory>
 #include "Cartridge.h"
+#include "Mapper.h"
 
 namespace sn
 {
@@ -28,20 +30,17 @@ namespace sn
             MainBus();
             Byte read(Address addr);
             void write(Address addr, Byte value);
-            bool loadCartridge(Cartridge *cart);
+            bool setMapper(Mapper* mapper);
             bool setWriteCallback(IORegisters reg, std::function<void(Byte)> callback);
             bool setReadCallback(IORegisters reg, std::function<Byte(void)> callback);
             const Byte* getPagePtr(Byte page);
         private:
             std::vector<Byte> m_RAM;
             std::vector<Byte> m_extRAM;
-            Cartridge* m_cartride;
-            Byte m_mapper;
+            Mapper* m_mapper;
 
             std::map<IORegisters, std::function<void(Byte)>> m_writeCallbacks;
-            std::map<IORegisters, std::function<Byte(void)>> m_readCallbacks;
-            //temporary only
-            bool one_bank;
+            std::map<IORegisters, std::function<Byte(void)>> m_readCallbacks;;
     };
 };
 

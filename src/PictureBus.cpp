@@ -7,17 +7,14 @@ namespace sn
     PictureBus::PictureBus() :
         m_RAM(0x800),
         m_palette(0x20),
-        m_cartride(nullptr)
+        m_mapper(nullptr)
     {}
 
     Byte PictureBus::read(Address addr)
     {
         if (addr < 0x2000)
         {
-            if (m_usesCharacterRAM)
-                return m_characterRAM[addr];
-            else
-                return m_cartride->getVROM()[addr];
+            return m_mapper->readCHR(addr);
         }
         else if (addr < 0x3eff) //Name tables upto 0x3000, then mirrored upto 3eff
         {
@@ -47,10 +44,7 @@ namespace sn
     {
         if (addr < 0x2000)
         {
-            if (m_usesCharacterRAM)
-                m_characterRAM[addr] = value;
-            else
-                LOG(Info) << "Read-only memory write attempt at " << std::hex << addr << std::endl;
+            m_mapper->writeCHR(addr, value);
         }
         else if (addr < 0x3eff) //Name tables upto 0x3000, then mirrored upto 3eff
         {
@@ -73,20 +67,17 @@ namespace sn
        }
     }
 
-    bool PictureBus::loadCartridge(Cartridge* cart)
+    bool PictureBus::setMapper(Mapper *mapper)
     {
-        if (!cart)
+        if (!mapper)
         {
+            LOG(Error) << "Mapper argument is nullptr" << std::endl;
             return false;
-            LOG(Error) << "Cartride argument is nullptr" << std::endl;
         }
 
-        m_cartride = cart;
+        m_mapper = mapper;
 
-        auto mirroring = cart->getNameTableMirroring();
-//         mirroring = (mirroring & FourScreen) ? FourScreen : mirroring;
-        m_mirroring = static_cast<NameTableMirroring>(mirroring);
-        switch (m_mirroring)
+        switch (m_mapper->getNameTableMirroring())
         {
             case Horizontal:
                 NameTable0 = NameTable1 = 0;
@@ -102,15 +93,6 @@ namespace sn
                 LOG(Error) << "Unsupported Name Table mirroring." << std::endl;
                 return false;
         }
-
-        if (cart->getVROM().size() == 0)
-        {
-            m_usesCharacterRAM = true;
-            m_characterRAM.resize(0x2000);
-            LOG(Info) << "Uses character RAM" << std::endl;
-        }
-        else
-            m_usesCharacterRAM = false;
 
         return true;
     }

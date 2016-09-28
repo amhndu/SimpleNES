@@ -23,7 +23,7 @@ namespace sn
             std::vector<Byte> m_PRG_ROM;
             std::vector<Byte> m_CHR_ROM;
             Byte m_nameTableMirroring;
-            Byte m_mapper;
+            Byte m_mapperNumber;
             bool m_extendedRAM;
             bool m_chrRAM;
     };

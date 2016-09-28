@@ -43,8 +43,15 @@ namespace sn
         if (!m_cartridge.loadFromFile(rom_path))
             return;
 
-        if (!m_bus.loadCartridge(&m_cartridge) ||
-            !m_pictureBus.loadCartridge(&m_cartridge))
+        m_mapper = Mapper::createMapper(static_cast<Mapper::Type>(m_cartridge.getMapper()), m_cartridge);
+        if (!m_mapper)
+        {
+            LOG(Error) << "Creating Mapper failed. Probably unsupported." << std::endl;
+            return;
+        }
+
+        if (!m_bus.setMapper(m_mapper.get()) ||
+            !m_pictureBus.setMapper(m_mapper.get()))
             return;
 
         m_cpu.reset();
@@ -92,10 +99,11 @@ namespace sn
 
                 while (m_elapsedTime > m_cpuCycleDuration)
                 {
+                    //PPU
                     m_ppu.step();
                     m_ppu.step();
                     m_ppu.step();
-
+                    //CPU
                     m_cpu.step();
 
                     m_elapsedTime -= m_cpuCycleDuration;
