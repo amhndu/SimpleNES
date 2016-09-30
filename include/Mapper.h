@@ -21,6 +21,7 @@ namespace sn
                 NROM = 0,
                 MMC1 = 1,
                 UxROM = 2,
+                CNROM = 3,
             };
 
             Mapper(Cartridge& cart, Type t) : m_cartridge(cart), m_type(t) {};
