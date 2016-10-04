@@ -18,8 +18,8 @@ namespace sn
         public:
             enum Type
             {
-                NROM = 0,
-                MMC1 = 1,
+                NROM  = 0,
+                SxROM = 1,
                 UxROM = 2,
                 CNROM = 3,
             };

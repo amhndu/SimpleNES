@@ -68,7 +68,7 @@ namespace sn
         LOG(Info) << "Reading header, it dictates: \n";
 
         Byte banks = header[4];
-        LOG(Info) << "PRG-ROM Banks: " << +banks << std::endl;
+        LOG(Info) << "16KB PRG-ROM Banks: " << +banks << std::endl;
         if (!banks)
         {
             LOG(Error) << "ROM has no PRG-ROM banks. Loading ROM failed." << std::endl;
@@ -76,7 +76,7 @@ namespace sn
         }
 
         Byte vbanks = header[5];
-        LOG(Info) << "CHR-ROM Banks: " << +vbanks << std::endl;
+        LOG(Info) << "8KB CHR-ROM Banks: " << +vbanks << std::endl;
 
         m_nameTableMirroring = header[6] & 0xB;
         LOG(Info) << "Name Table Mirroring: " << +m_nameTableMirroring << std::endl;
