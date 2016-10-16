@@ -152,7 +152,7 @@ namespace sn
             LOG(Error) << "callback argument is nullptr" << std::endl;
             return false;
         }
-        return m_writeCallbacks.insert({reg, callback}).second;
+        return m_writeCallbacks.emplace(reg, callback).second;
     }
 
     bool MainBus::setReadCallback(IORegisters reg, std::function<Byte(void)> callback)
@@ -162,7 +162,7 @@ namespace sn
             LOG(Error) << "callback argument is nullptr" << std::endl;
             return false;
         }
-        return m_readCallbacks.insert({reg, callback}).second;
+        return m_readCallbacks.emplace(reg, callback).second;
     }
 
 };

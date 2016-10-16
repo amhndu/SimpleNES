@@ -10,6 +10,8 @@ namespace sn
         Horizontal  = 0,
         Vertical    = 1,
         FourScreen  = 8,
+        OneScreenLower,
+        OneScreenHigher,
     };
 
 
@@ -18,8 +20,8 @@ namespace sn
         public:
             enum Type
             {
-                NROM = 0,
-                MMC1 = 1,
+                NROM  = 0,
+                SxROM = 1,
                 UxROM = 2,
                 CNROM = 3,
             };
@@ -32,17 +34,14 @@ namespace sn
             virtual Byte readCHR (Address addr) = 0;
             virtual void writeCHR (Address addr, Byte value) = 0;
 
+            virtual NameTableMirroring getNameTableMirroring();
+
             bool inline hasExtendedRAM()
             {
                 return m_cartridge.hasExtendedRAM();
             }
 
-            NameTableMirroring inline getNameTableMirroring()
-            {
-                return static_cast<NameTableMirroring>(m_cartridge.getNameTableMirroring());
-            }
-
-            static std::unique_ptr<Mapper> createMapper (Type mapper_t, Cartridge& cart);
+            static std::unique_ptr<Mapper> createMapper (Type mapper_t, Cartridge& cart, std::function<void(void)> mirroring_cb);
 
         protected:
             Cartridge& m_cartridge;

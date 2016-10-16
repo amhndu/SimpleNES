@@ -43,7 +43,9 @@ namespace sn
         if (!m_cartridge.loadFromFile(rom_path))
             return;
 
-        m_mapper = Mapper::createMapper(static_cast<Mapper::Type>(m_cartridge.getMapper()), m_cartridge);
+        m_mapper = Mapper::createMapper(static_cast<Mapper::Type>(m_cartridge.getMapper()),
+                                        m_cartridge,
+                                        [&](){ m_pictureBus.updateMirroring(); });
         if (!m_mapper)
         {
             LOG(Error) << "Creating Mapper failed. Probably unsupported." << std::endl;
