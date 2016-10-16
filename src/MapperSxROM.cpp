@@ -60,10 +60,7 @@ namespace sn
             {
                 if (addr <= 0x9fff)
                 {
-                    LOG(Info) << "CHR mode : " << m_modeCHR << std::endl;
-                    LOG(Info) << "PRG mode : " << m_modePRG << std::endl;
-                    LOG(Info) << "Mirroring: " << (m_tempRegister & 0x3) << std::endl;
-                    switch (m_tempRegister & 0x3)
+                   switch (m_tempRegister & 0x3)
                     {
                         case 0:     m_mirroing = OneScreenLower;    break;
                         case 1:     m_mirroing = OneScreenHigher;   break;

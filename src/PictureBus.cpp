@@ -74,20 +74,20 @@ namespace sn
             case Horizontal:
                 NameTable0 = NameTable1 = 0;
                 NameTable2 = NameTable3 = 0x400;
-                LOG(Info) << "Horizontal Name Table mirroring set. (Vertical Scrolling)" << std::endl;
+                LOG(InfoVerbose) << "Horizontal Name Table mirroring set. (Vertical Scrolling)" << std::endl;
                 break;
             case Vertical:
                 NameTable0 = NameTable2 = 0;
                 NameTable1 = NameTable3 = 0x400;
-                LOG(Info) << "Vertical Name Table mirroring set. (Horizontal Scrolling)" << std::endl;
+                LOG(InfoVerbose) << "Vertical Name Table mirroring set. (Horizontal Scrolling)" << std::endl;
                 break;
             case OneScreenLower:
                 NameTable0 = NameTable1 = NameTable2 = NameTable3 = 0;
-                LOG(Info) << "Single Screen mirroring set with lower bank." << std::endl;
+                LOG(InfoVerbose) << "Single Screen mirroring set with lower bank." << std::endl;
                 break;
             case OneScreenHigher:
                 NameTable0 = NameTable1 = NameTable2 = NameTable3 = 0x400;
-                LOG(Info) << "Single Screen mirroring set with higher bank." << std::endl;
+                LOG(InfoVerbose) << "Single Screen mirroring set with higher bank." << std::endl;
                 break;
             default:
                 NameTable0 = NameTable1 = NameTable2 = NameTable3 = 0;
