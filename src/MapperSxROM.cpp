@@ -9,6 +9,9 @@ namespace sn
         m_modePRG(3),
         m_tempRegister(0),
         m_writeCounter(0),
+        m_regPRG(0),
+        m_regCHR0(0),
+        m_regCHR1(0),
         m_firstBankPRG(nullptr),
         m_secondBankPRG(nullptr),
         m_firstBankCHR(nullptr),
@@ -25,11 +28,11 @@ namespace sn
             LOG(Info) << "Using CHR-ROM" << std::endl;
             m_usesCharacterRAM = false;
             m_firstBankCHR = &cart.getVROM()[0];
-            m_secondBankCHR = &cart.getVROM()[0x1000];
+            m_secondBankCHR = &cart.getVROM()[0x1000 * m_regCHR1];
         }
 
         m_firstBankPRG = &cart.getROM()[0]; //first bank
-        m_secondBankPRG = &cart.getROM()[/*cart.getROM().size() - 0x4000*/0x2000 * 0x0e]; //last bank
+        m_secondBankPRG = &cart.getROM()[cart.getROM().size() - 0x4000/*0x2000 * 0x0e*/]; //last bank
     }
 
     Byte MapperSxROM::readPRG(Address addr)
@@ -49,30 +52,39 @@ namespace sn
 
             if (m_writeCounter == 5)
             {
-                if (addr < 0xa000)
+                if (addr <= 0x9fff)
                 {
+                    //TODO Mirroring and Name table mapped with mapper
                     m_modeCHR = (m_tempRegister & 0x10) >> 4;
                     m_modePRG = (m_tempRegister & 0xc) >> 2;
-                    LOG(Info) << "CHR mode: " << m_modeCHR << std::endl;
-                    LOG(Info) << "PRG mode: " << m_modePRG << std::endl;
-                    //TODO Mirroring?
+                    calculatePRGPointers();
+                    //Recalculate CHR pointers
+                    if (m_modeCHR == 0) //one 8KB bank
+                    {
+                        m_firstBankCHR = &m_cartridge.getVROM()[0x1000 * (m_regCHR0 | 1)]; //ignore last bit
+                        m_secondBankCHR = m_firstBankCHR + 0x1000;
+                    }
+                    else //two 4KB banks
+                    {
+                        m_firstBankCHR = &m_cartridge.getVROM()[0x1000 * m_regCHR0];
+                        m_secondBankCHR = &m_cartridge.getVROM()[0x1000 * m_regCHR1];
+                    }
+                    LOG(Info) << "CHR mode : " << m_modeCHR << std::endl;
+                    LOG(Info) << "PRG mode : " << m_modePRG << std::endl;
+                    LOG(Info) << "Mirroring: " << (m_tempRegister & 0x3) << std::endl;
                 }
-                else if (addr < 0xc000)
+                else if (addr <= 0xbfff) //CHR Reg 0
                 {
-                    if (m_modeCHR == 0) //if 8KB switchable
-                        m_tempRegister |= 1;
-
-                    m_firstBankCHR = &m_cartridge.getVROM()[0x1000 * m_tempRegister];
+                    m_regCHR0 = m_tempRegister;
+                    m_firstBankCHR = &m_cartridge.getVROM()[0x1000 * (m_tempRegister | (1 - m_modeCHR))]; //OR 1 if 8KB mode
                     if (m_modeCHR == 0)
                         m_secondBankCHR = m_firstBankCHR + 0x1000;
                 }
-                else if (addr < 0xe000)
+                else if (addr <= 0xdfff)
                 {
-//                     if(m_modeCHR == 1)
-                    m_secondBankCHR = &m_cartridge.getVROM()[0x1000 * m_tempRegister];
-
-//                     else
-//                         LOG(Info) << "This doesn't make sense now" << std::endl;
+                    m_regCHR1 = m_tempRegister;
+                    if(m_modeCHR == 1)
+                        m_secondBankCHR = &m_cartridge.getVROM()[0x1000 * m_tempRegister];
                 }
                 else
                 {
@@ -83,22 +95,8 @@ namespace sn
                     }
 
                     m_tempRegister &= 0xf;
-
-                    if (m_modePRG <= 1) //32KB changeable
-                    {
-                        m_firstBankPRG = &m_cartridge.getROM()[0x4000 * (m_tempRegister | 1)];
-                        m_secondBankPRG = m_firstBankPRG + 0x4000;   //add 16KB
-                    }
-                    else if (m_modePRG == 2) //fix first switch second
-                    {
-                        m_firstBankPRG = &m_cartridge.getROM()[0];
-                        m_secondBankPRG = m_firstBankPRG + 0x4000 * m_tempRegister;
-                    }
-                    else //switch first fix second
-                    {
-                        m_firstBankPRG = &m_cartridge.getROM()[0x4000 * m_tempRegister];
-                        m_secondBankPRG = &m_cartridge.getROM()[/*m_cartridge.getROM().size() - 0x4000*/0x2000 * 0x0e];
-                    }
+                    m_regPRG = m_tempRegister;
+                    calculatePRGPointers();
                 }
 
                 m_tempRegister = 0;
@@ -110,6 +108,26 @@ namespace sn
             m_tempRegister = 0;
             m_writeCounter = 0;
             m_modePRG = 3;
+            calculatePRGPointers();
+        }
+    }
+
+    void MapperSxROM::calculatePRGPointers()
+    {
+        if (m_modePRG <= 1) //32KB changeable
+        {
+            m_firstBankPRG = &m_cartridge.getROM()[0x4000 * (m_regPRG | 1)];
+            m_secondBankPRG = m_firstBankPRG + 0x4000;   //add 16KB
+        }
+        else if (m_modePRG == 2) //fix first switch second
+        {
+            m_firstBankPRG = &m_cartridge.getROM()[0];
+            m_secondBankPRG = m_firstBankPRG + 0x4000 * m_regPRG;
+        }
+        else //switch first fix second
+        {
+            m_firstBankPRG = &m_cartridge.getROM()[0x4000 * m_regPRG];
+            m_secondBankPRG = &m_cartridge.getROM()[m_cartridge.getROM().size() - 0x4000/*0x2000 * 0x0e*/];
         }
     }
 

@@ -15,12 +15,17 @@ namespace sn
             Byte readCHR (Address addr);
             void writeCHR (Address addr, Byte value);
         private:
+            void calculatePRGPointers();
             bool m_usesCharacterRAM;
             int m_modeCHR;
             int m_modePRG;
 
             Byte m_tempRegister;
             int m_writeCounter;
+
+            Byte m_regPRG;
+            Byte m_regCHR0;
+            Byte m_regCHR1;
 
             const Byte* m_firstBankPRG;
             const Byte* m_secondBankPRG;
