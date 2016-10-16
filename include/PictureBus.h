@@ -15,6 +15,8 @@ namespace sn
 
             bool setMapper(Mapper *mapper);
             Byte readPalette(Byte paletteAddr);
+
+            void updateMirroring();
         private:
             std::vector<Byte> m_RAM;
             std::size_t NameTable0, NameTable1, NameTable2, NameTable3; //indices where they start in RAM vector

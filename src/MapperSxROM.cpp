@@ -3,8 +3,9 @@
 
 namespace sn
 {
-    MapperSxROM::MapperSxROM(Cartridge &cart) :
+    MapperSxROM::MapperSxROM(Cartridge &cart, std::function<void(void)> mirroring_cb) :
         Mapper(cart, Mapper::SxROM),
+        m_mirroringCallback(mirroring_cb),
         m_modeCHR(0),
         m_modePRG(3),
         m_tempRegister(0),
@@ -43,6 +44,11 @@ namespace sn
             return *(m_secondBankPRG + (addr & 0x3fff));
     }
 
+    NameTableMirroring MapperSxROM::getNameTableMirroring()
+    {
+        return m_mirroing;
+    }
+
     void MapperSxROM::writePRG(Address addr, Byte value)
     {
         if (!(value & 0x80)) //if reset bit is NOT set
@@ -54,10 +60,22 @@ namespace sn
             {
                 if (addr <= 0x9fff)
                 {
-                    //TODO Mirroring and Name table mapped with mapper
+                    LOG(Info) << "CHR mode : " << m_modeCHR << std::endl;
+                    LOG(Info) << "PRG mode : " << m_modePRG << std::endl;
+                    LOG(Info) << "Mirroring: " << (m_tempRegister & 0x3) << std::endl;
+                    switch (m_tempRegister & 0x3)
+                    {
+                        case 0:     m_mirroing = OneScreenLower;    break;
+                        case 1:     m_mirroing = OneScreenHigher;   break;
+                        case 2:     m_mirroing = Vertical;          break;
+                        case 3:     m_mirroing = Horizontal;        break;
+                    }
+                    m_mirroringCallback();
+
                     m_modeCHR = (m_tempRegister & 0x10) >> 4;
                     m_modePRG = (m_tempRegister & 0xc) >> 2;
                     calculatePRGPointers();
+
                     //Recalculate CHR pointers
                     if (m_modeCHR == 0) //one 8KB bank
                     {
@@ -69,9 +87,6 @@ namespace sn
                         m_firstBankCHR = &m_cartridge.getVROM()[0x1000 * m_regCHR0];
                         m_secondBankCHR = &m_cartridge.getVROM()[0x1000 * m_regCHR1];
                     }
-                    LOG(Info) << "CHR mode : " << m_modeCHR << std::endl;
-                    LOG(Info) << "PRG mode : " << m_modePRG << std::endl;
-                    LOG(Info) << "Mirroring: " << (m_tempRegister & 0x3) << std::endl;
                 }
                 else if (addr <= 0xbfff) //CHR Reg 0
                 {

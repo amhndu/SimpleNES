@@ -67,16 +67,8 @@ namespace sn
        }
     }
 
-    bool PictureBus::setMapper(Mapper *mapper)
+    void PictureBus::updateMirroring()
     {
-        if (!mapper)
-        {
-            LOG(Error) << "Mapper argument is nullptr" << std::endl;
-            return false;
-        }
-
-        m_mapper = mapper;
-
         switch (m_mapper->getNameTableMirroring())
         {
             case Horizontal:
@@ -89,13 +81,31 @@ namespace sn
                 NameTable1 = NameTable3 = 0x400;
                 LOG(Info) << "Vertical Name Table mirroring set. (Horizontal Scrolling)" << std::endl;
                 break;
+            case OneScreenLower:
+                NameTable0 = NameTable1 = NameTable2 = NameTable3 = 0;
+                LOG(Info) << "Single Screen mirroring set with lower bank." << std::endl;
+                break;
+            case OneScreenHigher:
+                NameTable0 = NameTable1 = NameTable2 = NameTable3 = 0x400;
+                LOG(Info) << "Single Screen mirroring set with higher bank." << std::endl;
+                break;
             default:
-                LOG(Error) << "Unsupported Name Table mirroring." << std::endl;
-                return false;
+                NameTable0 = NameTable1 = NameTable2 = NameTable3 = 0;
+                LOG(Error) << "Unsupported Name Table mirroring : " << m_mapper->getNameTableMirroring() << std::endl;
         }
-
-        return true;
     }
 
+    bool PictureBus::setMapper(Mapper *mapper)
+    {
+        if (!mapper)
+        {
+            LOG(Error) << "Mapper argument is nullptr" << std::endl;
+            return false;
+        }
+
+        m_mapper = mapper;
+        updateMirroring();
+        return true;
+    }
 
 }
