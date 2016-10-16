@@ -94,7 +94,7 @@ namespace sn
         {
             if (m_mapper->hasExtendedRAM())
             {
-                m_extRAM[addr - 0x8000] = value;
+                m_extRAM[addr - 0x6000] = value;
             }
         }
         else
@@ -120,7 +120,7 @@ namespace sn
         {
             if (m_mapper->hasExtendedRAM())
             {
-                return &m_extRAM[addr - 0x8000];
+                return &m_extRAM[addr - 0x6000];
             }
         }
         else
