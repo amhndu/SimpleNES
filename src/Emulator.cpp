@@ -68,7 +68,7 @@ namespace sn
         m_elapsedTime = m_cycleTimer - m_cycleTimer;
 
         sf::Event event;
-        bool focus = true;
+        bool focus = true, pause = false;
         while (m_window.isOpen())
         {
             while (m_window.pollEvent(event))
@@ -88,13 +88,22 @@ namespace sn
                     focus = false;
                 else if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::F2)
                 {
-                    focus = !focus;
-                    if (focus)
+                    pause = !pause;
+                    if (!pause)
                         m_cycleTimer = std::chrono::high_resolution_clock::now();
+                }
+                else if (pause && event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::F3)
+                {
+                   //PPU
+                    m_ppu.step();
+                    m_ppu.step();
+                    m_ppu.step();
+                    //CPU
+                    m_cpu.step();
                 }
             }
 
-            if (focus)
+            if (focus && !pause)
             {
                 m_elapsedTime += std::chrono::high_resolution_clock::now() - m_cycleTimer;
                 m_cycleTimer = std::chrono::high_resolution_clock::now();

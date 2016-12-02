@@ -46,9 +46,10 @@ namespace sn
                     m_dataAddress &= ~0x7be0; //Unset bits related to horizontal
                     m_dataAddress |= m_tempAddress & 0x7be0; //Copy
                 }
-
-                if ((m_cycle >= ScanlineEndCycle && m_evenFrame) || //if rendering is on, every other frame is one cycle shorter
-                    (m_cycle == ScanlineEndCycle - 1 && !m_evenFrame && m_showBackground && m_showSprites))
+//                 if (m_cycle > 257 && m_cycle < 320)
+//                     m_spriteDataAddress = 0;
+               //if rendering is on, every other frame is one cycle shorter
+                if (m_cycle >= ScanlineEndCycle - (!m_evenFrame && m_showBackground && m_showSprites))
                 {
                     m_pipelineState = Render;
                     m_cycle = m_scanline = 0;
@@ -191,6 +192,9 @@ namespace sn
                     m_dataAddress |= m_tempAddress & 0x41f;
                 }
 
+//                 if (m_cycle > 257 && m_cycle < 320)
+//                     m_spriteDataAddress = 0;
+
                 if (m_cycle >= ScanlineEndCycle)
                 {
                     //Find and index sprites that are on the next Scanline
@@ -204,7 +208,7 @@ namespace sn
                         range = 16;
 
                     std::size_t j = 0;
-                    for (std::size_t i = 0; i < 64; ++i)
+                    for (std::size_t i = m_spriteDataAddress / 4; i < 64; ++i)
                     {
                         auto diff = (m_scanline - m_spriteMemory[i * 4]);
                         if (0 <= diff && diff < range)
@@ -243,7 +247,7 @@ namespace sn
 //                 if (m_cycle == 1 && m_scanline == VisibleScanlines + 2)
 //                 {
 //                     m_vblank = true;
-//                     if (m_generateInterrupt) m_vblankCallback();
+//                     if (m_generateinterrupt) m_vblankcallback();
 //                 }
 
                 if (m_cycle >= ScanlineEndCycle)
@@ -256,6 +260,7 @@ namespace sn
                 {
                     m_pipelineState = PreRender;
                     m_scanline = 0;
+                    m_evenFrame = !m_evenFrame;
 //                     m_vblank = false;
                 }
 
@@ -279,7 +284,10 @@ namespace sn
 
     void PPU::doDMA(const Byte* page_ptr)
     {
-        std::memcpy(m_spriteMemory.data(), page_ptr, 256);
+        std::memcpy(m_spriteMemory.data() + m_spriteDataAddress, page_ptr, 256 - m_spriteDataAddress);
+        if (m_spriteDataAddress)
+            std::memcpy(m_spriteMemory.data(), page_ptr + (256 - m_spriteDataAddress), m_spriteDataAddress);
+        //std::memcpy(m_spriteMemory.data(), page_ptr, 256);
     }
 
     void PPU::control(Byte ctrl)
@@ -353,7 +361,7 @@ namespace sn
 
     Byte PPU::getOAMData()
     {
-        return readOAM(m_spriteDataAddress++);
+        return readOAM(m_spriteDataAddress);
     }
 
     void PPU::setData(Byte data)
