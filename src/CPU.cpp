@@ -116,9 +116,9 @@ namespace sn
                   << "X:"   << std::setw(2) << +r_X << " "
                   << "Y:"   << std::setw(2) << +r_Y << " "
                   << "P:"   << std::setw(2) << psw << " "
-                  << "SP:"  << std::setw(2) << +r_SP  << std::endl;/*" "
+                  << "SP:"  << std::setw(2) << +r_SP  << /*std::endl;*/" "
                   << "CYC:" << std::setw(3) << std::setfill(' ') << std::dec << ((m_cycles - 1) * 3) % 341
-                  << std::endl;*/
+                  << std::endl;
 
        Byte opcode = m_bus.read(r_PC++);
 
@@ -330,7 +330,8 @@ namespace sn
     {
         if ((opcode & InstructionModeMask) == 0x1)
         {
-            Address location = 0; //Location of the operand, could be in RAM,
+            Address location = 0; //Location of the operand, could be in RAM
+            auto op = static_cast<Operation1>((opcode & OperationMask) >> OperationShift);
             switch (static_cast<AddrMode1>(
                     (opcode & AddrModeMask) >> AddrModeShift))
             {
@@ -355,7 +356,8 @@ namespace sn
                     {
                         Byte zero_addr = m_bus.read(r_PC++);
                         location = m_bus.read(zero_addr & 0xff) | m_bus.read((zero_addr + 1) & 0xff) << 8;
-                        setPageCrossed(location, location + r_Y);
+                        if (op != STA)
+                            setPageCrossed(location, location + r_Y);
                         location += r_Y;
                     }
                     break;
@@ -366,21 +368,22 @@ namespace sn
                 case AbsoluteY:
                     location = readAddress(r_PC);
                     r_PC += 2;
-                    setPageCrossed(location, location + r_Y);
+                    if (op != STA)
+                        setPageCrossed(location, location + r_Y);
                     location += r_Y;
                     break;
                 case AbsoluteX:
                     location = readAddress(r_PC);
                     r_PC += 2;
-                    setPageCrossed(location, location + r_X);
+                    if (op != STA)
+                        setPageCrossed(location, location + r_X);
                     location += r_X;
                     break;
                 default:
                     return false;
             }
 
-            switch (static_cast<Operation1>(
-                                (opcode & OperationMask) >> OperationShift))
+            switch (op)
             {
                 case ORA:
                     r_A |= m_bus.read(location);

@@ -69,12 +69,13 @@ namespace sn
                     {
                         //fetch tile
                         auto addr = 0x2000 | (m_dataAddress & 0x0FFF); //mask off fine y
+                        //auto addr = 0x2000 + x / 8 + (y / 8) * (ScanlineVisibleDots / 8);
                         Byte tile = read(addr);
 
                         //fetch pattern
                         auto x_fine = (m_fineXScroll + x) % 8;
                         //Each pattern occupies 16 bytes, so multiply by 16
-                        addr = (tile * 16) + ((m_dataAddress >> 12) & 0x7); //Add fine y
+                        addr = (tile * 16) + ((m_dataAddress >> 12/*y % 8*/) & 0x7); //Add fine y
                         addr |= m_bgPage << 12; //set whether the pattern is in the high or low page
                         //Get the corresponding bit determined by (8 - x_fine) from the right
                         bgColor = (read(addr) >> (7 ^ x_fine)) & 1; //bit 0 of palette entry
@@ -226,7 +227,7 @@ namespace sn
                     m_cycle = 0;
                 }
 
-                if (m_scanline >= VisibleScanlines)
+                if (m_scanline >= VisibleScanlines - 1)
                     m_pipelineState = PostRender;
 
                 break;
@@ -237,18 +238,18 @@ namespace sn
                     m_cycle = 0;
                     m_pipelineState = VerticalBlank;
                     //Should technically be done at first dot of VBlank, but this is close enough
-                    m_vblank = true;
-                    if (m_generateInterrupt) m_vblankCallback();
+//                     m_vblank = true;
+//                     if (m_generateInterrupt) m_vblankCallback();
 
                 }
 
                 break;
             case VerticalBlank:
-//                 if (m_cycle == 1 && m_scanline == VisibleScanlines + 2)
-//                 {
-//                     m_vblank = true;
-//                     if (m_generateinterrupt) m_vblankcallback();
-//                 }
+                if (m_cycle == 1 && m_scanline == VisibleScanlines + 1)
+                {
+                    m_vblank = true;
+                    if (m_generateInterrupt) m_vblankCallback();
+                }
 
                 if (m_cycle >= ScanlineEndCycle)
                 {
@@ -322,7 +323,6 @@ namespace sn
         //m_dataAddress = 0;
         m_vblank = false;
         m_firstWrite = true;
-        //scroll = 0
         return status;
     }
 
