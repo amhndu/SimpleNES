@@ -164,7 +164,7 @@ namespace sn
 
                     m_screen.setPixel(x, y, sf::Color(colors[m_bus.readPalette(paletteAddr)]));
                 }
-                else if (m_cycle == ScanlineVisibleDots + 1 && m_showBackground && m_showSprites)
+                else if (m_cycle == ScanlineVisibleDots + 1 && m_showBackground)
                 {
                     //Shamelessly copied from nesdev wiki
                     if ((m_dataAddress & 0x7000) != 0x7000)  // if fine Y < 7
@@ -227,7 +227,7 @@ namespace sn
                     m_cycle = 0;
                 }
 
-                if (m_scanline >= VisibleScanlines - 1)
+                if (m_scanline >= VisibleScanlines)
                     m_pipelineState = PostRender;
 
                 break;
