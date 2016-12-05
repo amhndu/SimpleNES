@@ -93,7 +93,8 @@ namespace sn
               m_sprPage;
 
             Address m_dataAddrIncrement;
-            //Address m_baseNameTable;
+
+            std::vector<std::vector<sf::Color>> m_pictureBuffer;
     };
 }
 

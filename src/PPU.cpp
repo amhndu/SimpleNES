@@ -6,7 +6,8 @@ namespace sn
     PPU::PPU(PictureBus& bus, VirtualScreen& screen) :
         m_bus(bus),
         m_screen(screen),
-        m_spriteMemory(64 * 4)
+        m_spriteMemory(64 * 4),
+        m_pictureBuffer(ScanlineVisibleDots, std::vector<sf::Color>(VisibleScanlines, sf::Color::Magenta))
     {}
 
     void PPU::reset()
@@ -174,7 +175,8 @@ namespace sn
                         paletteAddr = 0;
                     //else bgColor
 
-                    m_screen.setPixel(x, y, sf::Color(colors[m_bus.readPalette(paletteAddr)]));
+//                     m_screen.setPixel(x, y, sf::Color(colors[m_bus.readPalette(paletteAddr)]));
+                    m_pictureBuffer[x][y] = sf::Color(colors[m_bus.readPalette(paletteAddr)]);
                 }
                 else if (m_cycle == ScanlineVisibleDots + 1 && m_showBackground)
                 {
@@ -249,6 +251,15 @@ namespace sn
                     ++m_scanline;
                     m_cycle = 0;
                     m_pipelineState = VerticalBlank;
+
+                    for (int x = 0; x < m_pictureBuffer.size(); ++x)
+                    {
+                        for (int y = 0; y < m_pictureBuffer[0].size(); ++y)
+                        {
+                            m_screen.setPixel(x, y, m_pictureBuffer[x][y]);
+                        }
+                    }
+                   
                     //Should technically be done at first dot of VBlank, but this is close enough
 //                     m_vblank = true;
 //                     if (m_generateInterrupt) m_vblankCallback();
