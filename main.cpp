@@ -45,6 +45,8 @@ int main(int argc, char** argv)
                       << "Usage: SimpleNES [options] rom-path\n\n"
                       << "Options:\n"
                       << "-h, --help             Print this help text and exit\n"
+                      << "-s, --scale            Set video scale. Default: 2.\n"
+                      << "                       Scale of 1 corresponds to " << sn::NESVideoWidth << "x" << sn::NESVideoHeight << std::endl
                       << "-w, --width            Set the width of the emulation screen (height is\n"
                       << "                       set automatically to fit the aspect ratio)\n"
                       << "-H, --height           Set the height of the emulation screen (width is\n"
@@ -59,6 +61,16 @@ int main(int argc, char** argv)
             cpuTraceFile.open("sn.cpudump");
             sn::Log::get().setCpuTraceStream(cpuTraceFile);
             LOG(sn::Info) << "CPU logging set." << std::endl;
+        }
+        else if (std::strcmp(argv[i], "-s") == 0 || std::strcmp(argv[i], "--scale") == 0)
+        {
+            float scale;
+            std::stringstream ss;
+            if (i + 1 < argc && ss << argv[i + 1] && ss >> scale)
+                emulator.setVideoScale(scale);
+            else
+                LOG(sn::Error) << "Setting scale from argument failed" << std::endl;
+            ++i;
         }
         else if (std::strcmp(argv[i], "-w") == 0 || std::strcmp(argv[i], "--width") == 0)
         {
@@ -80,8 +92,10 @@ int main(int argc, char** argv)
                 LOG(sn::Error) << "Setting height from argument failed" << std::endl;
             ++i;
         }
-        else
+        else if (argv[i][0] != '-')
             path = argv[i];
+        else
+            std::cerr << "Unrecognized argument: " << argv[i] << std::endl;
     }
 
     if (path.empty())

@@ -155,17 +155,23 @@ namespace sn
 
     void Emulator::setVideoHeight(int height)
     {
-        m_screenScale = height / 240.f;
+        m_screenScale = height / float(NESVideoHeight);
         LOG(Info) << "Scale: " << m_screenScale << " set. Screen: "
                   << int(NESVideoWidth * m_screenScale) << "x" << int(NESVideoHeight * m_screenScale) << std::endl;
     }
 
     void Emulator::setVideoWidth(int width)
     {
-        m_screenScale = width / 256.f;
+        m_screenScale = width / float(NESVideoWidth);
         LOG(Info) << "Scale: " << m_screenScale << " set. Screen: "
                   << int(NESVideoWidth * m_screenScale) << "x" << int(NESVideoHeight * m_screenScale) << std::endl;
 
+    }
+    void Emulator::setVideoScale(float scale)
+    {
+        m_screenScale = scale;
+        LOG(Info) << "Scale: " << m_screenScale << " set. Screen: "
+                  << int(NESVideoWidth * m_screenScale) << "x" << int(NESVideoHeight * m_screenScale) << std::endl;
     }
 
 }

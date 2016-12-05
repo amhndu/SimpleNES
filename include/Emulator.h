@@ -23,6 +23,7 @@ namespace sn
         void run(std::string rom_path);
         void setVideoWidth(int width);
         void setVideoHeight(int height);
+        void setVideoScale(float scale);
     private:
         void DMA(Byte page);
 
