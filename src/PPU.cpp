@@ -127,7 +127,7 @@ namespace sn
                                 y_offset ^= (length - 1);
 
                             Address addr = tile * 16 + y_offset;
-                            if (m_sprPage == High) addr += 0x1000;
+                            if (!m_longSprites && m_sprPage == High) addr += 0x1000;
 
                             sprColor |= (read(addr) >> (x_shift)) & 1; //bit 0 of palette entry
                             sprColor |= ((read(addr + 8) >> (x_shift)) & 1) << 1; //bit 1

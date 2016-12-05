@@ -92,14 +92,29 @@ namespace sn
                     if (!pause)
                         m_cycleTimer = std::chrono::high_resolution_clock::now();
                 }
-                else if (pause && event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::F3)
+                else if (pause && event.type == sf::Event::KeyReleased && event.key.code == sf::Keyboard::F3)
                 {
-                   //PPU
-                    m_ppu.step();
-                    m_ppu.step();
-                    m_ppu.step();
-                    //CPU
-                    m_cpu.step();
+                    for (int i = 0; i < 29781; ++i) //Around one frame
+                    {
+                        //PPU
+                        m_ppu.step();
+                        m_ppu.step();
+                        m_ppu.step();
+                        //CPU
+                        m_cpu.step();
+                    }
+                }
+                else if (focus && event.type == sf::Event::KeyReleased && event.key.code == sf::Keyboard::F4)
+                {
+                    Log::get().setLevel(Info);
+                }
+                else if (focus && event.type == sf::Event::KeyReleased && event.key.code == sf::Keyboard::F5)
+                {
+                    Log::get().setLevel(InfoVerbose);
+                }
+                else if (focus && event.type == sf::Event::KeyReleased && event.key.code == sf::Keyboard::F6)
+                {
+                    Log::get().setLevel(CpuTrace);
                 }
             }
 
