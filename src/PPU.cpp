@@ -126,8 +126,20 @@ namespace sn
                             if ((attribute & 0x80) != 0) //IF flipping vertically
                                 y_offset ^= (length - 1);
 
-                            Address addr = tile * 16 + y_offset;
-                            if (!m_longSprites && m_sprPage == High) addr += 0x1000;
+                            Address addr = 0;
+
+                            if (!m_longSprites)
+                            {
+                                addr = tile * 16 + y_offset;
+                                if (m_sprPage == High) addr += 0x1000;
+                            }
+                            else //8x16 sprites
+                            {
+                                //bit-3 is one if it is the bottom tile of the sprite, multiply by two to get the next pattern
+                                y_offset = (y_offset & 7) | ((y_offset & 8) << 1);
+                                addr = (tile >> 1) * 32 + y_offset;
+                                addr |= (tile & 1) << 12; //Bank 0x1000 if bit-0 is high
+                            }
 
                             sprColor |= (read(addr) >> (x_shift)) & 1; //bit 0 of palette entry
                             sprColor |= ((read(addr + 8) >> (x_shift)) & 1) << 1; //bit 1
