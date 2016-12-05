@@ -1,7 +1,8 @@
 #include "Emulator.h"
 #include "Log.h"
 
-//#include <thread>
+#include <thread>
+#include <chrono>
 
 namespace sn
 {
@@ -137,6 +138,10 @@ namespace sn
 
                 m_window.draw(m_emulatorScreen);
                 m_window.display();
+            }
+            else
+            {
+                std::this_thread::sleep_for(std::chrono::milliseconds(1000/60)); //1/60 second
             }
         }
     }
