@@ -84,6 +84,8 @@ namespace sn
             bool m_greyscaleMode;
             bool m_showSprites;
             bool m_showBackground;
+            bool m_hideEdgeSprites;
+            bool m_hideEdgeBackground;
 
             enum CharacterPage
             {

@@ -68,30 +68,32 @@ namespace sn
 
                     if (m_showBackground)
                     {
-                        //fetch tile
-                        auto addr = 0x2000 | (m_dataAddress & 0x0FFF); //mask off fine y
-                        //auto addr = 0x2000 + x / 8 + (y / 8) * (ScanlineVisibleDots / 8);
-                        Byte tile = read(addr);
-
-                        //fetch pattern
                         auto x_fine = (m_fineXScroll + x) % 8;
-                        //Each pattern occupies 16 bytes, so multiply by 16
-                        addr = (tile * 16) + ((m_dataAddress >> 12/*y % 8*/) & 0x7); //Add fine y
-                        addr |= m_bgPage << 12; //set whether the pattern is in the high or low page
-                        //Get the corresponding bit determined by (8 - x_fine) from the right
-                        bgColor = (read(addr) >> (7 ^ x_fine)) & 1; //bit 0 of palette entry
-                        bgColor |= ((read(addr + 8) >> (7 ^ x_fine)) & 1) << 1; //bit 1
+                        if (!m_hideEdgeBackground || x >= 8)
+                        {
+                            //fetch tile
+                            auto addr = 0x2000 | (m_dataAddress & 0x0FFF); //mask off fine y
+                            //auto addr = 0x2000 + x / 8 + (y / 8) * (ScanlineVisibleDots / 8);
+                            Byte tile = read(addr);
 
-                        bgOpaque = bgColor; //flag used to calculate final pixel with the sprite pixel
+                            //fetch pattern
+                            //Each pattern occupies 16 bytes, so multiply by 16
+                            addr = (tile * 16) + ((m_dataAddress >> 12/*y % 8*/) & 0x7); //Add fine y
+                            addr |= m_bgPage << 12; //set whether the pattern is in the high or low page
+                            //Get the corresponding bit determined by (8 - x_fine) from the right
+                            bgColor = (read(addr) >> (7 ^ x_fine)) & 1; //bit 0 of palette entry
+                            bgColor |= ((read(addr + 8) >> (7 ^ x_fine)) & 1) << 1; //bit 1
 
-                        //fetch attribute and calculate higher two bits of palette
-                        addr = 0x23C0 | (m_dataAddress & 0x0C00) | ((m_dataAddress >> 4) & 0x38)
-                                      | ((m_dataAddress >> 2) & 0x07);
-                        auto attribute = read(addr);
-                        int shift = ((m_dataAddress >> 4) & 4) | (m_dataAddress & 2);
-                        //Extract and set the upper two bits for the color
-                        bgColor |= ((attribute >> shift) & 0x3) << 2;
+                            bgOpaque = bgColor; //flag used to calculate final pixel with the sprite pixel
 
+                            //fetch attribute and calculate higher two bits of palette
+                            addr = 0x23C0 | (m_dataAddress & 0x0C00) | ((m_dataAddress >> 4) & 0x38)
+                                        | ((m_dataAddress >> 2) & 0x07);
+                            auto attribute = read(addr);
+                            int shift = ((m_dataAddress >> 4) & 4) | (m_dataAddress & 2);
+                            //Extract and set the upper two bits for the color
+                            bgColor |= ((attribute >> shift) & 0x3) << 2;
+                        }
                         //Increment/wrap coarse X
                         if (x_fine == 7)
                         {
@@ -105,7 +107,7 @@ namespace sn
                         }
                     }
 
-                    if (m_showSprites)
+                    if (m_showSprites && (!m_hideEdgeSprites || x >= 8))
                     {
                         for (auto i : m_scanlineSprites)
                         {
@@ -259,7 +261,7 @@ namespace sn
                             m_screen.setPixel(x, y, m_pictureBuffer[x][y]);
                         }
                     }
-                   
+
                     //Should technically be done at first dot of VBlank, but this is close enough
 //                     m_vblank = true;
 //                     if (m_generateInterrupt) m_vblankCallback();
@@ -334,9 +336,10 @@ namespace sn
     void PPU::setMask(Byte mask)
     {
         m_greyscaleMode = mask & 0x1;
+        m_hideEdgeBackground = !(mask & 0x2);
+        m_hideEdgeSprites = !(mask & 0x4);
         m_showBackground = mask & 0x8;
         m_showSprites = mask & 0x10;
-        //Other other unimplemented bits
     }
 
     Byte PPU::getStatus()
