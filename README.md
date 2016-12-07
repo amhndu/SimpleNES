@@ -4,39 +4,44 @@ SimpleNES
 
 An NES emulator written in C++ for nothing but fun.
 
-Currently WIP.
-
-Only games with atmost 2 program banks, 1 character banks and no "mapper" are supported.  
-Only one controller is setup at the moment.
+Roughly 40-50% of games should work (ie. games that use either no mapper or mappers 1, 2 or 3).
 
 
-Examples of games that have been tested to run (but not limited to):
+Examples of games that have been tested to run (but NOT limited to):
 
 (USA/Japan or World versions only i.e. NTSC compatible)
 
 * Super Mario Bros.
+* Contra
+* Adventure Island
+* Ninja Gaiden
 * Wrecking Crew
-* Ice Climber
+* Megaman and Megaman 2
 * Mario Bros.
-* Donky Kong
-* Donkey Kong Jr.
-* Arkanoid
-* Balloon Fight
+* Donky Kong and Donkey Kong Jr.
+* Battle City
+* Paperboy
+* Legend of Zelda
+* Pacman
 * Tennis
-* Elevator Action
 * Excitebike
 
-[Here's](http://pastebin.com/pUkJN64z) a big list of games that match the supported specs from SimpleNES.  
+[Here's](https://gist.github.com/amhndu/5b6da39ee06959d93dc706a0b165fb80) a big list of games that match the supported specs from SimpleNES.  
 (Unlike the list above, these aren't tested. Some may or may not work)
 
 
 Screenshots
 ------------------------
-![Screenshot 1](http://amhndu.github.io/Projects/screenshots/nes4.png)
-![Screenshot 2](http://amhndu.github.io/Projects/screenshots/nes2.png)
-![Screenshot 3](http://amhndu.github.io/Projects/screenshots/nes3.png)
-![Screenshot 4](http://amhndu.github.io/Projects/screenshots/nes1.png)
-![Screenshot 5](http://amhndu.github.io/Projects/screenshots/nes5.png)
+![Screenshot 1](http://amhndu.me/Projects/screenshots/nes1.png)
+![Screenshot 2](http://amhndu.me/Projects/screenshots/nes2.png)
+![Screenshot 3](http://amhndu.me/Projects/screenshots/nes3.png)
+![Screenshot 4](http://amhndu.me/Projects/screenshots/nes4.png)
+![Screenshot 5](http://amhndu.me/Projects/screenshots/nes5.png)
+![Screenshot 6](http://amhndu.me/Projects/screenshots/nes6.png)
+
+Videos
+------------
+[YouTube Playlist](https://www.youtube.com/playlist?list=PLiULt7qySWt2VbHTkvIt9kYPMPcWt01qN)
 
 
 Download
@@ -75,9 +80,12 @@ Running
 Just pass the path to a .nes image like
 
 ```
-$ ./SimpleNES ~/Games/super_mario_bros.nes
+$ ./SimpleNES ~/Games/SuperMarioBros.nes
 ```
-
+To set size of the window,
+```
+$ ./SimpleNES -w 600 ~/Games/Contra.nes
+```
 For supported command line options, try
 ```
 $ ./SimpleNES -h
@@ -86,7 +94,12 @@ $ ./SimpleNES -h
 Controller
 -----------------
 
-These keybindings are hard-coded (for Player 1)
+Keybindings can be configured with keybindings.conf
+
+
+Default keybindings:
+
+**Player 1**
 
  Button        | Mapped to
  --------------|-------------
@@ -98,8 +111,21 @@ These keybindings are hard-coded (for Player 1)
  Down          | S
  Left          | A
  Right         | D
+ 
+ 
+**Player 2**
 
-F2 pauses/resumes emulation
+ Button        | Mapped to
+ --------------|-------------
+ Start         | Numpad9
+ Select        | Numpad8
+ A             | Numpad5
+ B             | Numpad6
+ Up            | Up
+ Down          | Down
+ Left          | Left
+ Right         | Right
+ 
 
 License
 -----------------
