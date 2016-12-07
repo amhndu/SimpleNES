@@ -1,9 +1,8 @@
 #ifndef CONTROLLER_H
 #define CONTROLLER_H
 #include <SFML/Window.hpp>
-#include <list>
-#include <map>
 #include <cstdint>
+#include <vector>
 
 namespace sn
 {
@@ -27,11 +26,13 @@ namespace sn
 
         void strobe(Byte b);
         Byte read();
+        void setKeyBindings(const std::vector<sf::Keyboard::Key>& keys);
     private:
         bool m_strobe;
         unsigned int m_keyStates;
 
-        sf::Keyboard::Key m_keyBindings[TotalButtons];
+        std::vector<sf::Keyboard::Key> m_keyBindings;
+//         sf::Keyboard::Key m_keyBindings[TotalButtons];
     };
 }
 

@@ -26,7 +26,7 @@ namespace sn
                 else
                     LOG(InfoVerbose) << "No read callback registered for I/O register at: " << std::hex << +addr << std::endl;
             }
-            else if (addr < 0x4017 && addr >= 0x4014) //Only *some* IO registers
+            else if (addr < 0x4018 && addr >= 0x4014) //Only *some* IO registers
             {
                 auto it = m_readCallbacks.find(static_cast<IORegisters>(addr));
                 if (it != m_readCallbacks.end())

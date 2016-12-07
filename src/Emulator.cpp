@@ -16,7 +16,7 @@ namespace sn
         if(!m_bus.setReadCallback(PPUSTATUS, [&](void) {return m_ppu.getStatus();}) ||
             !m_bus.setReadCallback(PPUDATA, [&](void) {return m_ppu.getData();}) ||
             !m_bus.setReadCallback(JOY1, [&](void) {return m_controller1.read();}) ||
-            !m_bus.setReadCallback(JOY2, [&](void) {return 0x2;}) ||
+            !m_bus.setReadCallback(JOY2, [&](void) {return m_controller2.read();}) ||
             !m_bus.setReadCallback(OAMDATA, [&](void) {return m_ppu.getOAMData();}))
         {
             LOG(Error) << "Critical error: Failed to set I/O callbacks" << std::endl;
@@ -30,7 +30,7 @@ namespace sn
             !m_bus.setWriteCallback(PPUSCROL, [&](Byte b) {m_ppu.setScroll(b);}) ||
             !m_bus.setWriteCallback(PPUDATA, [&](Byte b) {m_ppu.setData(b);}) ||
             !m_bus.setWriteCallback(OAMDMA, [&](Byte b) {DMA(b);}) ||
-            !m_bus.setWriteCallback(JOY1, [&](Byte b) {m_controller1.strobe(b);}) ||
+            !m_bus.setWriteCallback(JOY1, [&](Byte b) {m_controller1.strobe(b); m_controller2.strobe(b);}) ||
             !m_bus.setWriteCallback(OAMDATA, [&](Byte b) {m_ppu.setOAMData(b);}))
         {
             LOG(Error) << "Critical error: Failed to set I/O callbacks" << std::endl;
@@ -172,6 +172,12 @@ namespace sn
         m_screenScale = scale;
         LOG(Info) << "Scale: " << m_screenScale << " set. Screen: "
                   << int(NESVideoWidth * m_screenScale) << "x" << int(NESVideoHeight * m_screenScale) << std::endl;
+    }
+
+    void Emulator::setKeys(std::vector<sf::Keyboard::Key>& p1, std::vector<sf::Keyboard::Key>& p2)
+    {
+        m_controller1.setKeyBindings(p1);
+        m_controller2.setKeyBindings(p2);
     }
 
 }

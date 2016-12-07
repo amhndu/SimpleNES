@@ -24,6 +24,7 @@ namespace sn
         void setVideoWidth(int width);
         void setVideoHeight(int height);
         void setVideoScale(float scale);
+        void setKeys(std::vector<sf::Keyboard::Key>& p1, std::vector<sf::Keyboard::Key>& p2);
     private:
         void DMA(Byte page);
 
@@ -34,7 +35,7 @@ namespace sn
         Cartridge m_cartridge;
         std::unique_ptr<Mapper> m_mapper;
 
-        Controller m_controller1;
+        Controller m_controller1, m_controller2;
 
         sf::RenderWindow m_window;
         VirtualScreen m_emulatorScreen;

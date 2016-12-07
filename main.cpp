@@ -3,21 +3,12 @@
 #include <string>
 #include <sstream>
 
-// #include <ctime>
-// #include <sstream>
-// #include <iomanip>
-// #include <cstring>
-// #include <chrono>
-
-/*std::string return_current_time_and_date() //courtesy of SO
+namespace sn
 {
-    auto now = std::chrono::system_clock::now();
-    auto in_time_t = std::chrono::system_clock::to_time_t(now);
-
-    std::stringstream ss;
-    ss << std::put_time(std::localtime(&in_time_t), "%Y-%m-%d.%X");
-    return ss.str();
-}*/
+    void parseControllerConf(std::string filepath,
+                            std::vector<sf::Keyboard::Key>& p1,
+                            std::vector<sf::Keyboard::Key>& p2);
+}
 
 int main(int argc, char** argv)
 {
@@ -33,6 +24,11 @@ int main(int argc, char** argv)
 
     std::string path;
 
+    //Default keybindings
+    std::vector<sf::Keyboard::Key> p1 {sf::Keyboard::J, sf::Keyboard::K, sf::Keyboard::RShift, sf::Keyboard::Return,
+                                       sf::Keyboard::W, sf::Keyboard::S, sf::Keyboard::A, sf::Keyboard::D},
+                                   p2 {sf::Keyboard::Numpad5, sf::Keyboard::Numpad6, sf::Keyboard::Numpad8, sf::Keyboard::Numpad9,
+                                       sf::Keyboard::Up, sf::Keyboard::Down, sf::Keyboard::Left, sf::Keyboard::Right};
     sn::Emulator emulator;
 
     for (int i = 1; i < argc; ++i)
@@ -41,7 +37,8 @@ int main(int argc, char** argv)
         if (arg == "-h" || arg == "--help")
         {
             std::cout << "SimpleNES is a simple NES emulator.\n"
-                      << "It can run off .nes images.\n\n"
+                      << "It can run off .nes images.\n"
+                      << "Set keybindings with keybindings.conf\n\n"
                       << "Usage: SimpleNES [options] rom-path\n\n"
                       << "Options:\n"
                       << "-h, --help             Print this help text and exit\n"
@@ -104,6 +101,8 @@ int main(int argc, char** argv)
         return 1;
     }
 
+    sn::parseControllerConf("keybindings.conf", p1, p2);
+    emulator.setKeys(p1, p2);
     emulator.run(path);
     return 0;
 }

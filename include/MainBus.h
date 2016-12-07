@@ -21,7 +21,7 @@ namespace sn
         PPUDATA,
         OAMDMA = 0x4014,
         JOY1 = 0x4016,
-        JOY2,
+        JOY2 = 0x4017,
     };
 
     class MainBus
