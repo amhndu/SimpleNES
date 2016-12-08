@@ -141,7 +141,8 @@ namespace sn
             }
             else
             {
-                std::this_thread::sleep_for(std::chrono::milliseconds(1000/60)); //1/60 second
+                sf::sleep(sf::milliseconds(1000/60));
+                //std::this_thread::sleep_for(std::chrono::milliseconds(1000/60)); //1/60 second
             }
         }
     }
