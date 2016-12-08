@@ -23,6 +23,9 @@ file(GLOB SOURCES
     "${PROJECT_SOURCE_DIR}/src/*.cpp"
 )
 
+# Copy keybindings.conf
+file(COPY keybindings.conf DESTINATION .)
+
 # Will add __FILENAME__ macros for all source files, which is the filename without full find_path
 # Courtesy of SO
 function(define_file_basename_for_sources targetname)
