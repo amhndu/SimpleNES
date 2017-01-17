@@ -2,6 +2,7 @@
 #include <vector>
 #include <fstream>
 #include <algorithm>
+#include <cctype>
 
 #include "Controller.h"
 #include "Log.h"
@@ -12,8 +13,8 @@ namespace sn
     inline std::string ltrim(const std::string &str)
     {
         std::string s(str);
-        s.erase(s.begin(), std::find_if(s.begin(), s.end(),
-                std::not1(std::ptr_fun<int, int>(std::isspace))));
+        s.erase(s.begin(), std::find_if_not<decltype(s.begin()), int(int)>(s.begin(), s.end(),
+                std::isspace));
         return s;
     }
 
@@ -21,8 +22,8 @@ namespace sn
     inline std::string rtrim(const std::string &str)
     {
         std::string s(str);
-        s.erase(std::find_if(s.rbegin(), s.rend(),
-                std::not1(std::ptr_fun<int, int>(std::isspace))).base(), s.end());
+        s.erase(std::find_if_not<decltype(s.rbegin()), int(int)>(s.rbegin(), s.rend(),
+                std::isspace).base(), s.end());
         return s;
     }
 
