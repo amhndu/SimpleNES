@@ -120,7 +120,7 @@ namespace sn
                   << "CYC:" << std::setw(3) << std::setfill(' ') << std::dec << ((m_cycles - 1) * 3) % 341
                   << std::endl;
 
-       Byte opcode = m_bus.read(r_PC++);
+        Byte opcode = m_bus.read(r_PC++);
 
         auto CycleLength = OperationCycles[opcode];
 

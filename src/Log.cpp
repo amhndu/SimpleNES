@@ -6,7 +6,6 @@ namespace sn
 
     Log::~Log()
     {
-        m_logStream->flush();
     }
 
     Log& Log::get()
