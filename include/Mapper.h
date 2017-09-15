@@ -2,6 +2,7 @@
 #define MAPPER_H
 #include "Cartridge.h"
 #include <memory>
+#include <functional>
 
 namespace sn
 {

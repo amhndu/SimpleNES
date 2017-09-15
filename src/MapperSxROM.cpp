@@ -6,6 +6,7 @@ namespace sn
     MapperSxROM::MapperSxROM(Cartridge &cart, std::function<void(void)> mirroring_cb) :
         Mapper(cart, Mapper::SxROM),
         m_mirroringCallback(mirroring_cb),
+        m_mirroing(Horizontal),
         m_modeCHR(0),
         m_modePRG(3),
         m_tempRegister(0),
@@ -60,7 +61,7 @@ namespace sn
             {
                 if (addr <= 0x9fff)
                 {
-                   switch (m_tempRegister & 0x3)
+                    switch (m_tempRegister & 0x3)
                     {
                         case 0:     m_mirroing = OneScreenLower;    break;
                         case 1:     m_mirroing = OneScreenHigher;   break;
@@ -128,7 +129,8 @@ namespace sn
     {
         if (m_modePRG <= 1) //32KB changeable
         {
-            m_firstBankPRG = &m_cartridge.getROM()[0x4000 * (m_regPRG | 1)];
+            // equivalent to multiplying 0x8000 * (m_regPRG >> 1)
+            m_firstBankPRG = &m_cartridge.getROM()[0x4000 * (m_regPRG & ~1)];
             m_secondBankPRG = m_firstBankPRG + 0x4000;   //add 16KB
         }
         else if (m_modePRG == 2) //fix first switch second
