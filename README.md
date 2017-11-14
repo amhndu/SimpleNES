@@ -32,12 +32,12 @@ Examples of games that have been tested to run (but NOT limited to):
 
 Screenshots
 ------------------------
-![Screenshot 1](http://amhndu.me/Projects/screenshots/nes1.png)
-![Screenshot 2](http://amhndu.me/Projects/screenshots/nes2.png)
-![Screenshot 3](http://amhndu.me/Projects/screenshots/nes3.png)
-![Screenshot 4](http://amhndu.me/Projects/screenshots/nes4.png)
-![Screenshot 5](http://amhndu.me/Projects/screenshots/nes5.png)
-![Screenshot 6](http://amhndu.me/Projects/screenshots/nes6.png)
+![Screenshot 1](http://amhndu.github.io/Projects/screenshots/nes1.png)
+![Screenshot 2](http://amhndu.github.io/Projects/screenshots/nes2.png)
+![Screenshot 3](http://amhndu.github.io/Projects/screenshots/nes3.png)
+![Screenshot 4](http://amhndu.github.io/Projects/screenshots/nes4.png)
+![Screenshot 5](http://amhndu.github.io/Projects/screenshots/nes5.png)
+![Screenshot 6](http://amhndu.github.io/Projects/screenshots/nes6.png)
 
 Videos
 ------------
