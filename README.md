@@ -18,7 +18,7 @@ Examples of games that have been tested to run (but NOT limited to):
 * Wrecking Crew
 * Megaman and Megaman 2
 * Mario Bros.
-* Donky Kong and Donkey Kong Jr.
+* Donkey Kong and Donkey Kong Jr.
 * Battle City
 * Paperboy
 * Legend of Zelda
