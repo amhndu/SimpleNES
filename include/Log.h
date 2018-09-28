@@ -45,7 +45,6 @@ namespace sn
         Level m_logLevel;
         std::ostream* m_logStream;
         std::ostream* m_cpuTrace;
-        static std::unique_ptr<Log> m_instance;
     };
 
     //Courtesy of http://wordaligned.org/articles/cpp-streambufs#toctee-streams
