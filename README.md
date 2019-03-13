@@ -26,7 +26,7 @@ Examples of games that have been tested to run (but NOT limited to):
 * Tennis
 * Excitebike
 
-[Here's](https://gist.github.com/amhndu/5b6da39ee06959d93dc706a0b165fb80) a big list of games that match the supported specs from SimpleNES.  
+[Here's](https://gist.github.com/amhndu/5b6da39ee06959d93dc706a0b165fb80) a big list of games that match the supported specs from SimpleNES.
 (Unlike the list above, these aren't tested. Some may or may not work)
 
 
@@ -48,8 +48,8 @@ Download
 -----------
 Executables:
 
-[Windows 32-bit](https://www.dropbox.com/s/1gqhtbmvzo1ozsz/SimpleNES-win32.rar?dl=0)  
-[Linux 64-bit](https://www.dropbox.com/s/7eswcdektlkdz65/SimpleNES-linux64?dl=0)  
+[Windows 32-bit](https://www.dropbox.com/s/1gqhtbmvzo1ozsz/SimpleNES-win32.rar?dl=0)
+[Linux 64-bit](https://www.dropbox.com/s/7eswcdektlkdz65/SimpleNES-linux64?dl=0)
 
 
 ROMs available [here](http://www.emuparadise.me/Nintendo_Entertainment_System_ROMs/13) for testing.
@@ -111,8 +111,8 @@ Default keybindings:
  Down          | S
  Left          | A
  Right         | D
- 
- 
+
+
 **Player 2**
 
  Button        | Mapped to
@@ -125,10 +125,4 @@ Default keybindings:
  Down          | Down
  Left          | Left
  Right         | Right
- 
 
-License
------------------
-
-This code is in public domain until an Open Source License is picked.  
-NES ROMs are subject to the respective studio's terms.
