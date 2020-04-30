@@ -9,4 +9,4 @@ USER gitpod
 #
 # More information: https://www.gitpod.io/docs/config-docker/
 
-RUN apt-get install libsfml-dev
+RUN apt-get install libsfml-dev sl
