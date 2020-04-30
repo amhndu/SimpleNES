@@ -4,3 +4,4 @@
 *.kdev4
 .kdev*
 build/
+CMakeFiles/
