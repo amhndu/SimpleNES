@@ -1,4 +1,12 @@
 tasks:
-  - init: cmake .
+  - init: mkdir -p build && cd build && cmake .. && make -j && ./SimpleNES
 image:
   file: .gitpod.Dockerfile
+ports:
+  - port: 5900
+    onOpen: ignore
+  - port: 6080
+    onOpen: open-browser
+  - port: 35900
+    onOpen: ignore
+
