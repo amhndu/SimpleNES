@@ -95,10 +95,11 @@ int main(int argc, char** argv)
             std::cerr << "Unrecognized argument: " << argv[i] << std::endl;
     }
 
-    if (path.empty())
+    while (path.empty())
     {
         std::cout << "Argument required: ROM path" << std::endl;
-        return 1;
+        std::cout << "Please input the path of nes image :";
+        std::cin >> path;
     }
 
     sn::parseControllerConf("keybindings.conf", p1, p2);
