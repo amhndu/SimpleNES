@@ -12,28 +12,34 @@ namespace sn
 
 int main(int argc, char** argv)
 {
-    std::ofstream logFile ("simplenes.log"), cpuTraceFile;
+    std::ofstream logFile("simplenes.log"), cpuTraceFile;
     sn::TeeStream logTee (logFile, std::cout);
 
-    if (logFile.is_open() && logFile.good())
-        sn::Log::get().setLogStream(logTee);
+    if (logFile.is_open() && logFile.good()) //return 1
+        sn::Log::get().setLogStream(logTee); //Log T.m_logStream = "simplenes.log"
     else
         sn::Log::get().setLogStream(std::cout);
 
-    sn::Log::get().setLevel(sn::Info);
+    sn::Log::get().setLevel(sn::Info); //Log T.m_logLevel = 2
 
     std::string path;
 
     //Default keybindings
     std::vector<sf::Keyboard::Key> p1 {sf::Keyboard::J, sf::Keyboard::K, sf::Keyboard::RShift, sf::Keyboard::Return,
-                                       sf::Keyboard::W, sf::Keyboard::S, sf::Keyboard::A, sf::Keyboard::D},
-                                   p2 {sf::Keyboard::Numpad5, sf::Keyboard::Numpad6, sf::Keyboard::Numpad8, sf::Keyboard::Numpad9,
+                                       sf::Keyboard::W, sf::Keyboard::S, sf::Keyboard::A, sf::Keyboard::D};
+
+    std::vector<sf::Keyboard::Key> p2 {sf::Keyboard::Numpad5, sf::Keyboard::Numpad6, sf::Keyboard::Numpad8, sf::Keyboard::Numpad9,
                                        sf::Keyboard::Up, sf::Keyboard::Down, sf::Keyboard::Left, sf::Keyboard::Right};
     sn::Emulator emulator;
 
     for (int i = 1; i < argc; ++i)
     {
-        std::string arg (argv[i]);
+        /*
+         * ./SimpleNES ~/Games/SuperMarioBros.nes
+         * ./SimpleNES -w 600 ~/Games/Contra.nes
+         * ./SimpleNES -h
+         */
+        std::string arg(argv[i]);
         if (arg == "-h" || arg == "--help")
         {
             std::cout << "SimpleNES is a simple NES emulator.\n"
@@ -43,7 +49,7 @@ int main(int argc, char** argv)
                       << "Options:\n"
                       << "-h, --help             Print this help text and exit\n"
                       << "-s, --scale            Set video scale. Default: 2.\n"
-                      << "                       Scale of 1 corresponds to " << sn::NESVideoWidth << "x" << sn::NESVideoHeight << std::endl
+                      << "                       Scale of 1 corresponds to " << sn::NESVideoWidth << "x" << sn::NESVideoHeight << std::endl //win_init: 256 * 240
                       << "-w, --width            Set the width of the emulation screen (height is\n"
                       << "                       set automatically to fit the aspect ratio)\n"
                       << "-H, --height           Set the height of the emulation screen (width is\n"
@@ -90,7 +96,7 @@ int main(int argc, char** argv)
             ++i;
         }
         else if (argv[i][0] != '-')
-            path = argv[i];
+            path = argv[i]; //game path
         else
             std::cerr << "Unrecognized argument: " << argv[i] << std::endl;
     }
@@ -102,7 +108,7 @@ int main(int argc, char** argv)
     }
 
     sn::parseControllerConf("keybindings.conf", p1, p2);
-    emulator.setKeys(p1, p2);
-    emulator.run(path);
+    emulator.setKeys(p1, p2); //keybind
+    emulator.run(path); //start
     return 0;
 }
