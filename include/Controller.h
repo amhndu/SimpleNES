@@ -31,7 +31,7 @@ namespace sn
         bool m_strobe;
         unsigned int m_keyStates;
 
-        std::vector<sf::Keyboard::Key> m_keyBindings;
+        std::vector<sf::Keyboard::Key> m_keyBindings; // m_keyBindings = vector<sf::Keyboard::Key>& keys p1, p2
 //         sf::Keyboard::Key m_keyBindings[TotalButtons];
     };
 }
