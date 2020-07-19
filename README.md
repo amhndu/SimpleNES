@@ -52,7 +52,7 @@ Executables:
 [Linux 64-bit](https://www.dropbox.com/s/7eswcdektlkdz65/SimpleNES-linux64?dl=0)
 
 
-ROMs available [here](http://www.emuparadise.me/Nintendo_Entertainment_System_ROMs/13) for testing.
+ROMs available ~~[Here](http://www.emuparadise.me/Nintendo_Entertainment_System_ROMs/13)~~ [New-Download](https://wowroms.com/) for testing.
 
 Compiling
 -----------
@@ -67,7 +67,6 @@ and you'll get Makefile or equivalent for your platform, with which you can comp
 
 For e.g., on Linux/OS X/FreeBSD:
 ```
-$ git clone https://github.com/amhndu/SimpleNES
 $ cd SimpleNES
 $ mkdir build/ && cd build/
 $ cmake -DCMAKE_BUILD_TYPE=Release ..
