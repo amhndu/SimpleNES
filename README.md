@@ -52,8 +52,6 @@ Executables:
 [Linux 64-bit](https://www.dropbox.com/s/7eswcdektlkdz65/SimpleNES-linux64?dl=0)
 
 
-ROMs available [here](http://www.emuparadise.me/Nintendo_Entertainment_System_ROMs/13) for testing.
-
 Compiling
 -----------
 
@@ -125,4 +123,5 @@ Default keybindings:
  Down          | Down
  Left          | Left
  Right         | Right
+
 
