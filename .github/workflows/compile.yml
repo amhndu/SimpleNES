@@ -1,0 +1,25 @@
+name: SFML_CI_TEST
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build_linux:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 5
+
+    - name: Install dependencies
+      run: |
+        sudo apt install libsfml-dev
+        
+    - name: Build
+      run: |
+        mkdir build/ && cd build/
+        cmake -DCMAKE_BUILD_TYPE=Release ..
+        make -j4
