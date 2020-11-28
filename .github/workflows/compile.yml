@@ -25,6 +25,24 @@ jobs:
         cmake -DCMAKE_BUILD_TYPE=Release ..
         make -j4
 
+  build_linux_static:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 5
+
+    - name: Install dependencies
+      run: |
+        sudo apt update
+        sudo apt install -y libsfml-dev
+        
+    - name: Build
+      run: |
+        mkdir build/ && cd build/
+        cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_STATIC=TRUE ..
+        make -j4
+
   build_macos:
     runs-on: macos-latest
     steps:
@@ -41,3 +59,20 @@ jobs:
         mkdir build/ && cd build/
         cmake -DCMAKE_BUILD_TYPE=Release ..
         make -j4
+        
+  build_windows:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 5
+
+    - name: Install dependencies
+      run: |
+        vcpkg install sfml
+        
+    - name: Build
+      run: |
+        mkdir build/ && cd build/
+        cmake -DCMAKE_BUILD_TYPE=Release ..
+        cmake --build .
