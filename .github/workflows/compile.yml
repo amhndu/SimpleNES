@@ -34,7 +34,6 @@ jobs:
 
     - name: Install dependencies
       run: |
-        sudo apt update
         brew install sfml
         
     - name: Build
