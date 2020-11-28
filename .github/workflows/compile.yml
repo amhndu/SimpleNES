@@ -16,7 +16,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        sudo apt install libsfml-dev
+        sudo apt install -y libsfml-dev
         
     - name: Build
       run: |
