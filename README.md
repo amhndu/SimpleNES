@@ -32,7 +32,8 @@ Examples of games that have been tested to run (but NOT limited to):
 * NEW GAME SUPPORT MAPPER 7
 * Nightmare Elm Street
 * Cabal
-* Battleroads
+* Battletoads
+* Battletoads & Double Dragon
 * Arch Rivals
 * etc...
 * 
