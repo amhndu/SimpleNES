@@ -4,7 +4,9 @@ SimpleNES
 
 An NES emulator written in C++ for nothing but fun.
 
-Roughly 40-50% of games should work (ie. games that use either no mapper or mappers 1, 2 or 3).
+Roughly 40-50% of games should work (ie. games that use either no mapper or mappers 1, 2 or 3 and NEWS FORK added support Mapper 7).
+
+
 
 
 Examples of games that have been tested to run (but NOT limited to):
@@ -25,6 +27,15 @@ Examples of games that have been tested to run (but NOT limited to):
 * Pacman
 * Tennis
 * Excitebike
+
+
+* NEW GAME SUPPORT MAPPER 7
+* Nightmare Elm Street
+* Cabal
+* Battleroads
+* Arch Rivals
+* etc...
+* 
 
 [Here's](https://gist.github.com/amhndu/5b6da39ee06959d93dc706a0b165fb80) a big list of games that match the supported specs from SimpleNES.
 (Unlike the list above, these aren't tested. Some may or may not work)
