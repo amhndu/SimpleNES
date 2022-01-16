@@ -50,6 +50,11 @@ Screenshots
 ![Screenshot 4](http://amhndu.github.io/screenshots/nes4.png)
 ![Screenshot 5](http://amhndu.github.io/screenshots/nes5.png)
 ![Screenshot 6](http://amhndu.github.io/screenshots/nes6.png)
+![Screenshot 7](https://github.com/SuzieQQ/screennes/blob/main/nes7.png)
+![Screenshot 8](https://github.com/SuzieQQ/screennes/blob/main/nes8.png)
+![Screenshot 9](https://github.com/SuzieQQ/screennes/blob/main/nes9.png)
+![Screenshot 10](https://github.com/SuzieQQ/screennes/blob/main/nes10.png)
+![Screenshot 11](https://github.com/SuzieQQ/screennes/blob/main/nes11.png)
 
 Videos
 ------------
