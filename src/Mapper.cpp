@@ -3,6 +3,7 @@
 #include "MapperSxROM.h"
 #include "MapperUxROM.h"
 #include "MapperCNROM.h"
+#include "MapperAxROM.h"
 
 namespace sn
 {
@@ -28,6 +29,8 @@ namespace sn
             case CNROM:
                 ret.reset(new MapperCNROM(cart));
                 break;
+            case AxROM:
+            ret.reset(new MapperAxROM(cart,mirroring_cb));
             default:
                 break;
         }
