@@ -4,7 +4,7 @@ SimpleNES
 
 An NES emulator written in C++ for nothing but fun.
 
-Roughly 40-50% of games should work (ie. games that use either no mapper or mappers 1, 2 or 3 and NEWS FORK added support Mapper 7).
+Roughly 40-50% of games should work (ie. games that use either no mapper or mappers 1, 2 or 3 and now added support mapper 7).
 
 
 
