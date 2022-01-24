@@ -4,7 +4,7 @@ SimpleNES
 
 An NES emulator written in C++ for nothing but fun.
 
-Roughly 40-50% of games should work (ie. games that use either no mapper or mappers 1, 2 or 3 and now added support mapper 7 & 66).
+Roughly 40-50% of games should work (ie. games that use either no mapper or mappers 1, 2 ,3 ,7 & 66 partial 11).
 
 
 
@@ -55,6 +55,13 @@ Screenshots
 ![Screenshot 9](https://github.com/SuzieQQ/screennes/blob/main/nes9.png)
 ![Screenshot 10](https://github.com/SuzieQQ/screennes/blob/main/nes10.png)
 ![Screenshot 11](https://github.com/SuzieQQ/screennes/blob/main/nes11.png)
+
+![Screenshot 12](https://github.com/SuzieQQ/screennes/blob/main/Metal%20Fighter-11.png)
+![Screenshot 13](https://github.com/SuzieQQ/screennes/blob/main/Shockwave-11.png)
+![Screenshot 14](https://github.com/SuzieQQ/screennes/blob/main/DBJAPAN-66.png)
+![Screenshot 15](https://github.com/SuzieQQ/screennes/blob/main/Gundam-66.png)
+![Screenshot 16](https://github.com/SuzieQQ/screennes/blob/main/URBANPOWER-2-66.png)
+
 
 Videos
 ------------
