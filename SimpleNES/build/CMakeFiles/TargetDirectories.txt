@@ -1,3 +1,0 @@
-/home/bb/Video/SimpleNES/build/CMakeFiles/rebuild_cache.dir
-/home/bb/Video/SimpleNES/build/CMakeFiles/edit_cache.dir
-/home/bb/Video/SimpleNES/build/CMakeFiles/SimpleNES.dir
