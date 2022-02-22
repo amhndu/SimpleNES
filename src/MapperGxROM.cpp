@@ -6,8 +6,7 @@ namespace sn
     MapperGxROM::MapperGxROM(Cartridge &cart, std::function<void(void)> mirroring_cb) : 
     Mapper(cart, Mapper::GxROM),
     m_mirroringCallback(mirroring_cb),
-    m_mirroring(Vertical)
-    {}
+    m_mirroring(Vertical){}
 
     Byte MapperGxROM::readPRG(Address address)
     {
@@ -48,5 +47,6 @@ namespace sn
     }
 
     const Byte *MapperGxROM::getPagePtr(Address address)
-    {}
+    {
+    }
 }
