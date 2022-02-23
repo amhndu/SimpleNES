@@ -4,7 +4,7 @@ SimpleNES
 
 An NES emulator written in C++ for nothing but fun.
 
-Roughly 40-50% of games should work (ie. games that use either no mapper or mappers 1, 2 ,3 ,7 & 66 partial 11).
+Roughly 40-50% of games should work (ie. games that use either no mapper or mappers 1, 2 ,3 ,4 (BUG),7 & 66 partial 11).
 
 
 
@@ -27,9 +27,6 @@ Examples of games that have been tested to run (but NOT limited to):
 * Pacman
 * Tennis
 * Excitebike
-
-
-* NEW GAME SUPPORT MAPPER 7
 * Nightmare Elm Street
 * Cabal
 * Battletoads
@@ -61,6 +58,11 @@ Screenshots
 ![Screenshot 14](https://github.com/SuzieQQ/screennes/blob/main/DBJAPAN-66.png)
 ![Screenshot 15](https://github.com/SuzieQQ/screennes/blob/main/Gundam-66.png)
 ![Screenshot 16](https://github.com/SuzieQQ/screennes/blob/main/URBANPOWER-2-66.png)
+
+![Screenshot 17](https://github.com/SuzieQQ/screennes/blob/main/TEST-MAPPER-4-GAME-SCREEN/BONKS.png)
+![Screenshot 18](https://github.com/SuzieQQ/screennes/blob/main/TEST-MAPPER-4-GAME-SCREEN/CONTRA.png)
+![Screenshot 19](https://github.com/SuzieQQ/screennes/blob/main/TEST-MAPPER-4-GAME-SCREEN/Schermata%20del%202022-02-22%2003-54-56.png)
+![Screenshot 20](https://github.com/SuzieQQ/screennes/blob/main/TEST-MAPPER-4-GAME-SCREEN/Schermata%20del%202022-02-22%2003-53-43.png)
 
 
 Videos
