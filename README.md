@@ -4,7 +4,7 @@ SimpleNES
 
 An NES emulator written in C++ for nothing but fun.
 
-Roughly 40-50% of games should work (ie. games that use either no mapper or mappers 1, 2 ,3 ,4 (BUG),7 & 66 partial 11).
+Roughly 40-50% of games should work (ie. games that use either no mapper or mappers 1, 2, 3 and experimental support for 4, 7, 66 and 11).
 
 
 
@@ -33,7 +33,7 @@ Examples of games that have been tested to run (but NOT limited to):
 * Battletoads & Double Dragon
 * Arch Rivals
 * etc...
-* 
+*
 
 [Here's](https://gist.github.com/amhndu/5b6da39ee06959d93dc706a0b165fb80) a big list of games that match the supported specs from SimpleNES.
 (Unlike the list above, these aren't tested. Some may or may not work)
@@ -52,18 +52,6 @@ Screenshots
 ![Screenshot 9](https://github.com/SuzieQQ/screennes/blob/main/nes9.png)
 ![Screenshot 10](https://github.com/SuzieQQ/screennes/blob/main/nes10.png)
 ![Screenshot 11](https://github.com/SuzieQQ/screennes/blob/main/nes11.png)
-
-![Screenshot 12](https://github.com/SuzieQQ/screennes/blob/main/Metal%20Fighter-11.png)
-![Screenshot 13](https://github.com/SuzieQQ/screennes/blob/main/Shockwave-11.png)
-![Screenshot 14](https://github.com/SuzieQQ/screennes/blob/main/DBJAPAN-66.png)
-![Screenshot 15](https://github.com/SuzieQQ/screennes/blob/main/Gundam-66.png)
-![Screenshot 16](https://github.com/SuzieQQ/screennes/blob/main/URBANPOWER-2-66.png)
-
-![Screenshot 17](https://github.com/SuzieQQ/screennes/blob/main/TEST-MAPPER-4-GAME-SCREEN/BONKS.png)
-![Screenshot 18](https://github.com/SuzieQQ/screennes/blob/main/TEST-MAPPER-4-GAME-SCREEN/CONTRA.png)
-![Screenshot 19](https://github.com/SuzieQQ/screennes/blob/main/TEST-MAPPER-4-GAME-SCREEN/Schermata%20del%202022-02-22%2003-54-56.png)
-![Screenshot 20](https://github.com/SuzieQQ/screennes/blob/main/TEST-MAPPER-4-GAME-SCREEN/Schermata%20del%202022-02-22%2003-53-43.png)
-
 
 Videos
 ------------
