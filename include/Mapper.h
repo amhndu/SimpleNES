@@ -25,6 +25,10 @@ namespace sn
                 SxROM = 1,
                 UxROM = 2,
                 CNROM = 3,
+                MMC3  = 4, 
+                AxROM = 7,
+                ColorDreams = 11,
+                GxROM = 66,
             };
 
             Mapper(Cartridge& cart, Type t) : m_cartridge(cart), m_type(t) {};
