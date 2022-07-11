@@ -24,8 +24,14 @@ namespace sn
             else if (addr < 0x2800) //NT1
                 return m_RAM[NameTable1 + index];
             else if (addr < 0x2c00) //NT2
-                return m_RAM[NameTable2 + index];
+                if (NameTable2 == ~0ul)
+                    return m_mapper->readNameTable(addr);
+                else
+                    return m_RAM[NameTable2 + index];
             else                    //NT3
+                if (NameTable3 == ~0ul)
+                    return m_mapper->readNameTable(addr);
+                else
                 return m_RAM[NameTable3 + index];
         }
         else if (addr < 0x3fff)
@@ -54,9 +60,15 @@ namespace sn
             else if (addr < 0x2800) //NT1
                 m_RAM[NameTable1 + index] = value;
             else if (addr < 0x2c00) //NT2
-                m_RAM[NameTable2 + index] = value;
+                if (NameTable2 == ~0ul)
+                    m_mapper->writeNameTable(addr, value);
+                else
+                    m_RAM[NameTable2 + index] = value;
             else                    //NT3
-                m_RAM[NameTable3 + index] = value;
+                if (NameTable3 == ~0ul)
+                    m_mapper->writeNameTable(addr, value);
+                else
+                    m_RAM[NameTable3 + index] = value;
         }
         else if (addr < 0x3fff)
         {
@@ -88,6 +100,12 @@ namespace sn
             case OneScreenHigher:
                 NameTable0 = NameTable1 = NameTable2 = NameTable3 = 0x400;
                 LOG(InfoVerbose) << "Single Screen mirroring set with higher bank." << std::endl;
+                break;
+            case FourScreen:
+                NameTable0 = 0x0;
+                NameTable1 = 0x400;
+                NameTable2 = NameTable3 = ~0ul;
+                LOG(InfoVerbose) << "4 screen mirroring set." << std::endl;
                 break;
             default:
                 NameTable0 = NameTable1 = NameTable2 = NameTable3 = 0;

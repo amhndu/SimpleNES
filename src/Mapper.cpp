@@ -15,7 +15,7 @@ namespace sn
         return static_cast<NameTableMirroring>(m_cartridge.getNameTableMirroring());
     }
 
-    std::unique_ptr<Mapper> Mapper::createMapper(Mapper::Type mapper_t, sn::Cartridge& cart, std::function<void(void)> mirroring_cb)
+    std::unique_ptr<Mapper> Mapper::createMapper(Mapper::Type mapper_t, sn::Cartridge& cart, std::function<void(int)> interrupt_cb, std::function<void(void)> mirroring_cb)
     {
         std::unique_ptr<Mapper> ret(nullptr);
         switch (mapper_t)
@@ -33,7 +33,7 @@ namespace sn
                 ret.reset(new MapperCNROM(cart));
                 break;
             case MMC3:
-                ret.reset(new MapperMMC3(cart,mirroring_cb));
+                ret.reset(new MapperMMC3(cart, interrupt_cb, mirroring_cb));
                 break;
             case AxROM:
                 ret.reset(new MapperAxROM(cart,mirroring_cb));

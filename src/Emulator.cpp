@@ -46,6 +46,7 @@ namespace sn
 
         m_mapper = Mapper::createMapper(static_cast<Mapper::Type>(m_cartridge.getMapper()),
                                         m_cartridge,
+                                        [&](int type){ m_cpu.interrupt(static_cast<CPU::InterruptType>(type)); },
                                         [&](){ m_pictureBus.updateMirroring(); });
         if (!m_mapper)
         {
@@ -56,9 +57,10 @@ namespace sn
         if (!m_bus.setMapper(m_mapper.get()) ||
             !m_pictureBus.setMapper(m_mapper.get()))
             return;
-
+        
         m_cpu.reset();
         m_ppu.reset();
+        m_ppu.setMapperIRQCallback([&](Address addr){ m_mapper->mapperIRQCallback(addr); });
 
         m_window.create(sf::VideoMode(NESVideoWidth * m_screenScale, NESVideoHeight * m_screenScale),
                         "SimpleNES", sf::Style::Titlebar | sf::Style::Close | sf::Style::Resize);

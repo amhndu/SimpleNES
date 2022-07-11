@@ -1,10 +1,12 @@
 #include "MapperMMC3.h"
+#include "CPU.h"
 
 namespace sn
 {
 
-  MapperMMC3::MapperMMC3(Cartridge &cart, std::function<void(void)> mirroring_cb) : 
+  MapperMMC3::MapperMMC3(Cartridge &cart, std::function<void(int)> interrupt_cb, std::function<void(void)> mirroring_cb) : 
   Mapper(cart, Mapper::MMC3),
+  m_interruptCallback(interrupt_cb),
   m_mirroringCallback(mirroring_cb),
   mirrormode(Horizontal),
   nTargetRegister(0),
@@ -19,6 +21,7 @@ namespace sn
 {
 
 ramstatic.resize(32 * 1024);
+m_mirroringRAM.resize(0x800);
 	
 prgbank0 = &cart.getROM()[cart.getROM().size() - 0x4000];
 prgbank1 = &cart.getROM()[cart.getROM().size() - 0x2000];
@@ -36,7 +39,9 @@ chrbank5 = &cart.getVROM()[cart.getVROM().size() * 0x400];
 chrbank6 = &cart.getVROM()[cart.getVROM().size() * 0x400];
 chrbank7 = &cart.getVROM()[cart.getVROM().size() * 0x400];
 
-
+if (cart.getNameTableMirroring() & 0x8){
+	mirrormode = NameTableMirroring::FourScreen;
+}
 }
 
 
@@ -197,14 +202,16 @@ if (addr >= 0x6000 && addr <= 0x7FFF)
 	{
 		if (!(addr & 0x01))
 		{
-			// Mirroring
-			if (value & 0x01)
-			{
-				mirrormode =  NameTableMirroring::Horizontal;
-			}
-			else
-			{
-			    mirrormode = NameTableMirroring::Vertical;
+			if (!(m_cartridge.getNameTableMirroring() & 0x8)){
+				// Mirroring
+				if (value & 0x01)
+				{
+					mirrormode =  NameTableMirroring::Horizontal;
+				}
+				else
+				{
+					mirrormode = NameTableMirroring::Vertical;
+				}
 			}
 		m_mirroringCallback();
 		}
@@ -245,6 +252,13 @@ if (addr >= 0x6000 && addr <= 0x7FFF)
 void MapperMMC3::writeCHR(Address addr, Byte value)
 {}
 
+void MapperMMC3::writeNameTable(Address addr, Byte value){
+	m_mirroringRAM[addr-0x2800] = value;
+}
+
+Byte MapperMMC3::readNameTable(Address addr){
+	return m_mirroringRAM[addr-0x2800];
+}
 
 bool MapperMMC3::irqState() 
 { 
@@ -270,6 +284,24 @@ void MapperMMC3::scanline()
 	{
 		bIRQActive = true;
 	}	
+}
+
+void MapperMMC3::mapperIRQCallback(Address addr){
+
+	static int A12_count =0;
+	if (addr&0x1000){
+		if(!A12_count)
+		{
+			if(irqState())
+				m_interruptCallback(int(CPU::InterruptType::IRQ));
+			irqClear();
+			scanline();
+		}
+		A12_count=3;
+	}else{
+		if(A12_count)
+			A12_count-=1;
+	}
 }
 
 NameTableMirroring MapperMMC3::getNameTableMirroring()

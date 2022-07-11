@@ -28,6 +28,10 @@ namespace sn
         m_vblankCallback = cb;
     }
 
+    void PPU::setMapperIRQCallback(std::function<void(Address)> cb){
+        m_mapperIRQCallback = cb;
+    }
+
     void PPU::step()
     {
         switch (m_pipelineState)
@@ -426,6 +430,7 @@ namespace sn
 
     Byte PPU::read(Address addr)
     {
+        m_mapperIRQCallback(addr);
         return m_bus.read(addr);
     }
 

@@ -39,6 +39,12 @@ namespace sn
             virtual Byte readCHR (Address addr) = 0;
             virtual void writeCHR (Address addr, Byte value) = 0;
 
+            virtual void writeNameTable(Address, Byte){}
+            virtual Byte readNameTable(Address)
+            {
+                return 0xFF;
+            }
+
             virtual NameTableMirroring getNameTableMirroring();
 
             bool inline hasExtendedRAM()
@@ -46,7 +52,9 @@ namespace sn
                 return m_cartridge.hasExtendedRAM();
             }
 
-            static std::unique_ptr<Mapper> createMapper (Type mapper_t, Cartridge& cart, std::function<void(void)> mirroring_cb);
+            virtual void mapperIRQCallback(Address){}
+
+            static std::unique_ptr<Mapper> createMapper (Type mapper_t, Cartridge& cart, std::function<void(int)> interrupt_cb, std::function<void(void)> mirroring_cb);
 
         protected:
             Cartridge& m_cartridge;
