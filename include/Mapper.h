@@ -52,7 +52,7 @@ namespace sn
                 return m_cartridge.hasExtendedRAM();
             }
 
-            virtual void mapperIRQCallback(Address){}
+            virtual void scanlineIRQ(){}
 
             static std::unique_ptr<Mapper> createMapper (Type mapper_t, Cartridge& cart, std::function<void(int)> interrupt_cb, std::function<void(void)> mirroring_cb);
 

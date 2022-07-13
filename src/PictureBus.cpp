@@ -126,4 +126,8 @@ namespace sn
         return true;
     }
 
+    void PictureBus::scanlineIRQ(){
+        m_mapper->scanlineIRQ();
+    }
+
 }

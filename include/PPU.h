@@ -25,7 +25,6 @@ namespace sn
             void reset();
 
             void setInterruptCallback(std::function<void(void)> cb);
-            void setMapperIRQCallback(std::function<void(Address)> cb);
 
             void doDMA(const Byte* page_ptr);
 
@@ -50,7 +49,6 @@ namespace sn
             VirtualScreen &m_screen;
 
             std::function<void(void)> m_vblankCallback;
-            std::function<void(Address)> m_mapperIRQCallback;
 
             std::vector<Byte> m_spriteMemory;
 

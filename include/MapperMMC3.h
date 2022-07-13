@@ -20,7 +20,7 @@ namespace sn
     bool irqState();
     void irqClear();
     void scanline();
-    void mapperIRQCallback(Address addr);
+    void scanlineIRQ();
 
   private:
     // Control variables

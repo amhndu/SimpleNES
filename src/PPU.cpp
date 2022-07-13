@@ -28,10 +28,6 @@ namespace sn
         m_vblankCallback = cb;
     }
 
-    void PPU::setMapperIRQCallback(std::function<void(Address)> cb){
-        m_mapperIRQCallback = cb;
-    }
-
     void PPU::step()
     {
         switch (m_pipelineState)
@@ -215,6 +211,11 @@ namespace sn
 
 //                 if (m_cycle > 257 && m_cycle < 320)
 //                     m_spriteDataAddress = 0;
+
+                // add IRQ support for MMC3
+                if(m_cycle==260 && m_showBackground && m_showSprites){
+                    m_bus.scanlineIRQ();
+                }
 
                 if (m_cycle >= ScanlineEndCycle)
                 {
@@ -430,7 +431,6 @@ namespace sn
 
     Byte PPU::read(Address addr)
     {
-        m_mapperIRQCallback(addr);
         return m_bus.read(addr);
     }
 

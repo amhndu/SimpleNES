@@ -60,7 +60,6 @@ namespace sn
         
         m_cpu.reset();
         m_ppu.reset();
-        m_ppu.setMapperIRQCallback([&](Address addr){ m_mapper->mapperIRQCallback(addr); });
 
         m_window.create(sf::VideoMode(NESVideoWidth * m_screenScale, NESVideoHeight * m_screenScale),
                         "SimpleNES", sf::Style::Titlebar | sf::Style::Close | sf::Style::Resize);

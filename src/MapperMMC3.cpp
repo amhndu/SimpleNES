@@ -286,21 +286,11 @@ void MapperMMC3::scanline()
 	}	
 }
 
-void MapperMMC3::mapperIRQCallback(Address addr){
-
-	static int A12_count =0;
-	if (addr&0x1000){
-		if(!A12_count)
-		{
-			if(irqState())
-				m_interruptCallback(int(CPU::InterruptType::IRQ));
-			irqClear();
-			scanline();
-		}
-		A12_count=3;
-	}else{
-		if(A12_count)
-			A12_count-=1;
+void MapperMMC3::scanlineIRQ(){
+	scanline();
+	if(irqState()){
+		m_interruptCallback(int(CPU::InterruptType::IRQ));
+		irqClear();
 	}
 }
 
