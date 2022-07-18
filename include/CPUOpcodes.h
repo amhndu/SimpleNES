@@ -120,8 +120,15 @@ namespace sn
         TSX = 0xba,
     };
 
+    enum InterruptType
+    {
+        IRQ,
+        NMI,
+        BRK_
+    };
+
     //0 implies unused opcode
-    int OperationCycles[0x100] = {
+    static const int OperationCycles[0x100] = {
             7, 6, 0, 0, 0, 3, 5, 0, 3, 2, 2, 0, 0, 4, 6, 0,
             2, 5, 0, 0, 0, 4, 6, 0, 2, 4, 0, 0, 0, 4, 7, 0,
             6, 6, 0, 0, 3, 3, 5, 0, 4, 2, 2, 0, 4, 4, 6, 0,

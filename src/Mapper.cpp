@@ -1,4 +1,5 @@
 #include "Mapper.h"
+#include "CPUOpcodes.h"
 #include "MapperNROM.h"
 #include "MapperSxROM.h"
 #include "MapperMMC3.h"
@@ -15,7 +16,7 @@ namespace sn
         return static_cast<NameTableMirroring>(m_cartridge.getNameTableMirroring());
     }
 
-    std::unique_ptr<Mapper> Mapper::createMapper(Mapper::Type mapper_t, sn::Cartridge& cart, std::function<void(int)> interrupt_cb, std::function<void(void)> mirroring_cb)
+    std::unique_ptr<Mapper> Mapper::createMapper(Mapper::Type mapper_t, sn::Cartridge& cart, std::function<void(InterruptType)> interrupt_cb, std::function<void(void)> mirroring_cb)
     {
         std::unique_ptr<Mapper> ret(nullptr);
         switch (mapper_t)

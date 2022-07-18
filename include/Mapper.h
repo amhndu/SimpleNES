@@ -1,5 +1,6 @@
 #ifndef MAPPER_H
 #define MAPPER_H
+#include "CPUOpcodes.h"
 #include "Cartridge.h"
 #include <memory>
 #include <functional>
@@ -13,6 +14,7 @@ namespace sn
         FourScreen  = 8,
         OneScreenLower,
         OneScreenHigher,
+        MapperControlled,
     };
 
 
@@ -54,7 +56,7 @@ namespace sn
 
             virtual void scanlineIRQ(){}
 
-            static std::unique_ptr<Mapper> createMapper (Type mapper_t, Cartridge& cart, std::function<void(int)> interrupt_cb, std::function<void(void)> mirroring_cb);
+            static std::unique_ptr<Mapper> createMapper (Type mapper_t, Cartridge& cart, std::function<void(InterruptType)> interrupt_cb, std::function<void(void)> mirroring_cb);
 
         protected:
             Cartridge& m_cartridge;

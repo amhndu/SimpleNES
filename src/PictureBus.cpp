@@ -19,19 +19,15 @@ namespace sn
         else if (addr < 0x3eff) //Name tables upto 0x3000, then mirrored upto 3eff
         {
             auto index = addr & 0x3ff;
-            if (addr < 0x2400)      //NT0
+            if (NameTable0 >= m_RAM.size())
+                return m_mapper->readNameTable(addr);
+            else if (addr < 0x2400)      //NT0
                 return m_RAM[NameTable0 + index];
             else if (addr < 0x2800) //NT1
                 return m_RAM[NameTable1 + index];
             else if (addr < 0x2c00) //NT2
-                if (NameTable2 == ~0ul)
-                    return m_mapper->readNameTable(addr);
-                else
-                    return m_RAM[NameTable2 + index];
+                return m_RAM[NameTable2 + index];
             else                    //NT3
-                if (NameTable3 == ~0ul)
-                    return m_mapper->readNameTable(addr);
-                else
                 return m_RAM[NameTable3 + index];
         }
         else if (addr < 0x3fff)
@@ -55,20 +51,16 @@ namespace sn
         else if (addr < 0x3eff) //Name tables upto 0x3000, then mirrored upto 3eff
         {
             auto index = addr & 0x3ff;
-            if (addr < 0x2400)      //NT0
+            if (NameTable0 >= m_RAM.size())
+                m_mapper->writeNameTable(addr, value);
+            else if (addr < 0x2400)      //NT0
                 m_RAM[NameTable0 + index] = value;
             else if (addr < 0x2800) //NT1
                 m_RAM[NameTable1 + index] = value;
             else if (addr < 0x2c00) //NT2
-                if (NameTable2 == ~0ul)
-                    m_mapper->writeNameTable(addr, value);
-                else
-                    m_RAM[NameTable2 + index] = value;
+                m_RAM[NameTable2 + index] = value;
             else                    //NT3
-                if (NameTable3 == ~0ul)
-                    m_mapper->writeNameTable(addr, value);
-                else
-                    m_RAM[NameTable3 + index] = value;
+                m_RAM[NameTable3 + index] = value;
         }
         else if (addr < 0x3fff)
         {
@@ -102,10 +94,9 @@ namespace sn
                 LOG(InfoVerbose) << "Single Screen mirroring set with higher bank." << std::endl;
                 break;
             case FourScreen:
-                NameTable0 = 0x0;
-                NameTable1 = 0x400;
-                NameTable2 = NameTable3 = ~0ul;
-                LOG(InfoVerbose) << "4 screen mirroring set." << std::endl;
+            case MapperControlled:
+                NameTable0 = m_RAM.size();
+                LOG(InfoVerbose) << "Mapper controlled mirroring." << std::endl;
                 break;
             default:
                 NameTable0 = NameTable1 = NameTable2 = NameTable3 = 0;

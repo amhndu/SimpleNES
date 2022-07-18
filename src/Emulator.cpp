@@ -1,4 +1,5 @@
 #include "Emulator.h"
+#include "CPUOpcodes.h"
 #include "Log.h"
 
 #include <thread>
@@ -36,7 +37,7 @@ namespace sn
             LOG(Error) << "Critical error: Failed to set I/O callbacks" << std::endl;
         }
 
-        m_ppu.setInterruptCallback([&](){ m_cpu.interrupt(CPU::NMI); });
+        m_ppu.setInterruptCallback([&](){ m_cpu.interrupt(InterruptType::NMI); });
     }
 
     void Emulator::run(std::string rom_path)
@@ -46,7 +47,7 @@ namespace sn
 
         m_mapper = Mapper::createMapper(static_cast<Mapper::Type>(m_cartridge.getMapper()),
                                         m_cartridge,
-                                        [&](int type){ m_cpu.interrupt(static_cast<CPU::InterruptType>(type)); },
+                                        [&](InterruptType type){ m_cpu.interrupt(type); },
                                         [&](){ m_pictureBus.updateMirroring(); });
         if (!m_mapper)
         {

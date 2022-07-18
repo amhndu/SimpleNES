@@ -1,10 +1,9 @@
 #include "MapperMMC3.h"
-#include "CPU.h"
 
 namespace sn
 {
 
-  MapperMMC3::MapperMMC3(Cartridge &cart, std::function<void(int)> interrupt_cb, std::function<void(void)> mirroring_cb) : 
+  MapperMMC3::MapperMMC3(Cartridge &cart, std::function<void(InterruptType)> interrupt_cb, std::function<void(void)> mirroring_cb) : 
   Mapper(cart, Mapper::MMC3),
   m_interruptCallback(interrupt_cb),
   m_mirroringCallback(mirroring_cb),
@@ -21,7 +20,7 @@ namespace sn
 {
 
 ramstatic.resize(32 * 1024);
-m_mirroringRAM.resize(0x800);
+m_mirroringRAM.resize(0x1000);
 	
 prgbank0 = &cart.getROM()[cart.getROM().size() - 0x4000];
 prgbank1 = &cart.getROM()[cart.getROM().size() - 0x2000];
@@ -40,7 +39,7 @@ chrbank6 = &cart.getVROM()[cart.getVROM().size() * 0x400];
 chrbank7 = &cart.getVROM()[cart.getVROM().size() * 0x400];
 
 if (cart.getNameTableMirroring() & 0x8){
-	mirrormode = NameTableMirroring::FourScreen;
+	mirrormode = NameTableMirroring::MapperControlled;
 }
 }
 
@@ -253,11 +252,11 @@ void MapperMMC3::writeCHR(Address addr, Byte value)
 {}
 
 void MapperMMC3::writeNameTable(Address addr, Byte value){
-	m_mirroringRAM[addr-0x2800] = value;
+	m_mirroringRAM[addr-0x2000] = value;
 }
 
 Byte MapperMMC3::readNameTable(Address addr){
-	return m_mirroringRAM[addr-0x2800];
+	return m_mirroringRAM[addr-0x2000];
 }
 
 bool MapperMMC3::irqState() 
@@ -274,7 +273,7 @@ void MapperMMC3::irqClear()
 void MapperMMC3::scanline()
  {
    	if (nIRQCounter == 0)
-	{		
+	{
 		nIRQCounter = nIRQReload;
 	}
 	else
@@ -289,7 +288,7 @@ void MapperMMC3::scanline()
 void MapperMMC3::scanlineIRQ(){
 	scanline();
 	if(irqState()){
-		m_interruptCallback(int(CPU::InterruptType::IRQ));
+		m_interruptCallback(InterruptType::IRQ);
 		irqClear();
 	}
 }

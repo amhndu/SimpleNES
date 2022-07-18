@@ -7,7 +7,7 @@ namespace sn
   class MapperMMC3 : public Mapper
   {
   public:
-    MapperMMC3(Cartridge &cart, std::function<void(int)> interrupt_cb, std::function<void(void)> mirroring_cb);
+    MapperMMC3(Cartridge &cart, std::function<void(InterruptType)> interrupt_cb, std::function<void(void)> mirroring_cb);
 
     Byte readPRG(Address addr);
     void writePRG(Address addr, Byte value);
@@ -57,7 +57,7 @@ namespace sn
     std::vector<Byte> m_mirroringRAM;
     std::vector<Byte> ramstatic;
     std::function<void(void)> m_mirroringCallback;
-    std::function<void(int)> m_interruptCallback;
+    std::function<void(InterruptType)> m_interruptCallback;
     Byte A12_count;
   };
 
