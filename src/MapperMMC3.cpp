@@ -121,7 +121,10 @@ Byte MapperMMC3::readCHR(Address addr)
 	if (addr >= 0x1C00 && addr <= 0x1FFF)
 	{
 	return *(chrbank7 + (addr & 0x03ff));
-	}  
+	}
+
+	if(addr>=0x2000 && addr<=0x2fff)
+		return m_mirroringRAM[addr-0x2000];
 }
 
 
@@ -249,14 +252,9 @@ if (addr >= 0x6000 && addr <= 0x7FFF)
 
 
 void MapperMMC3::writeCHR(Address addr, Byte value)
-{}
-
-void MapperMMC3::writeNameTable(Address addr, Byte value){
-	m_mirroringRAM[addr-0x2000] = value;
-}
-
-Byte MapperMMC3::readNameTable(Address addr){
-	return m_mirroringRAM[addr-0x2000];
+{
+	if(addr>=0x2000 && addr<=0x2fff)
+		m_mirroringRAM[addr-0x2000] = value;
 }
 
 bool MapperMMC3::irqState() 

@@ -15,8 +15,6 @@ namespace sn
     NameTableMirroring getNameTableMirroring();
     Byte readCHR(Address addr);
     void writeCHR(Address addr, Byte value);
-    virtual void writeNameTable(Address addr, Byte value);
-    virtual Byte readNameTable(Address addr);
     bool irqState();
     void irqClear();
     void scanline();

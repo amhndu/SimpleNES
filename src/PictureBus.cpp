@@ -20,7 +20,7 @@ namespace sn
         {
             auto index = addr & 0x3ff;
             if (NameTable0 >= m_RAM.size())
-                return m_mapper->readNameTable(addr);
+                return m_mapper->readCHR(addr);
             else if (addr < 0x2400)      //NT0
                 return m_RAM[NameTable0 + index];
             else if (addr < 0x2800) //NT1
@@ -52,7 +52,7 @@ namespace sn
         {
             auto index = addr & 0x3ff;
             if (NameTable0 >= m_RAM.size())
-                m_mapper->writeNameTable(addr, value);
+                m_mapper->writeCHR(addr, value);
             else if (addr < 0x2400)      //NT0
                 m_RAM[NameTable0 + index] = value;
             else if (addr < 0x2800) //NT1
