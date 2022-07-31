@@ -145,14 +145,6 @@ namespace sn
         }
     }
 
-    const Byte* MapperSxROM::getPagePtr(Address addr)
-    {
-        if (addr < 0xc000)
-            return (m_firstBankPRG + (addr & 0x3fff));
-        else
-            return (m_secondBankPRG + (addr & 0x3fff));
-    }
-
     Byte MapperSxROM::readCHR(Address addr)
     {
         if (m_usesCharacterRAM)

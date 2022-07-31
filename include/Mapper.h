@@ -25,7 +25,7 @@ namespace sn
                 SxROM = 1,
                 UxROM = 2,
                 CNROM = 3,
-                MMC3  = 4, 
+                MMC3  = 4,
                 AxROM = 7,
                 ColorDreams = 11,
                 GxROM = 66,
@@ -34,7 +34,6 @@ namespace sn
             Mapper(Cartridge& cart, Type t) : m_cartridge(cart), m_type(t) {};
             virtual void writePRG (Address addr, Byte value) = 0;
             virtual Byte readPRG (Address addr) = 0;
-            virtual const Byte* getPagePtr (Address addr) = 0; //for DMAs
 
             virtual Byte readCHR (Address addr) = 0;
             virtual void writeCHR (Address addr, Byte value) = 0;

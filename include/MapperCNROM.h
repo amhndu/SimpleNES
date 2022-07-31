@@ -10,7 +10,6 @@ namespace sn
             MapperCNROM(Cartridge& cart);
             void writePRG (Address addr, Byte value);
             Byte readPRG (Address addr);
-            const Byte* getPagePtr(Address addr);
 
             Byte readCHR (Address addr);
             void writeCHR (Address addr, Byte value);

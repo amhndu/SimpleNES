@@ -11,7 +11,7 @@ namespace sn
 
     Byte readPRG(Address addr);
     void writePRG(Address addr, Byte value);
-    const Byte *getPagePtr(Address addr);
+
     NameTableMirroring getNameTableMirroring();
     Byte readCHR(Address addr);
     void writeCHR(Address addr, Byte value);
