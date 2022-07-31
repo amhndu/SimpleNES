@@ -78,7 +78,7 @@ namespace sn
         Byte vbanks = header[5];
         LOG(Info) << "8KB CHR-ROM Banks: " << +vbanks << std::endl;
 
-        m_nameTableMirroring = header[6] & 0xB;
+        m_nameTableMirroring = header[6] & 0x3;
         LOG(Info) << "Name Table Mirroring: " << +m_nameTableMirroring << std::endl;
 
         m_mapperNumber = ((header[6] >> 4) & 0xf) | (header[7] & 0xf0);
