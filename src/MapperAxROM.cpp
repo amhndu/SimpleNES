@@ -13,7 +13,6 @@ namespace sn
         {
             LOG(Info) << "Using PRG-ROM OK" << std::endl;
         }
-
         if (cart.getVROM().size() == 0)
         {
             m_characterRAM.resize(0x2000);

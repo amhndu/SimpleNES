@@ -1,5 +1,6 @@
 #pragma once
 #include "Mapper.h"
+#include <array>
 
 namespace sn
 {
@@ -15,21 +16,19 @@ namespace sn
     NameTableMirroring getNameTableMirroring();
     Byte readCHR(Address addr);
     void writeCHR(Address addr, Byte value);
+
     bool irqState();
     void irqClear();
     void scanline();
 
   private:
     // Control variables
-    uint32_t nTargetRegister;
-    bool bPRGBankMode;
-    bool bCHRInversion;
-    NameTableMirroring mirrormode;
+    uint32_t m_targetRegister;
+    bool m_prgBankMode;
+    bool m_chrInversion;
 
-    uint32_t pRegister[8];
-    Byte chram[0x2000];
-    Byte ppuram[0x800];
-    Byte banks;
+    uint32_t m_bankRegister[8];
+
     Byte lastread;
     bool bIRQActive;
     bool bIRQEnable;
@@ -37,21 +36,15 @@ namespace sn
     Address nIRQReload;
     bool m_irqReloadPending;
 
-    const Byte *prgbank0;
-    const Byte *prgbank1;
-    const Byte *prgbank2;
-    const Byte *prgbank3;
+    std::vector<Byte> m_prgRam;
+    const Byte *m_prgBank0;
+    const Byte *m_prgBank1;
+    const Byte *m_prgBank2;
+    const Byte *m_prgBank3;
 
-    const Byte *chrbank0;
-    const Byte *chrbank1;
-    const Byte *chrbank2;
-    const Byte *chrbank3;
-    const Byte *chrbank4;
-    const Byte *chrbank5;
-    const Byte *chrbank6;
-    const Byte *chrbank7;
+    std::array<Address, 8> m_chrBanks;
 
-    std::vector<Byte> ramstatic;
+    NameTableMirroring m_mirroring;
     std::function<void(void)> m_mirroringCallback;
   };
 

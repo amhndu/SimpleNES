@@ -91,7 +91,14 @@ namespace sn
                 {
                     pause = !pause;
                     if (!pause)
+                    {
                         m_cycleTimer = std::chrono::high_resolution_clock::now();
+                        LOG(Info) << "Paused." << std::endl;
+                    }
+                    else
+                    {
+                        LOG(Info) << "Unpaused." << std::endl;
+                    }
                 }
                 else if (pause && event.type == sf::Event::KeyReleased && event.key.code == sf::Keyboard::F3)
                 {
