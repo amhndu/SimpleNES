@@ -33,10 +33,6 @@ Examples of games that have been tested to run (but NOT limited to):
 * Battletoads & Double Dragon
 * Arch Rivals
 * etc...
-*
-
-[Here's](https://gist.github.com/amhndu/5b6da39ee06959d93dc706a0b165fb80) a big list of games that match the supported specs from SimpleNES.
-(Unlike the list above, these aren't tested. Some may or may not work)
 
 
 Screenshots
@@ -47,11 +43,8 @@ Screenshots
 ![Screenshot 4](http://amhndu.github.io/screenshots/nes4.png)
 ![Screenshot 5](http://amhndu.github.io/screenshots/nes5.png)
 ![Screenshot 6](http://amhndu.github.io/screenshots/nes6.png)
-![Screenshot 7](https://github.com/SuzieQQ/screennes/blob/main/nes7.png)
-![Screenshot 8](https://github.com/SuzieQQ/screennes/blob/main/nes8.png)
-![Screenshot 9](https://github.com/SuzieQQ/screennes/blob/main/nes9.png)
-![Screenshot 10](https://github.com/SuzieQQ/screennes/blob/main/nes10.png)
-![Screenshot 11](https://github.com/SuzieQQ/screennes/blob/main/nes11.png)
+![Screenshot 6](http://amhndu.github.io/screenshots/nes7.png)
+![Screenshot 6](http://amhndu.github.io/screenshots/nes8.png)
 
 Videos
 ------------

@@ -94,7 +94,6 @@ namespace sn
                 LOG(InfoVerbose) << "Single Screen mirroring set with higher bank." << std::endl;
                 break;
             case FourScreen:
-            case MapperControlled:
                 NameTable0 = m_RAM.size();
                 LOG(InfoVerbose) << "Mapper controlled mirroring." << std::endl;
                 break;

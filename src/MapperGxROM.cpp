@@ -3,10 +3,11 @@
 namespace sn
 {
 
-    MapperGxROM::MapperGxROM(Cartridge &cart, std::function<void(void)> mirroring_cb) : 
-    Mapper(cart, Mapper::GxROM),
-    m_mirroringCallback(mirroring_cb),
-    m_mirroring(Vertical){}
+    MapperGxROM::MapperGxROM(Cartridge &cart, std::function<void(void)> mirroring_cb) :
+        Mapper(cart, Mapper::GxROM),
+        m_mirroring(Vertical),
+        m_mirroringCallback(mirroring_cb)
+    {}
 
     Byte MapperGxROM::readPRG(Address address)
     {
@@ -43,10 +44,7 @@ namespace sn
 
     void MapperGxROM::writeCHR(Address address, Byte value)
     {
+        // TODO FIXME
         m_cartridge.getVROM()[chrbank + address, value];
-    }
-
-    const Byte *MapperGxROM::getPagePtr(Address address)
-    {
     }
 }

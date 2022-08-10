@@ -10,20 +10,17 @@ namespace sn
 
         void writePRG(Address address, Byte value);
         Byte readPRG(Address address);
-        const Byte *getPagePtr(Address address);
-        NameTableMirroring getNameTableMirroring();
+
         Byte readCHR(Address address);
         void writeCHR(Address address, Byte value);
 
-       
+        NameTableMirroring getNameTableMirroring();
 
     private:
         NameTableMirroring m_mirroring;
-        PictureBus m_ppubus;
+
         std::function<void(void)> m_mirroringCallback;
-        Byte trainer;
-        Byte base = (trainer ? 512 : 0);
-        Byte PRGBank;
+        Byte m_prgBank;
         std::vector<Byte> m_characterRAM;
     };
 }

@@ -15,7 +15,6 @@ namespace sn
 
             bool setMapper(Mapper *mapper);
             Byte readPalette(Byte paletteAddr);
-            std::vector<Byte> m_RAM;
             void updateMirroring();
             void scanlineIRQ();
         private:
@@ -23,6 +22,7 @@ namespace sn
 
             std::vector<Byte> m_palette;
 
+            std::vector<Byte> m_RAM;
             Mapper* m_mapper;
     };
 }

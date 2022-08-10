@@ -1,5 +1,6 @@
 #include "Cartridge.h"
 #include "Log.h"
+#include "Mapper.h"
 #include <fstream>
 #include <string>
 
@@ -78,8 +79,17 @@ namespace sn
         Byte vbanks = header[5];
         LOG(Info) << "8KB CHR-ROM Banks: " << +vbanks << std::endl;
 
-        m_nameTableMirroring = header[6] & 0xB;
-        LOG(Info) << "Name Table Mirroring: " << +m_nameTableMirroring << std::endl;
+        LOG(Info) << +(header[6] & 0x8) << " " << +(header[6] & 0x3) << std::endl;
+        if (header[6] & 0x8)
+        {
+            m_nameTableMirroring = NameTableMirroring::FourScreen;
+            LOG(Info) << "Name Table Mirroring: " << "FourScreen" << std::endl;
+        }
+        else
+        {
+            m_nameTableMirroring = header[6] & 0x1;
+            LOG(Info) << "Name Table Mirroring: " << (m_nameTableMirroring == 0 ? "Horizontal" : "Vertical") << std::endl;
+        }
 
         m_mapperNumber = ((header[6] >> 4) & 0xf) | (header[7] & 0xf0);
         LOG(Info) << "Mapper #: " << +m_mapperNumber << std::endl;

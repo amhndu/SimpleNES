@@ -2,301 +2,248 @@
 
 namespace sn
 {
-
-  MapperMMC3::MapperMMC3(Cartridge &cart, std::function<void(InterruptType)> interrupt_cb, std::function<void(void)> mirroring_cb) : 
-  Mapper(cart, Mapper::MMC3),
-  m_interruptCallback(interrupt_cb),
-  m_mirroringCallback(mirroring_cb),
-  mirrormode(Horizontal),
-  nTargetRegister(0),
-  bPRGBankMode(false),
-  bCHRInversion(false),
-  bIRQActive(false),
-  bIRQEnable(false),
-  nIRQCounter(0),
-  nIRQReload(0),
-  lastread(0),
-  banks(0)
-{
-
-ramstatic.resize(32 * 1024);
-m_mirroringRAM.resize(0x1000);
-	
-prgbank0 = &cart.getROM()[cart.getROM().size() - 0x4000];
-prgbank1 = &cart.getROM()[cart.getROM().size() - 0x2000];
-prgbank2 = &cart.getROM()[cart.getROM().size() - 0x4000];
-prgbank3 = &cart.getROM()[cart.getROM().size() - 0x2000];
- 
- 
-
-chrbank0 = &cart.getVROM()[cart.getVROM().size() * 0x800];
-chrbank1 = &cart.getVROM()[cart.getVROM().size() * 0x800];
-chrbank2 = &cart.getVROM()[cart.getVROM().size() * 0x400];
-chrbank3 = &cart.getVROM()[cart.getVROM().size() * 0x400];
-chrbank4 = &cart.getVROM()[cart.getVROM().size() * 0x400];
-chrbank5 = &cart.getVROM()[cart.getVROM().size() * 0x400];
-chrbank6 = &cart.getVROM()[cart.getVROM().size() * 0x400];
-chrbank7 = &cart.getVROM()[cart.getVROM().size() * 0x400];
-
-if (cart.getNameTableMirroring() & 0x8){
-	mirrormode = NameTableMirroring::MapperControlled;
-}
-}
+    MapperMMC3::MapperMMC3(Cartridge &cart, std::function<void(InterruptType)> interrupt_cb, std::function<void(void)> mirroring_cb) :
+    Mapper(cart, Mapper::MMC3),
+        m_targetRegister(0),
+        m_prgBankMode(false),
+        m_chrInversion(false),
+        lastread(0),
+        bIRQActive(false),
+        bIRQEnable(false),
+        nIRQCounter(0),
+        nIRQReload(0),
+        m_prgRam(32 * 1024),
+        m_mirroringRam(4 * 1024),
+        m_mirroring(Horizontal),
+        m_interruptCallback(interrupt_cb),
+        m_mirroringCallback(mirroring_cb)
+    {
+        m_prgBank0 = &cart.getROM()[cart.getROM().size() - 0x4000];
+        m_prgBank1 = &cart.getROM()[cart.getROM().size() - 0x2000];
+        m_prgBank2 = &cart.getROM()[cart.getROM().size() - 0x4000];
+        m_prgBank3 = &cart.getROM()[cart.getROM().size() - 0x2000];
 
 
-
- Byte MapperMMC3::readPRG(Address addr)
-{
-    if (addr >= 0x6000 && addr <= 0x7FFF)
-	 {
-	  return  ramstatic[addr & 0x1fff];
-
-	 Byte  &value = ramstatic[addr & 0x1FFF];
-
-		
-	}
-	
-  
-   if (addr >= 0x8000 && addr <= 0x9FFF)
-	{
-	 return *(prgbank0 + (addr & 0x1fff));
-	}
-
-	if (addr >= 0xA000 && addr <= 0xBFFF)
-	{	
-	return   *(prgbank1 + (addr & 0x1fff));
-	}
-
-	if (addr >= 0xC000 && addr <= 0xDFFF)
-	{
-      return *(prgbank2 + (addr & 0x1fff));
-	}
-
-	if (addr >= 0xE000 && addr <= 0xFFFF)
-    {   
-     return *(prgbank3  +  (addr & 0x1fff));
-	}
-}
+        for (auto& bank: m_chrBanks)
+        {
+            bank = cart.getVROM().size() - 0x400;
+        }
+        m_chrBanks[0] = cart.getVROM().size() - 0x800;
+        m_chrBanks[3] = cart.getVROM().size() - 0x800;
+    }
 
 
-Byte MapperMMC3::readCHR(Address addr)
-{   
-
-	if (addr >= 0x0000 && addr <= 0x03FF)
-	{
-	return *(chrbank0 + (addr & 0x03ff));
-	}
-
-	if (addr >= 0x0400 && addr <= 0x07FF)
-	{
-	return *(chrbank1 + (addr & 0x03ff));
-	}
-
-	if (addr >= 0x0800 && addr <= 0x0BFF)
-	{
-	return *(chrbank2 + (addr & 0x03ff));
-	}
-
-	if (addr >= 0x0C00 && addr <= 0x0FFF)
-	{
-
-	return *(chrbank3 + (addr & 0x03ff));
-	}
-
-	if (addr >= 0x1000 && addr <= 0x13FF)
-	{
-    return *(chrbank4 + (addr & 0x03ff));
-	}
-
-	if (addr >= 0x1400 && addr <= 0x17FF)
-	{
-	return *(chrbank5 + (addr & 0x03ff));
-	}
-
-	if (addr >= 0x1800 && addr <= 0x1BFF)
-	{
-	return *(chrbank6 + (addr & 0x03ff));
-	}
-
-	if (addr >= 0x1C00 && addr <= 0x1FFF)
-	{
-	return *(chrbank7 + (addr & 0x03ff));
-	}
-
-	if(addr>=0x2000 && addr<=0x2fff)
-		return m_mirroringRAM[addr-0x2000];
-}
+    Byte MapperMMC3::readPRG(Address addr)
+    {
+        if (addr >= 0x6000 && addr <= 0x7FFF)
+        {
+            return  m_prgRam[addr & 0x1fff];
+        }
 
 
+        if (addr >= 0x8000 && addr <= 0x9FFF)
+        {
+            return *(m_prgBank0 + (addr & 0x1fff));
+        }
+
+        if (addr >= 0xA000 && addr <= 0xBFFF)
+        {
+            return   *(m_prgBank1 + (addr & 0x1fff));
+        }
+
+        if (addr >= 0xC000 && addr <= 0xDFFF)
+        {
+            return *(m_prgBank2 + (addr & 0x1fff));
+        }
+
+        if (addr >= 0xE000 && addr <= 0xFFFF)
+        {
+            return *(m_prgBank3  +  (addr & 0x1fff));
+        }
+
+        return 0;
+    }
 
 
-void MapperMMC3::writePRG(Address addr, Byte value)
-{
+    Byte MapperMMC3::readCHR(Address addr)
+    {
+        if (addr < 0x1fff)
+        {
+            // select 1kb bank
+            const auto bankSelect = addr >> 10;
+            // get the configured base address for the bank
+            const auto baseAddress = m_chrBanks[bankSelect];
+            const auto offset = addr & 0x3ff;
+            return m_cartridge.getVROM()[baseAddress + offset];
+        }
+        else if (addr <= 0x2fff)
+        {
+            return m_mirroringRam[addr-0x2000];
+        }
 
-if (addr >= 0x6000 && addr <= 0x7FFF)
-	{
-    	ramstatic[addr & 0x1fff];
-
-		ramstatic[addr & 0x1FFF] = value;
-         return;
-	}
-
-	if (addr >= 0x8000 && addr <= 0x9FFF)
-	{
-		// Bank Select
-		if (!(addr & 0x01))
-		{
-			
-			nTargetRegister = value  & 0x7;
-			bPRGBankMode    = (value & 0x40);
-			bCHRInversion   = (value & 0x80);         
-		}
-		else
-		{
-			pRegister[nTargetRegister] = value;
-
-			if (bCHRInversion == 0)
-			{ 
-
-                chrbank0 = &m_cartridge.getVROM()[(pRegister[0] & 0xFE) * 0x0400];
-				chrbank1 = &m_cartridge.getVROM()[pRegister[0] * 0x0400 + 0x0400];
-				chrbank2 = &m_cartridge.getVROM()[(pRegister[1] & 0xFE) * 0x0400];
-				chrbank3 = &m_cartridge.getVROM()[pRegister[1] * 0x0400 + 0x0400];
-				chrbank4 = &m_cartridge.getVROM()[pRegister[2] * 0x0400];
-				chrbank5 = &m_cartridge.getVROM()[pRegister[3] * 0x0400];
-				chrbank6 = &m_cartridge.getVROM()[pRegister[4] * 0x0400];
-				chrbank7 = &m_cartridge.getVROM()[pRegister[5] * 0x0400];
-
-		    
-			}
-			else if (bCHRInversion == 1)
-			{
-		        chrbank0 = &m_cartridge.getVROM()[pRegister[2] * 0x0400];
-				chrbank1 = &m_cartridge.getVROM()[pRegister[3] * 0x0400];
-				chrbank2 = &m_cartridge.getVROM()[pRegister[4] * 0x0400];
-				chrbank3 = &m_cartridge.getVROM()[pRegister[5] * 0x0400];
-				chrbank4 = &m_cartridge.getVROM()[(pRegister[0] & 0xFE) * 0x0400];
-				chrbank5 = &m_cartridge.getVROM()[pRegister[0] * 0x0800 + 0x0400];
-				chrbank6 = &m_cartridge.getVROM()[(pRegister[1] & 0xFE) * 0x0400];
-				chrbank7 = &m_cartridge.getVROM()[pRegister[1] * 0x0400 + 0x0400];
-			
-			}
-     
-		 if (bPRGBankMode == 0)
-			{
-           
-			  prgbank0 = &m_cartridge.getROM()[(pRegister[6] & 0x3F) * 0x2000];
-			
-			} else if(bPRGBankMode == 1){ 
-			
-		      prgbank2 = &m_cartridge.getROM()[(pRegister[6] & 0x3F) * 0x2000];
-			}
-			 prgbank1 = &m_cartridge.getROM()[(pRegister[7] & 0x3F) * 0x2000];
-	
- 
-
-	
-	}
-
-}
-	
-	if (addr >= 0xA000 && addr <= 0xBFFF)
-	{
-		if (!(addr & 0x01))
-		{
-			if (!(m_cartridge.getNameTableMirroring() & 0x8)){
-				// Mirroring
-				if (value & 0x01)
-				{
-					mirrormode =  NameTableMirroring::Horizontal;
-				}
-				else
-				{
-					mirrormode = NameTableMirroring::Vertical;
-				}
-			}
-		m_mirroringCallback();
-		}
-		else
-		{
-			// PRG Ram Protect
-		
-		}
-	}
-
-	if (addr >= 0xC000 && addr <= 0xDFFF)
-	{
-		if (!(addr & 0x01))
-		{
-			nIRQReload = value;
-		}
-		else
-		{
-			nIRQCounter = 0;
-		}
-	}
-
-	if (addr >= 0xE000 && addr <= 0xFFFF)
-	{
-		if (!(addr & 0x01))
-		{
-			bIRQEnable = false;
-			bIRQActive = false;
-		}
-		else
-		{
-			bIRQEnable = true;
-		}
-	}
-}
+        return 0;
+    }
 
 
-void MapperMMC3::writeCHR(Address addr, Byte value)
-{
-	if(addr>=0x2000 && addr<=0x2fff)
-		m_mirroringRAM[addr-0x2000] = value;
-}
+    void MapperMMC3::writePRG(Address addr, Byte value)
+    {
 
-bool MapperMMC3::irqState() 
-{ 
-	return bIRQActive;
-}
+        if (addr >= 0x6000 && addr <= 0x7FFF)
+        {
+            m_prgRam[addr & 0x1FFF] = value;
+        }
 
-void MapperMMC3::irqClear() 
-{ 
- bIRQActive = false;
-}
+        else if (addr >= 0x8000 && addr <= 0x9FFF)
+        {
+            // Bank Select
+            if (!(addr & 0x01))
+            {
+                m_targetRegister = value & 0x7;
+                m_prgBankMode    = value & 0x40;
+                m_chrInversion   = value & 0x80;
+            }
+            else
+            {
+                m_bankRegister[m_targetRegister] = value;
+
+                if (m_chrInversion == 0)
+                {
+                    // Add 0xfe mask to ignore lowest bit
+                    m_chrBanks[0] = (m_bankRegister[0] & 0xFE) * 0x0400;
+                    m_chrBanks[1] = (m_bankRegister[0] & 0xFE) * 0x0400 + 0x0400;
+                    m_chrBanks[2] = (m_bankRegister[1] & 0xFE) * 0x0400;
+                    m_chrBanks[3] = (m_bankRegister[1] & 0xFE) * 0x0400 + 0x0400;
+                    m_chrBanks[4] = m_bankRegister[2] * 0x0400;
+                    m_chrBanks[5] = m_bankRegister[3] * 0x0400;
+                    m_chrBanks[6] = m_bankRegister[4] * 0x0400;
+                    m_chrBanks[7] = m_bankRegister[5] * 0x0400;
+                }
+                else if (m_chrInversion == 1)
+                {
+                    m_chrBanks[0] = m_bankRegister[2] * 0x0400;
+                    m_chrBanks[1] = m_bankRegister[3] * 0x0400;
+                    m_chrBanks[2] = m_bankRegister[4] * 0x0400;
+                    m_chrBanks[3] = m_bankRegister[5] * 0x0400;
+                    m_chrBanks[4] = (m_bankRegister[0] & 0xFE) * 0x0400;
+                    m_chrBanks[5] = (m_bankRegister[0] & 0xFE) * 0x0400 + 0x0400;
+                    m_chrBanks[6] = (m_bankRegister[1] & 0xFE) * 0x0400;
+                    m_chrBanks[7] = (m_bankRegister[1] & 0xFE) * 0x0400 + 0x0400;
+
+                }
+
+                if (m_prgBankMode == 0)
+                {
+                    // ignore top two bits for R6 / R7 using 0x3F
+                    m_prgBank0 = &m_cartridge.getROM()[(m_bankRegister[6] & 0x3F) * 0x2000];
+                    m_prgBank1 = &m_cartridge.getROM()[(m_bankRegister[7] & 0x3F) * 0x2000];
+                    m_prgBank2 = &m_cartridge.getROM()[m_cartridge.getROM().size() - 0x4000];
+                    m_prgBank3 = &m_cartridge.getROM()[m_cartridge.getROM().size() - 0x2000];
+                }
+                else if (m_prgBankMode == 1)
+                {
+                    m_prgBank0 = &m_cartridge.getROM()[m_cartridge.getROM().size() - 0x4000];
+                    m_prgBank1 = &m_cartridge.getROM()[(m_bankRegister[7] & 0x3F) * 0x2000];
+                    m_prgBank2 = &m_cartridge.getROM()[(m_bankRegister[6] & 0x3F) * 0x2000];
+                    m_prgBank3 = &m_cartridge.getROM()[m_cartridge.getROM().size() - 0x2000];
+                }
+            }
+
+        }
+        else if (addr >= 0xA000 && addr <= 0xBFFF)
+        {
+            if (!(addr & 0x01))
+            {
+                // Mirroring
+                if (m_cartridge.getNameTableMirroring() & 0x8){
+                    m_mirroring = NameTableMirroring::FourScreen;
+                }else if (value & 0x01)
+                {
+                    m_mirroring = NameTableMirroring::Horizontal;
+                }
+                else
+                {
+                    m_mirroring = NameTableMirroring::Vertical;
+                }
+                m_mirroringCallback();
+            }
+            else
+            {
+                // PRG Ram Protect
+            }
+        }
+
+        else if (addr >= 0xC000 && addr <= 0xDFFF)
+        {
+            if (!(addr & 0x01))
+            {
+                nIRQReload = value;
+            }
+            else
+            {
+                nIRQCounter = 0;
+            }
+        }
+
+        else if (addr >= 0xE000 && addr <= 0xFFFF)
+        {
+            if (!(addr & 0x01))
+            {
+                bIRQEnable = false;
+                bIRQActive = false;
+            }
+            else
+            {
+                bIRQEnable = true;
+            }
+        }
+    }
 
 
-void MapperMMC3::scanline()
- {
-   	if (nIRQCounter == 0)
-	{
-		nIRQCounter = nIRQReload;
-	}
-	else
-		nIRQCounter--;
+    void MapperMMC3::writeCHR(Address addr, Byte value) {
+        if (addr >= 0x2000 && addr <= 0x2fff)
+        {
+            m_mirroringRam[addr-0x2000]=value;
+        }
+    }
 
-	if (nIRQCounter == 0 && bIRQEnable)
-	{
-		bIRQActive = true;
-	}	
-}
 
-void MapperMMC3::scanlineIRQ(){
-	scanline();
-	if(irqState()){
-		m_interruptCallback(InterruptType::IRQ);
-		irqClear();
-	}
-}
+    bool MapperMMC3::irqState()
+    {
+        return bIRQActive;
+    }
 
-NameTableMirroring MapperMMC3::getNameTableMirroring()
-{
-  return mirrormode;
-}
+    void MapperMMC3::irqClear()
+    {
+        bIRQActive = false;
+    }
 
-const Byte *MapperMMC3::getPagePtr(Address addr)
-{}
+
+    void MapperMMC3::scanline()
+    {
+        if (nIRQCounter == 0)
+        {
+            nIRQCounter = nIRQReload;
+        }
+        else
+            nIRQCounter--;
+
+        if (nIRQCounter == 0 && bIRQEnable)
+        {
+            bIRQActive = true;
+        }
+    }
+
+    void MapperMMC3::scanlineIRQ(){
+        scanline();
+        if(irqState()){
+            m_interruptCallback(InterruptType::IRQ);
+            irqClear();
+        }
+    }
+
+    NameTableMirroring MapperMMC3::getNameTableMirroring()
+    {
+        return m_mirroring;
+    }
 
 } // namespace sn

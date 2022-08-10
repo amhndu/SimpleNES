@@ -6,7 +6,7 @@
 #include "MapperUxROM.h"
 #include "MapperCNROM.h"
 #include "MapperAxROM.h"
-#include "Mapper11.h"
+#include "MapperColorDreams.h"
 #include "MapperGxROM.h"
 
 namespace sn
@@ -37,13 +37,13 @@ namespace sn
                 ret.reset(new MapperMMC3(cart, interrupt_cb, mirroring_cb));
                 break;
             case AxROM:
-                ret.reset(new MapperAxROM(cart,mirroring_cb));
+                ret.reset(new MapperAxROM(cart, mirroring_cb));
                 break;
             case ColorDreams:
-                ret.reset(new Mapper11(cart,mirroring_cb));
+                ret.reset(new MapperColorDreams(cart, mirroring_cb));
                 break;
             case GxROM:
-                ret.reset(new MapperGxROM(cart,mirroring_cb));
+                ret.reset(new MapperGxROM(cart, mirroring_cb));
                 break;
             default:
                 break;
