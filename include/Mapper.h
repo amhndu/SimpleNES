@@ -13,7 +13,7 @@ namespace sn
         Vertical    = 1,
         FourScreen  = 8,
         OneScreenLower,
-        OneScreenHigher
+        OneScreenHigher,
     };
 
 

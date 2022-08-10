@@ -58,7 +58,7 @@ namespace sn
         if (!m_bus.setMapper(m_mapper.get()) ||
             !m_pictureBus.setMapper(m_mapper.get()))
             return;
-        
+
         m_cpu.reset();
         m_ppu.reset();
 

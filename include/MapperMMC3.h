@@ -47,7 +47,6 @@ namespace sn
     std::array<Address, 8> m_chrBanks;
 
     NameTableMirroring m_mirroring;
-
     std::function<void(void)> m_mirroringCallback;
     std::function<void(InterruptType)> m_interruptCallback;
   };

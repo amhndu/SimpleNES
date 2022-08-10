@@ -95,7 +95,7 @@ namespace sn
                 break;
             case FourScreen:
                 NameTable0 = m_RAM.size();
-                LOG(InfoVerbose) << "Mapper controlled mirroring." << std::endl;
+                LOG(InfoVerbose) << "FourScreen mirroring." << std::endl;
                 break;
             default:
                 NameTable0 = NameTable1 = NameTable2 = NameTable3 = 0;
@@ -119,5 +119,4 @@ namespace sn
     void PictureBus::scanlineIRQ(){
         m_mapper->scanlineIRQ();
     }
-
 }
