@@ -44,7 +44,7 @@ namespace sn
     const Byte *m_prgBank2;
     const Byte *m_prgBank3;
 
-    std::array<Address, 8> m_chrBanks;
+    std::array<uint32_t, 8> m_chrBanks;
 
     NameTableMirroring m_mirroring;
     std::function<void(void)> m_mirroringCallback;
