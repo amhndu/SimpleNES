@@ -25,7 +25,7 @@ namespace sn
             return m_cartridge.getROM()[(addr - 0x8000) & 0x3fff];
     }
 
-    void MapperCNROM::writePRG(Address addr, Byte value)
+    void MapperCNROM::writePRG(Address, Byte value)
     {
         m_selectCHR = value & 0x3;
     }

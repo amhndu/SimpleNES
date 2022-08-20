@@ -18,8 +18,8 @@ namespace sn
 
     private:
         NameTableMirroring m_mirroring;
-        Byte prgbank;
-        Byte chrbank;
+        uint32_t prgbank;
+        uint32_t chrbank;
         std::function<void(void)> m_mirroringCallback;
     };
 }

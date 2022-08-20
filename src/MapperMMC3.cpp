@@ -15,8 +15,8 @@ namespace sn
         m_prgRam(32 * 1024),
         m_mirroringRam(4 * 1024),
         m_mirroring(Horizontal),
-        m_interruptCallback(interrupt_cb),
-        m_mirroringCallback(mirroring_cb)
+        m_mirroringCallback(mirroring_cb),
+        m_interruptCallback(interrupt_cb)
     {
         m_prgBank0 = &cart.getROM()[cart.getROM().size() - 0x4000];
         m_prgBank1 = &cart.getROM()[cart.getROM().size() - 0x2000];
@@ -56,7 +56,7 @@ namespace sn
             return *(m_prgBank2 + (addr & 0x1fff));
         }
 
-        if (addr >= 0xE000 && addr <= 0xFFFF)
+        if (addr >= 0xE000)
         {
             return *(m_prgBank3  +  (addr & 0x1fff));
         }
@@ -184,7 +184,7 @@ namespace sn
             }
         }
 
-        else if (addr >= 0xE000 && addr <= 0xFFFF)
+        else if (addr >= 0xE000)
         {
             if (!(addr & 0x01))
             {

@@ -20,7 +20,7 @@ namespace sn
         NameTableMirroring m_mirroring;
 
         std::function<void(void)> m_mirroringCallback;
-        Byte m_prgBank;
+        uint32_t m_prgBank;
         std::vector<Byte> m_characterRAM;
     };
 }
