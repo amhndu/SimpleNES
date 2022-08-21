@@ -42,7 +42,7 @@ int main(int argc, char** argv)
                       << "Usage: SimpleNES [options] rom-path\n\n"
                       << "Options:\n"
                       << "-h, --help             Print this help text and exit\n"
-                      << "-s, --scale            Set video scale. Default: 2.\n"
+                      << "-s, --scale            Set video scale. Default: 3.\n"
                       << "                       Scale of 1 corresponds to " << sn::NESVideoWidth << "x" << sn::NESVideoHeight << std::endl
                       << "-w, --width            Set the width of the emulation screen (height is\n"
                       << "                       set automatically to fit the aspect ratio)\n"
@@ -98,7 +98,9 @@ int main(int argc, char** argv)
     if (path.empty())
     {
         std::cout << "Argument required: ROM path" << std::endl;
-        return 1;
+        path = "Super Mario Bros. 3 (USA).nes";
+        path = "NEStress.NES";
+        // return 1;
     }
 
     sn::parseControllerConf("keybindings.conf", p1, p2);

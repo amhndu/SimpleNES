@@ -10,7 +10,7 @@ namespace sn
     Emulator::Emulator() :
         m_cpu(m_bus),
         m_ppu(m_pictureBus, m_emulatorScreen),
-        m_screenScale(2.f),
+        m_screenScale(3.f),
         m_cycleTimer(),
         m_cpuCycleDuration(std::chrono::nanoseconds(559))
     {
