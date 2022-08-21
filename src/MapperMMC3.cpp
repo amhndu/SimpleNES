@@ -2,8 +2,7 @@
 
 namespace sn
 {
-
-    MapperMMC3::MapperMMC3(Cartridge &cart, std::function<void(void)> mirroring_cb) :
+    MapperMMC3::MapperMMC3(Cartridge &cart, std::function<void(InterruptType)> interrupt_cb, std::function<void(void)> mirroring_cb) :
     Mapper(cart, Mapper::MMC3),
         m_targetRegister(0),
         m_prgBankMode(false),
@@ -14,7 +13,9 @@ namespace sn
         nIRQCounter(0),
         nIRQReload(0),
         m_prgRam(32 * 1024),
+        m_mirroringRam(4 * 1024),
         m_mirroring(Horizontal),
+        m_interruptCallback(interrupt_cb),
         m_mirroringCallback(mirroring_cb)
     {
         m_prgBank0 = &cart.getROM()[cart.getROM().size() - 0x4000];
@@ -74,6 +75,10 @@ namespace sn
             const auto baseAddress = m_chrBanks[bankSelect];
             const auto offset = addr & 0x3ff;
             return m_cartridge.getVROM()[baseAddress + offset];
+        }
+        else if (addr <= 0x2fff)
+        {
+            return m_mirroringRam[addr-0x2000];
         }
 
         return 0;
@@ -149,9 +154,11 @@ namespace sn
             if (!(addr & 0x01))
             {
                 // Mirroring
-                if (value & 0x01)
+                if (m_cartridge.getNameTableMirroring() & 0x8){
+                    m_mirroring = NameTableMirroring::FourScreen;
+                }else if (value & 0x01)
                 {
-                    m_mirroring =  NameTableMirroring::Horizontal;
+                    m_mirroring = NameTableMirroring::Horizontal;
                 }
                 else
                 {
@@ -192,7 +199,12 @@ namespace sn
     }
 
 
-    void MapperMMC3::writeCHR(Address addr, Byte value) {}
+    void MapperMMC3::writeCHR(Address addr, Byte value) {
+        if (addr >= 0x2000 && addr <= 0x2fff)
+        {
+            m_mirroringRam[addr-0x2000]=value;
+        }
+    }
 
 
     bool MapperMMC3::irqState()
@@ -218,6 +230,14 @@ namespace sn
         if (nIRQCounter == 0 && bIRQEnable)
         {
             bIRQActive = true;
+        }
+    }
+
+    void MapperMMC3::scanlineIRQ(){
+        scanline();
+        if(irqState()){
+            m_interruptCallback(InterruptType::IRQ);
+            irqClear();
         }
     }
 

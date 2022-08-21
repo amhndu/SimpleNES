@@ -19,7 +19,9 @@ namespace sn
         else if (addr < 0x3eff) //Name tables upto 0x3000, then mirrored upto 3eff
         {
             auto index = addr & 0x3ff;
-            if (addr < 0x2400)      //NT0
+            if (NameTable0 >= m_RAM.size())
+                return m_mapper->readCHR(addr);
+            else if (addr < 0x2400)      //NT0
                 return m_RAM[NameTable0 + index];
             else if (addr < 0x2800) //NT1
                 return m_RAM[NameTable1 + index];
@@ -49,7 +51,9 @@ namespace sn
         else if (addr < 0x3eff) //Name tables upto 0x3000, then mirrored upto 3eff
         {
             auto index = addr & 0x3ff;
-            if (addr < 0x2400)      //NT0
+            if (NameTable0 >= m_RAM.size())
+                m_mapper->writeCHR(addr, value);
+            else if (addr < 0x2400)      //NT0
                 m_RAM[NameTable0 + index] = value;
             else if (addr < 0x2800) //NT1
                 m_RAM[NameTable1 + index] = value;
@@ -89,6 +93,10 @@ namespace sn
                 NameTable0 = NameTable1 = NameTable2 = NameTable3 = 0x400;
                 LOG(InfoVerbose) << "Single Screen mirroring set with higher bank." << std::endl;
                 break;
+            case FourScreen:
+                NameTable0 = m_RAM.size();
+                LOG(InfoVerbose) << "FourScreen mirroring." << std::endl;
+                break;
             default:
                 NameTable0 = NameTable1 = NameTable2 = NameTable3 = 0;
                 LOG(Error) << "Unsupported Name Table mirroring : " << m_mapper->getNameTableMirroring() << std::endl;
@@ -108,4 +116,7 @@ namespace sn
         return true;
     }
 
+    void PictureBus::scanlineIRQ(){
+        m_mapper->scanlineIRQ();
+    }
 }

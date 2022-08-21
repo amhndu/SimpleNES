@@ -8,7 +8,7 @@ namespace sn
   class MapperMMC3 : public Mapper
   {
   public:
-    MapperMMC3(Cartridge &cart, std::function<void(void)> mirroring_cb);
+    MapperMMC3(Cartridge &cart, std::function<void(InterruptType)> interrupt_cb, std::function<void(void)> mirroring_cb);
 
     Byte readPRG(Address addr);
     void writePRG(Address addr, Byte value);
@@ -20,6 +20,7 @@ namespace sn
     bool irqState();
     void irqClear();
     void scanline();
+    void scanlineIRQ();
 
   private:
     // Control variables
@@ -37,15 +38,17 @@ namespace sn
     bool m_irqReloadPending;
 
     std::vector<Byte> m_prgRam;
+    std::vector<Byte> m_mirroringRam;
     const Byte *m_prgBank0;
     const Byte *m_prgBank1;
     const Byte *m_prgBank2;
     const Byte *m_prgBank3;
 
-    std::array<Address, 8> m_chrBanks;
+    std::array<uint32_t, 8> m_chrBanks;
 
     NameTableMirroring m_mirroring;
     std::function<void(void)> m_mirroringCallback;
+    std::function<void(InterruptType)> m_interruptCallback;
   };
 
 } // namespace sn

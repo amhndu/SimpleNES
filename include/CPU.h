@@ -1,5 +1,6 @@
 #ifndef CPU_H
 #define CPU_H
+#include "CPUOpcodes.h"
 #include "MainBus.h"
 
 namespace sn
@@ -8,12 +9,6 @@ namespace sn
     class CPU
     {
         public:
-            enum InterruptType
-            {
-                IRQ,
-                NMI,
-                BRK_
-            };
 
             CPU(MainBus &mem);
 

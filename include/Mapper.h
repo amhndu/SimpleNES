@@ -1,5 +1,6 @@
 #ifndef MAPPER_H
 #define MAPPER_H
+#include "CPUOpcodes.h"
 #include "Cartridge.h"
 #include <memory>
 #include <functional>
@@ -45,7 +46,9 @@ namespace sn
                 return m_cartridge.hasExtendedRAM();
             }
 
-            static std::unique_ptr<Mapper> createMapper (Type mapper_t, Cartridge& cart, std::function<void(void)> mirroring_cb);
+            virtual void scanlineIRQ(){}
+
+            static std::unique_ptr<Mapper> createMapper (Type mapper_t, Cartridge& cart, std::function<void(InterruptType)> interrupt_cb, std::function<void(void)> mirroring_cb);
 
         protected:
             Cartridge& m_cartridge;

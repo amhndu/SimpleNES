@@ -212,6 +212,11 @@ namespace sn
 //                 if (m_cycle > 257 && m_cycle < 320)
 //                     m_spriteDataAddress = 0;
 
+                // add IRQ support for MMC3
+                if(m_cycle==260 && m_showBackground && m_showSprites){
+                    m_bus.scanlineIRQ();
+                }
+
                 if (m_cycle >= ScanlineEndCycle)
                 {
                     //Find and index sprites that are on the next Scanline
