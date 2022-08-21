@@ -107,7 +107,9 @@ namespace sn
     {
         Address addr = page << 8;
         if (addr < 0x2000)
+        {
             return &m_RAM[addr & 0x7ff];
+        }
         else if (addr < 0x4020)
         {
             LOG(Error) << "Register address memory pointer access attempt" << std::endl;
@@ -125,6 +127,7 @@ namespace sn
         }
         else
         {
+            LOG(Error) << "Unexpected DMA request: " << std::hex << "0x" << +addr << " (" << +page << ")" << std::dec << std::endl;
         }
         return nullptr;
     }

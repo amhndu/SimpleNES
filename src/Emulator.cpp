@@ -47,7 +47,7 @@ namespace sn
 
         m_mapper = Mapper::createMapper(static_cast<Mapper::Type>(m_cartridge.getMapper()),
                                         m_cartridge,
-                                        [&](InterruptType type){ m_cpu.interrupt(type); },
+                                        [&](){ m_cpu.interrupt(InterruptType::IRQ); },
                                         [&](){ m_pictureBus.updateMirroring(); });
         if (!m_mapper)
         {
@@ -122,10 +122,6 @@ namespace sn
                 {
                     Log::get().setLevel(InfoVerbose);
                 }
-                else if (focus && event.type == sf::Event::KeyReleased && event.key.code == sf::Keyboard::F6)
-                {
-                    Log::get().setLevel(CpuTrace);
-                }
             }
 
             if (focus && !pause)
@@ -160,7 +156,14 @@ namespace sn
     {
         m_cpu.skipDMACycles();
         auto page_ptr = m_bus.getPagePtr(page);
-        m_ppu.doDMA(page_ptr);
+        if (page_ptr != nullptr)
+        {
+            m_ppu.doDMA(page_ptr);
+        }
+        else
+        {
+            LOG(Error) << "Can't get pageptr for DMA" << std::endl;
+        }
     }
 
     void Emulator::setVideoHeight(int height)
