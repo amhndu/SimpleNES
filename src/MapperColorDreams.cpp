@@ -15,7 +15,7 @@ namespace sn
     {
         if (address >= 0x8000)
         {
-            return  m_cartridge.getROM()[(prgbank * 0x8000) + address & 0x7fff];
+            return  m_cartridge.getROM()[(prgbank * 0x8000) + (address & 0x7fff)];
         }
         return 0;
     }
@@ -49,5 +49,5 @@ namespace sn
     }
 
 
-    void MapperColorDreams::writeCHR(Address address, Byte value) {}
+    void MapperColorDreams::writeCHR(Address, Byte) {}
 }

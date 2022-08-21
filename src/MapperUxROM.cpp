@@ -27,7 +27,7 @@ namespace sn
             return *(m_lastBankPtr + (addr & 0x3fff));
     }
 
-    void MapperUxROM::writePRG(Address addr, Byte value)
+    void MapperUxROM::writePRG(Address, Byte value)
     {
         m_selectPRG = value;
     }

@@ -35,7 +35,7 @@ namespace sn
         return m_cartridge.getVROM()[addr | (m_selectCHR << 13)];
     }
 
-    void MapperCNROM::writeCHR(Address addr, Byte value)
+    void MapperCNROM::writeCHR(Address addr, Byte)
     {
         LOG(Info) << "Read-only CHR memory write attempt at " << std::hex << addr << std::endl;
     }

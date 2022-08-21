@@ -15,11 +15,12 @@ namespace sn
         {
             return m_cartridge.getROM()[(prgbank * 0x8000) + (address & 0x7fff)];
         }
+
+        return 0;
     }
 
     void MapperGxROM::writePRG(Address address, Byte value)
     {
-        int v;
         if (address >= 0x8000)
         {
             prgbank = ((value & 0x30) >> 4);
@@ -35,6 +36,7 @@ namespace sn
         {
             return m_cartridge.getVROM()[chrbank * 0x2000 + address];
         }
+        return 0;
     }
 
     NameTableMirroring MapperGxROM::getNameTableMirroring()
@@ -42,9 +44,8 @@ namespace sn
         return m_mirroring;
     }
 
-    void MapperGxROM::writeCHR(Address address, Byte value)
+    void MapperGxROM::writeCHR(Address, Byte)
     {
-        // TODO FIXME
-        m_cartridge.getVROM()[chrbank + address, value];
+        LOG(Info) << "not expecting writes here";
     }
 }
