@@ -67,6 +67,7 @@ namespace sn
 
             bool m_vblank;
             bool m_sprZeroHit;
+            bool m_spriteOverflow;
 
             //Registers
             Address m_dataAddress;
