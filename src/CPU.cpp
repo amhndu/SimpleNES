@@ -6,6 +6,8 @@
 namespace sn
 {
     CPU::CPU(MainBus &mem) :
+        m_pendingNMI(false),
+        m_pendingIRQ(false),
         m_bus(mem)
     {}
 
@@ -22,9 +24,26 @@ namespace sn
         f_C = f_D = f_N = f_V = f_Z = false;
         r_PC = start_addr;
         r_SP = 0xfd; //documented startup state
-   }
+    }
 
     void CPU::interrupt(InterruptType type)
+    {
+        switch (type)
+        {
+        case InterruptType::NMI:
+            m_pendingNMI = true;
+            break;
+
+        case InterruptType::IRQ:
+            m_pendingIRQ = true;
+            break;
+
+        default:
+            break;
+        }
+    }
+
+    void CPU::interruptSequence(InterruptType type)
     {
         if (f_I && type != NMI && type != BRK_)
             return;
@@ -58,7 +77,9 @@ namespace sn
                 break;
         }
 
-        m_skipCycles += 7;
+        // Interrupt sequence takes 7, but one cycle was actually spent on this.
+        // So skip 6
+        m_skipCycles += 6;
     }
 
     void CPU::pushStack(Byte value)
@@ -99,6 +120,20 @@ namespace sn
             return;
 
         m_skipCycles = 0;
+
+        // NMI has higher priority, check for it first
+        if (m_pendingNMI)
+        {
+            interruptSequence(NMI);
+            m_pendingNMI = m_pendingIRQ = false;
+            return;
+        }
+        else if (m_pendingIRQ)
+        {
+            interruptSequence(IRQ);
+            m_pendingNMI = m_pendingIRQ = false;
+            return;
+        }
 
         int psw =    f_N << 7 |
                      f_V << 6 |
@@ -146,7 +181,7 @@ namespace sn
             case NOP:
                 break;
             case BRK:
-                interrupt(BRK_);
+                interruptSequence(BRK_);
                 break;
             case JSR:
                 //Push address of next instruction - 1, thus r_PC + 1 instead of r_PC + 2

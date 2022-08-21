@@ -12,9 +12,6 @@ namespace sn
 
             CPU(MainBus &mem);
 
-            //Assuming sequential execution, for asynchronously calling this with Execute, further work needed
-            void interrupt(InterruptType type);
-
             void step();
             void reset();
             void reset(Address start_addr);
@@ -22,7 +19,12 @@ namespace sn
 
             Address getPC() { return r_PC; }
             void skipDMACycles();
+
+            void interrupt(InterruptType type);
+
         private:
+            void interruptSequence(InterruptType type);
+
             //Instructions are split into five sets to make decoding easier.
             //These functions return true if they succeed
             bool executeImplied(Byte opcode);
@@ -55,10 +57,12 @@ namespace sn
             bool f_C;
             bool f_Z;
             bool f_I;
-//            bool f_B;
             bool f_D;
             bool f_V;
             bool f_N;
+
+            bool m_pendingNMI;
+            bool m_pendingIRQ;
 
             MainBus &m_bus;
     };
