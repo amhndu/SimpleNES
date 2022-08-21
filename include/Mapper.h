@@ -33,6 +33,7 @@ namespace sn
             };
 
             Mapper(Cartridge& cart, Type t) : m_cartridge(cart), m_type(t) {};
+            virtual ~Mapper() = default;
             virtual void writePRG (Address addr, Byte value) = 0;
             virtual Byte readPRG (Address addr) = 0;
 
@@ -48,7 +49,7 @@ namespace sn
 
             virtual void scanlineIRQ(){}
 
-            static std::unique_ptr<Mapper> createMapper (Type mapper_t, Cartridge& cart, std::function<void(InterruptType)> interrupt_cb, std::function<void(void)> mirroring_cb);
+            static std::unique_ptr<Mapper> createMapper (Type mapper_t, Cartridge& cart, std::function<void()> interrupt_cb, std::function<void(void)> mirroring_cb);
 
         protected:
             Cartridge& m_cartridge;

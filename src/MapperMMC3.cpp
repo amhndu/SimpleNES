@@ -1,17 +1,18 @@
 #include "MapperMMC3.h"
+#include "Log.h"
 
 namespace sn
 {
-    MapperMMC3::MapperMMC3(Cartridge &cart, std::function<void(InterruptType)> interrupt_cb, std::function<void(void)> mirroring_cb) :
+    MapperMMC3::MapperMMC3(Cartridge &cart, std::function<void()> interrupt_cb, std::function<void(void)> mirroring_cb) :
     Mapper(cart, Mapper::MMC3),
         m_targetRegister(0),
         m_prgBankMode(false),
         m_chrInversion(false),
-        lastread(0),
-        bIRQActive(false),
-        bIRQEnable(false),
-        nIRQCounter(0),
-        nIRQReload(0),
+        m_bankRegister{},
+        m_irqEnabled(false),
+        m_irqCounter(0),
+        m_irqLatch(0),
+        m_irqReloadPending(false),
         m_prgRam(32 * 1024),
         m_mirroringRam(4 * 1024),
         m_mirroring(Horizontal),
@@ -154,9 +155,11 @@ namespace sn
             if (!(addr & 0x01))
             {
                 // Mirroring
-                if (m_cartridge.getNameTableMirroring() & 0x8){
+                if (m_cartridge.getNameTableMirroring() & 0x8)
+                {
                     m_mirroring = NameTableMirroring::FourScreen;
-                }else if (value & 0x01)
+                }
+                else if (value & 0x01)
                 {
                     m_mirroring = NameTableMirroring::Horizontal;
                 }
@@ -176,30 +179,26 @@ namespace sn
         {
             if (!(addr & 0x01))
             {
-                nIRQReload = value;
+                m_irqLatch = value;
             }
             else
             {
-                nIRQCounter = 0;
+                m_irqCounter = 0;
+                m_irqReloadPending = true;
             }
         }
 
         else if (addr >= 0xE000)
         {
-            if (!(addr & 0x01))
-            {
-                bIRQEnable = false;
-                bIRQActive = false;
-            }
-            else
-            {
-                bIRQEnable = true;
-            }
+            // enabled if odd address
+            m_irqEnabled = (addr & 0x01) == 0x01;
+            // TODO acknowledge any pending interrupts?
         }
     }
 
 
-    void MapperMMC3::writeCHR(Address addr, Byte value) {
+    void MapperMMC3::writeCHR(Address addr, Byte value)
+    {
         if (addr >= 0x2000 && addr <= 0x2fff)
         {
             m_mirroringRam[addr-0x2000]=value;
@@ -207,37 +206,25 @@ namespace sn
     }
 
 
-    bool MapperMMC3::irqState()
+    void MapperMMC3::scanlineIRQ()
     {
-        return bIRQActive;
-    }
+        bool zeroTransition = false;
 
-    void MapperMMC3::irqClear()
-    {
-        bIRQActive = false;
-    }
-
-
-    void MapperMMC3::scanline()
-    {
-        if (nIRQCounter == 0)
+        if (m_irqCounter == 0 || m_irqReloadPending)
         {
-            nIRQCounter = nIRQReload;
+            m_irqCounter = m_irqLatch;
+            // zeroTransition = m_irqReloadPending;
+            m_irqReloadPending = false;
         }
         else
-            nIRQCounter--;
-
-        if (nIRQCounter == 0 && bIRQEnable)
         {
-            bIRQActive = true;
+            m_irqCounter--;
+            zeroTransition = m_irqCounter == 0;
         }
-    }
 
-    void MapperMMC3::scanlineIRQ(){
-        scanline();
-        if(irqState()){
-            m_interruptCallback(InterruptType::IRQ);
-            irqClear();
+        if(zeroTransition && m_irqEnabled)
+        {
+            m_interruptCallback();
         }
     }
 

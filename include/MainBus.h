@@ -1,7 +1,7 @@
 #ifndef MEMORY_H
 #define MEMORY_H
 #include <vector>
-#include <map>
+#include <unordered_map>
 #include <functional>
 #include <memory>
 #include "Cartridge.h"
@@ -39,8 +39,8 @@ namespace sn
             std::vector<Byte> m_extRAM;
             Mapper* m_mapper;
 
-            std::map<IORegisters, std::function<void(Byte)>> m_writeCallbacks;
-            std::map<IORegisters, std::function<Byte(void)>> m_readCallbacks;;
+            std::unordered_map<IORegisters, std::function<void(Byte)>> m_writeCallbacks;
+            std::unordered_map<IORegisters, std::function<Byte(void)>> m_readCallbacks;;
     };
 };
 

@@ -8,7 +8,7 @@ namespace sn
   class MapperMMC3 : public Mapper
   {
   public:
-    MapperMMC3(Cartridge &cart, std::function<void(InterruptType)> interrupt_cb, std::function<void(void)> mirroring_cb);
+    MapperMMC3(Cartridge &cart, std::function<void()> interrupt_cb, std::function<void(void)> mirroring_cb);
 
     Byte readPRG(Address addr);
     void writePRG(Address addr, Byte value);
@@ -17,9 +17,6 @@ namespace sn
     Byte readCHR(Address addr);
     void writeCHR(Address addr, Byte value);
 
-    bool irqState();
-    void irqClear();
-    void scanline();
     void scanlineIRQ();
 
   private:
@@ -30,11 +27,9 @@ namespace sn
 
     uint32_t m_bankRegister[8];
 
-    Byte lastread;
-    bool bIRQActive;
-    bool bIRQEnable;
-    Address nIRQCounter;
-    Address nIRQReload;
+    bool m_irqEnabled;
+    Byte m_irqCounter;
+    Byte m_irqLatch;
     bool m_irqReloadPending;
 
     std::vector<Byte> m_prgRam;
@@ -48,7 +43,7 @@ namespace sn
 
     NameTableMirroring m_mirroring;
     std::function<void(void)> m_mirroringCallback;
-    std::function<void(InterruptType)> m_interruptCallback;
+    std::function<void()> m_interruptCallback;
   };
 
 } // namespace sn
