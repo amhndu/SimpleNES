@@ -35,7 +35,8 @@ namespace sn
 
     bool Cartridge::hasExtendedRAM()
     {
-        return m_extendedRAM;
+        // Some ROMs don't have this set correctly, plus there's no particular reason to disable it.
+        return true;
     }
 
     bool Cartridge::loadFromFile(std::string path)
@@ -79,7 +80,6 @@ namespace sn
         Byte vbanks = header[5];
         LOG(Info) << "8KB CHR-ROM Banks: " << +vbanks << std::endl;
 
-        LOG(Info) << +(header[6] & 0x8) << " " << +(header[6] & 0x3) << std::endl;
         if (header[6] & 0x8)
         {
             m_nameTableMirroring = NameTableMirroring::FourScreen;
