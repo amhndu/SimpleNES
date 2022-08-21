@@ -30,7 +30,6 @@ Examples of games that have been tested to run (but NOT limited to):
 * Nightmare Elm Street
 * Cabal
 * Battletoads
-* Battletoads & Double Dragon
 * Arch Rivals
 * etc...
 
@@ -49,14 +48,6 @@ Screenshots
 Videos
 ------------
 [YouTube Playlist](https://www.youtube.com/playlist?list=PLiULt7qySWt2VbHTkvIt9kYPMPcWt01qN)
-
-
-Download
------------
-Executables:
-
-[Windows 32-bit](https://www.dropbox.com/s/1gqhtbmvzo1ozsz/SimpleNES-win32.rar?dl=0)
-[Linux 64-bit](https://www.dropbox.com/s/7eswcdektlkdz65/SimpleNES-linux64?dl=0)
 
 
 Compiling
