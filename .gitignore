@@ -4,3 +4,5 @@
 *.kdev4
 .kdev*
 build/
+.vscode/
+.cache/
