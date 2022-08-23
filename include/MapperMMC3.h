@@ -1,49 +1,49 @@
 #pragma once
-#include "Mapper.h"
 #include <array>
 
-namespace sn
-{
+#include "Mapper.h"
 
-  class MapperMMC3 : public Mapper
-  {
-  public:
-    MapperMMC3(Cartridge &cart, std::function<void()> interrupt_cb, std::function<void(void)> mirroring_cb);
+namespace sn {
 
-    Byte readPRG(Address addr);
-    void writePRG(Address addr, Byte value);
+class MapperMMC3 : public Mapper {
+ public:
+  MapperMMC3(Cartridge &cart, std::function<void()> interrupt_cb,
+             std::function<void(void)> mirroring_cb);
 
-    NameTableMirroring getNameTableMirroring();
-    Byte readCHR(Address addr);
-    void writeCHR(Address addr, Byte value);
+  Byte readPRG(Address addr);
+  void writePRG(Address addr, Byte value);
 
-    void scanlineIRQ();
+  NameTableMirroring getNameTableMirroring();
+  Byte readCHR(Address addr);
+  void writeCHR(Address addr, Byte value);
 
-  private:
-    // Control variables
-    uint32_t m_targetRegister;
-    bool m_prgBankMode;
-    bool m_chrInversion;
+  void scanlineIRQ();
 
-    uint32_t m_bankRegister[8];
+ private:
+  // Control variables
+  uint32_t m_targetRegister;
+  bool m_prgBankMode;
+  bool m_chrInversion;
 
-    bool m_irqEnabled;
-    Byte m_irqCounter;
-    Byte m_irqLatch;
-    bool m_irqReloadPending;
+  uint32_t m_bankRegister[8];
 
-    std::vector<Byte> m_prgRam;
-    std::vector<Byte> m_mirroringRam;
-    const Byte *m_prgBank0;
-    const Byte *m_prgBank1;
-    const Byte *m_prgBank2;
-    const Byte *m_prgBank3;
+  bool m_irqEnabled;
+  Byte m_irqCounter;
+  Byte m_irqLatch;
+  bool m_irqReloadPending;
 
-    std::array<uint32_t, 8> m_chrBanks;
+  std::vector<Byte> m_prgRam;
+  std::vector<Byte> m_mirroringRam;
+  const Byte *m_prgBank0;
+  const Byte *m_prgBank1;
+  const Byte *m_prgBank2;
+  const Byte *m_prgBank3;
 
-    NameTableMirroring m_mirroring;
-    std::function<void(void)> m_mirroringCallback;
-    std::function<void()> m_interruptCallback;
-  };
+  std::array<uint32_t, 8> m_chrBanks;
 
-} // namespace sn
+  NameTableMirroring m_mirroring;
+  std::function<void(void)> m_mirroringCallback;
+  std::function<void()> m_interruptCallback;
+};
+
+}  // namespace sn

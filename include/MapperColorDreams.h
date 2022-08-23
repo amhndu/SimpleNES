@@ -3,25 +3,23 @@
 
 #include "Mapper.h"
 
-namespace sn
-{
-    class MapperColorDreams : public Mapper
-    {
-    public:
-        MapperColorDreams(Cartridge &cart, std::function<void(void)> mirroring_cb);
-        NameTableMirroring getNameTableMirroring();
-        void writePRG(Address address, Byte value);
-        Byte readPRG(Address address);
+namespace sn {
+class MapperColorDreams : public Mapper {
+ public:
+  MapperColorDreams(Cartridge &cart, std::function<void(void)> mirroring_cb);
+  NameTableMirroring getNameTableMirroring();
+  void writePRG(Address address, Byte value);
+  Byte readPRG(Address address);
 
-        Byte readCHR(Address address);
-        void writeCHR(Address address, Byte value);
+  Byte readCHR(Address address);
+  void writeCHR(Address address, Byte value);
 
-    private:
-        NameTableMirroring m_mirroring;
-        uint32_t prgbank;
-        uint32_t chrbank;
-        std::function<void(void)> m_mirroringCallback;
-    };
-}
+ private:
+  NameTableMirroring m_mirroring;
+  uint32_t prgbank;
+  uint32_t chrbank;
+  std::function<void(void)> m_mirroringCallback;
+};
+}  // namespace sn
 
-#endif // MAPPERCOLORDREAMS_H_INCLUDED
+#endif  // MAPPERCOLORDREAMS_H_INCLUDED
