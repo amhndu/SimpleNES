@@ -2,70 +2,45 @@
 #define CPU_H
 #include "CPUOpcodes.h"
 #include "MainBus.h"
+#include "mos6502.hpp"
 
-namespace sn
-{
+namespace sn {
 
-    class CPU
-    {
-        public:
+class CPU : public sen::MOS6502 {
+ public:
+  explicit CPU(MainBus &mem);
 
-            CPU(MainBus &mem);
+  auto read(uint16_t addr) -> uint8_t override {
+    ++m_skipCycles;
+    return m_bus.read(addr);
+  }
+  auto write(uint16_t addr, uint8_t data) -> void override {
+    ++m_skipCycles;
+    m_bus.write(addr, data);
+  }
+  auto nmi(uint16_t &vector) -> void override {}
+  auto cancelNmi() -> void override {}
+  auto delayIrq() -> void override {}
 
-            void step();
-            void reset();
-            void reset(Address start_addr);
-            void log();
+  void step();
+  void reset();
 
-            Address getPC() { return r_PC; }
-            void skipDMACycles();
+  void skipDMACycles();
 
-            void interrupt(InterruptType type);
+  void interrupt(InterruptType type);
 
-        private:
-            void interruptSequence(InterruptType type);
+ private:
 
-            //Instructions are split into five sets to make decoding easier.
-            //These functions return true if they succeed
-            bool executeImplied(Byte opcode);
-            bool executeBranch(Byte opcode);
-            bool executeType0(Byte opcode);
-            bool executeType1(Byte opcode);
-            bool executeType2(Byte opcode);
+  int m_skipCycles;
+  int m_cycles;
 
-            Address readAddress(Address addr);
+  bool f_N;
 
-            void pushStack(Byte value);
-            Byte pullStack();
+  bool m_pendingNMI;
+  bool m_pendingIRQ;
 
-            //If a and b are in different pages, increases the m_SkipCycles by inc
-            void setPageCrossed(Address a, Address b, int inc = 1);
-            void setZN(Byte value);
-
-            int m_skipCycles;
-            int m_cycles;
-
-            //Registers
-            Address r_PC;
-            Byte r_SP;
-            Byte r_A;
-            Byte r_X;
-            Byte r_Y;
-
-            //Status flags.
-            //Is storing them in one byte better ?
-            bool f_C;
-            bool f_Z;
-            bool f_I;
-            bool f_D;
-            bool f_V;
-            bool f_N;
-
-            bool m_pendingNMI;
-            bool m_pendingIRQ;
-
-            MainBus &m_bus;
-    };
+  MainBus &m_bus;
+};
 
 };
 #endif // CPU_H
