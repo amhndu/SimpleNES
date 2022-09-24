@@ -1,0 +1,301 @@
+#pragma once
+
+#ifndef MOS6502_INSTRUCTION_ICC_
+#define MOS6502_INSTRUCTION_ICC_
+
+namespace sen {
+
+template <> auto MOS6502::instruction<MOS6502::InstructionCode::Load>(Addressing addr, Algorithm alg) -> void {
+  MAR = ADDRESS();
+  MDR = read(MAR);
+  ALGORITHM();
+}
+template <> auto MOS6502::instruction<MOS6502::InstructionCode::Write>(Addressing addr, Algorithm alg) -> void {
+  MAR = ADDRESS();
+  ALGORITHM();
+  write(MAR, MDR);
+}
+template <> auto MOS6502::instruction<MOS6502::InstructionCode::Modify>(Addressing addr, Algorithm alg) -> void {
+  MAR = ADDRESS();
+  MDR = read(MAR);
+  write(MAR, MDR);        // idle write
+  ALGORITHM();
+  write(MAR, MDR);
+}
+template <> auto MOS6502::instruction<MOS6502::InstructionCode::Jump>(Addressing addr, Algorithm alg) -> void {
+  MAR = ADDRESS();
+  ALGORITHM();
+}
+
+auto MOS6502::runInstruction() -> void {
+  uint8_t opCode = opcode();
+
+#define official_op(code, ins, addr, alg) \
+  case code: instruction<InstructionCode::ins>(&MOS6502::addressing<AddressingCode::addr>, &MOS6502::algorithm<AlgorithmCode::alg>); break
+#define unofficial_op official_op
+  switch (opCode) {
+    // official instruction
+    official_op(0x00, Load, Implied, BRK);
+    official_op(0x01, Load, IndirectX, ORA);
+    unofficial_op(0x02, Load, Implied, KIL);
+    unofficial_op(0x03, Modify, IndirectX, SLO);
+    unofficial_op(0x04, Load, ZeroPage, DOP);
+    official_op(0x05, Load, ZeroPage, ORA);
+    official_op(0x06, Modify, ZeroPage, ASL_M);
+    unofficial_op(0x07, Modify, ZeroPage, SLO);
+    official_op(0x08, Load, Implied, PHP);
+    official_op(0x09, Load, Immediate, ORA);
+    official_op(0x0a, Load, Accumulator, ASL_A);
+    unofficial_op(0x0b, Load, Immediate, AAC);
+    unofficial_op(0x0c, Load, Absolute, TOP);
+    official_op(0x0d, Load, Absolute, ORA);
+    official_op(0x0e, Modify, Absolute, ASL_M);
+    unofficial_op(0x0f, Modify, Absolute, SLO);
+    official_op(0x10, Load, Relative, BPL);
+    official_op(0x11, Load, IndirectYRead, ORA);
+    unofficial_op(0x12, Load, Implied, KIL);
+    unofficial_op(0x13, Modify, IndirectYWrite, SLO);
+    unofficial_op(0x14, Load, ZeroPageX, DOP);
+    official_op(0x15, Load, ZeroPageX, ORA);
+    official_op(0x16, Modify, ZeroPageX, ASL_M);
+    unofficial_op(0x17, Modify, ZeroPageX, SLO);
+    official_op(0x18, Load, Implied, CLC);
+    official_op(0x19, Load, AbsoluteYRead, ORA);
+    unofficial_op(0x1a, Load, Implied, NOP);
+    unofficial_op(0x1b, Modify, AbsoluteYWrite, SLO);
+    unofficial_op(0x1c, Load, AbsoluteXRead, TOP);
+    official_op(0x1d, Load, AbsoluteXRead, ORA);
+    official_op(0x1e, Modify, AbsoluteXWrite, ASL_M);
+    unofficial_op(0x1f, Modify, AbsoluteXWrite, SLO);
+    official_op(0x20, Jump, Absolute, JSR);
+    official_op(0x21, Load, IndirectX, AND);
+    unofficial_op(0x22, Load, Implied, KIL);
+    unofficial_op(0x23, Modify, IndirectX, RLA);
+    official_op(0x24, Load, ZeroPage, BIT);
+    official_op(0x25, Load, ZeroPage, AND);
+    official_op(0x26, Modify, ZeroPage, ROL_M);
+    unofficial_op(0x27, Modify, ZeroPage, RLA);
+    official_op(0x28, Load, Implied, PLP);
+    official_op(0x29, Load, Immediate, AND);
+    official_op(0x2a, Load, Accumulator, ROL_A);
+    unofficial_op(0x2b, Load, Immediate, AAC);
+    official_op(0x2c, Load, Absolute, BIT);
+    official_op(0x2d, Load, Absolute, AND);
+    official_op(0x2e, Modify, Absolute, ROL_M);
+    unofficial_op(0x2f, Modify, Absolute, RLA);
+    official_op(0x30, Load, Relative, BMI);
+    official_op(0x31, Load, IndirectYRead, AND);
+    unofficial_op(0x32, Load, Implied, KIL);
+    unofficial_op(0x33, Modify, IndirectYWrite, RLA);
+    unofficial_op(0x34, Load, ZeroPageX, DOP);
+    official_op(0x35, Load, ZeroPageX, AND);
+    official_op(0x36, Modify, ZeroPageX, ROL_M);
+    unofficial_op(0x37, Modify, ZeroPageX, RLA);
+    official_op(0x38, Load, Implied, SEC);
+    official_op(0x39, Load, AbsoluteYRead, AND);
+    unofficial_op(0x3a, Load, Implied, NOP);
+    unofficial_op(0x3b, Modify, AbsoluteYWrite, RLA);
+    unofficial_op(0x3c, Load, AbsoluteXRead, TOP);
+    official_op(0x3d, Load, AbsoluteXRead, AND);
+    official_op(0x3e, Modify, AbsoluteXWrite, ROL_M);
+    unofficial_op(0x3f, Modify, AbsoluteXWrite, RLA);
+    official_op(0x40, Load, Implied, RTI);
+    official_op(0x41, Load, IndirectX, EOR);
+    unofficial_op(0x42, Load, Implied, KIL);
+    unofficial_op(0x43, Modify, IndirectX, SRE);
+    unofficial_op(0x44, Load, ZeroPage, DOP);
+    official_op(0x45, Load, ZeroPage, EOR);
+    official_op(0x46, Modify, ZeroPage, LSR_M);
+    unofficial_op(0x47, Modify, ZeroPage, SRE);
+    official_op(0x48, Load, Implied, PHA);
+    official_op(0x49, Load, Immediate, EOR);
+    official_op(0x4a, Load, Accumulator, LSR_A);
+    unofficial_op(0x4b, Load, Immediate, ASR);
+    official_op(0x4c, Jump, Absolute, JMP);
+    official_op(0x4d, Load, Absolute, EOR);
+    official_op(0x4e, Modify, Absolute, LSR_M);
+    unofficial_op(0x4f, Modify, Absolute, SRE);
+    official_op(0x50, Load, Relative, BVC);
+    official_op(0x51, Load, IndirectYRead, EOR);
+    unofficial_op(0x52, Load, Implied, KIL);
+    unofficial_op(0x53, Modify, IndirectYWrite, SRE);
+    unofficial_op(0x54, Load, ZeroPageX, DOP);
+    official_op(0x55, Load, ZeroPageX, EOR);
+    official_op(0x56, Modify, ZeroPageX, LSR_M);
+    unofficial_op(0x57, Modify, ZeroPageX, SRE);
+    official_op(0x58, Load, Implied, CLI);
+    official_op(0x59, Load, AbsoluteYRead, EOR);
+    unofficial_op(0x5a, Load, Implied, NOP);
+    unofficial_op(0x5b, Modify, AbsoluteYWrite, SRE);
+    unofficial_op(0x5c, Load, AbsoluteXRead, TOP);
+    official_op(0x5d, Load, AbsoluteXRead, EOR);
+    official_op(0x5e, Modify, AbsoluteXWrite, LSR_M);
+    unofficial_op(0x5f, Modify, AbsoluteXWrite, SRE);
+    official_op(0x60, Load, Implied, RTS);
+    official_op(0x61, Load, IndirectX, ADC);
+    unofficial_op(0x62, Load, Implied, KIL);
+    unofficial_op(0x63, Modify, IndirectX, RRA);
+    unofficial_op(0x64, Load, ZeroPage, DOP);
+    official_op(0x65, Load, ZeroPage, ADC);
+    official_op(0x66, Modify, ZeroPage, ROR_M);
+    unofficial_op(0x67, Modify, ZeroPage, RRA);
+    official_op(0x68, Load, Implied, PLA);
+    official_op(0x69, Load, Immediate, ADC);
+    official_op(0x6a, Load, Accumulator, ROR_A);
+    unofficial_op(0x6b, Load, Immediate, ARR);
+    official_op(0x6c, Jump, Indirect, JMP);
+    official_op(0x6d, Load, Absolute, ADC);
+    official_op(0x6e, Modify, Absolute, ROR_M);
+    unofficial_op(0x6f, Modify, Absolute, RRA);
+    official_op(0x70, Load, Relative, BVS);
+    official_op(0x71, Load, IndirectYRead, ADC);
+    unofficial_op(0x72, Load, Implied, KIL);
+    unofficial_op(0x73, Modify, IndirectYWrite, RRA);
+    unofficial_op(0x74, Load, ZeroPageX, DOP);
+    official_op(0x75, Load, ZeroPageX, ADC);
+    official_op(0x76, Modify, ZeroPageX, ROR_M);
+    unofficial_op(0x77, Modify, ZeroPageX, RRA);
+    official_op(0x78, Load, Implied, SEI);
+    official_op(0x79, Load, AbsoluteYRead, ADC);
+    unofficial_op(0x7a, Load, Implied, NOP);
+    unofficial_op(0x7b, Modify, AbsoluteYWrite, RRA);
+    unofficial_op(0x7c, Load, AbsoluteXRead, TOP);
+    official_op(0x7d, Load, AbsoluteXRead, ADC);
+    official_op(0x7e, Modify, AbsoluteXWrite, ROR_M);
+    unofficial_op(0x7f, Modify, AbsoluteXWrite, RRA);
+    unofficial_op(0x80, Load, Immediate, DOP);
+    official_op(0x81, Write, IndirectX, STA);
+    unofficial_op(0x82, Load, Immediate, DOP);
+    unofficial_op(0x83, Write, IndirectX, AAX);
+    official_op(0x84, Write, ZeroPage, STY);
+    official_op(0x85, Write, ZeroPage, STA);
+    official_op(0x86, Write, ZeroPage, STX);
+    unofficial_op(0x87, Write, ZeroPage, AAX);
+    official_op(0x88, Load, Implied, DEY);
+    unofficial_op(0x89, Load, Immediate, DOP);
+    official_op(0x8a, Load, Implied, TXA);
+    unofficial_op(0x8b, Load, Immediate, XAA);
+    official_op(0x8c, Write, Absolute, STY);
+    official_op(0x8d, Write, Absolute, STA);
+    official_op(0x8e, Write, Absolute, STX);
+    unofficial_op(0x8f, Write, Absolute, AAX);
+    official_op(0x90, Load, Relative, BCC);
+    official_op(0x91, Write, IndirectYWrite, STA);
+    unofficial_op(0x92, Load, Implied, KIL);
+    unofficial_op(0x93, Write, IndirectYWrite, AXA);
+    official_op(0x94, Write, ZeroPageX, STY);
+    official_op(0x95, Write, ZeroPageX, STA);
+    official_op(0x96, Write, ZeroPageY, STX);
+    unofficial_op(0x97, Write, ZeroPageY, AAX);
+    official_op(0x98, Load, Implied, TYA);
+    official_op(0x99, Write, AbsoluteYWrite, STA);
+    official_op(0x9a, Load, Implied, TXS);
+    unofficial_op(0x9b, Write, AbsoluteYWrite, XAS);
+    unofficial_op(0x9c, Write, AbsoluteXWrite, SYA);
+    official_op(0x9d, Write, AbsoluteXWrite, STA);
+    unofficial_op(0x9e, Write, AbsoluteYWrite, SXA);
+    unofficial_op(0x9f, Write, AbsoluteYWrite, AXA);
+    official_op(0xa0, Load, Immediate, LDY);
+    official_op(0xa1, Load, IndirectX, LDA);
+    official_op(0xa2, Load, Immediate, LDX);
+    unofficial_op(0xa3, Load, IndirectX, LAX);
+    official_op(0xa4, Load, ZeroPage, LDY);
+    official_op(0xa5, Load, ZeroPage, LDA);
+    official_op(0xa6, Load, ZeroPage, LDX);
+    unofficial_op(0xa7, Load, ZeroPage, LAX);
+    official_op(0xa8, Load, Implied, TAY);
+    official_op(0xa9, Load, Immediate, LDA);
+    official_op(0xaa, Load, Implied, TAX);
+    unofficial_op(0xab, Load, Immediate, ATX);
+    official_op(0xac, Load, Absolute, LDY);
+    official_op(0xad, Load, Absolute, LDA);
+    official_op(0xae, Load, Absolute, LDX);
+    unofficial_op(0xaf, Load, Absolute, LAX);
+    official_op(0xb0, Load, Relative, BCS);
+    official_op(0xb1, Load, IndirectYRead, LDA);
+    unofficial_op(0xb2, Load, Implied, KIL);
+    unofficial_op(0xb3, Load, IndirectYRead, LAX);
+    official_op(0xb4, Load, ZeroPageX, LDY);
+    official_op(0xb5, Load, ZeroPageX, LDA);
+    official_op(0xb6, Load, ZeroPageY, LDX);
+    unofficial_op(0xb7, Load, ZeroPageY, LAX);
+    official_op(0xb8, Load, Implied, CLV);
+    official_op(0xb9, Load, AbsoluteYRead, LDA);
+    official_op(0xba, Load, Implied, TSX);
+    unofficial_op(0xbb, Load, AbsoluteYRead, LAR);
+    official_op(0xbc, Load, AbsoluteXRead, LDY);
+    official_op(0xbd, Load, AbsoluteXRead, LDA);
+    official_op(0xbe, Load, AbsoluteYRead, LDX);
+    unofficial_op(0xbf, Load, AbsoluteYRead, LAX);
+    official_op(0xc0, Load, Immediate, CPY);
+    official_op(0xc1, Load, IndirectX, CMP);
+    unofficial_op(0xc2, Load, Immediate, DOP);
+    unofficial_op(0xc3, Modify, IndirectX, DCP);
+    official_op(0xc4, Load, ZeroPage, CPY);
+    official_op(0xc5, Load, ZeroPage, CMP);
+    official_op(0xc6, Modify, ZeroPage, DEC);
+    unofficial_op(0xc7, Modify, ZeroPage, DCP);
+    official_op(0xc8, Load, Implied, INY);
+    official_op(0xc9, Load, Immediate, CMP);
+    official_op(0xca, Load, Implied, DEX);
+    unofficial_op(0xcb, Load, Immediate, AXS);
+    official_op(0xcc, Load, Absolute, CPY);
+    official_op(0xcd, Load, Absolute, CMP);
+    official_op(0xce, Modify, Absolute, DEC);
+    unofficial_op(0xcf, Modify, Absolute, DCP);
+    official_op(0xd0, Load, Relative, BNE);
+    official_op(0xd1, Load, IndirectYRead, CMP);
+    unofficial_op(0xd2, Load, Implied, KIL);
+    unofficial_op(0xd3, Modify, IndirectYWrite, DCP);
+    unofficial_op(0xd4, Load, ZeroPageX, DOP);
+    official_op(0xd5, Load, ZeroPageX, CMP);
+    official_op(0xd6, Modify, ZeroPageX, DEC);
+    unofficial_op(0xd7, Modify, ZeroPageX, DCP);
+    official_op(0xd8, Load, Implied, CLD);
+    official_op(0xd9, Load, AbsoluteYRead, CMP);
+    unofficial_op(0xda, Load, Implied, NOP);
+    unofficial_op(0xdb, Modify, AbsoluteYWrite, DCP);
+    unofficial_op(0xdc, Load, AbsoluteXRead, TOP);
+    official_op(0xdd, Load, AbsoluteXRead, CMP);
+    official_op(0xde, Modify, AbsoluteXWrite, DEC);
+    unofficial_op(0xdf, Modify, AbsoluteXWrite, DCP);
+    official_op(0xe0, Load, Immediate, CPX);
+    official_op(0xe1, Load, IndirectX, SBC);
+    unofficial_op(0xe2, Load, Immediate, DOP);
+    unofficial_op(0xe3, Modify, IndirectX, ISB);
+    official_op(0xe4, Load, ZeroPage, CPX);
+    official_op(0xe5, Load, ZeroPage, SBC);
+    official_op(0xe6, Modify, ZeroPage, INC);
+    unofficial_op(0xe7, Modify, ZeroPage, ISB);
+    official_op(0xe8, Load, Implied, INX);
+    official_op(0xe9, Load, Immediate, SBC);
+    official_op(0xea, Load, Implied, NOP);
+    unofficial_op(0xeb, Load, Immediate, USBC);
+    official_op(0xec, Load, Absolute, CPX);
+    official_op(0xed, Load, Absolute, SBC);
+    official_op(0xee, Modify, Absolute, INC);
+    unofficial_op(0xef, Modify, Absolute, ISB);
+    official_op(0xf0, Load, Relative, BEQ);
+    official_op(0xf1, Load, IndirectYRead, SBC);
+    unofficial_op(0xf2, Load, Implied, KIL);
+    unofficial_op(0xf3, Modify, IndirectYWrite, ISB);
+    unofficial_op(0xf4, Load, ZeroPageX, DOP);
+    official_op(0xf5, Load, ZeroPageX, SBC);
+    official_op(0xf6, Modify, ZeroPageX, INC);
+    unofficial_op(0xf7, Modify, ZeroPageX, ISB);
+    official_op(0xf8, Load, Implied, SED);
+    official_op(0xf9, Load, AbsoluteYRead, SBC);
+    unofficial_op(0xfa, Load, Implied, NOP);
+    unofficial_op(0xfb, Modify, AbsoluteYWrite, ISB);
+    unofficial_op(0xfc, Load, AbsoluteXRead, TOP);
+    official_op(0xfd, Load, AbsoluteXRead, SBC);
+    official_op(0xfe, Modify, AbsoluteXWrite, INC);
+    unofficial_op(0xff, Modify, AbsoluteXWrite, ISB);
+  }
+#undef unofficial_op
+#undef official_op
+}
+
+}
+
+#endif //MOS6502_INSTRUCTION_ICC_

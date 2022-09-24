@@ -1,0 +1,31 @@
+#pragma once
+#ifndef MEMORY_ICC_
+#define MEMORY_ICC_
+
+#include "mos6502.hpp"
+
+namespace sen {
+
+auto MOS6502::opcode() -> uint8_t { return read(PC++); }
+auto MOS6502::operand() -> uint8_t { return read(PC++); }
+
+// zero page
+auto MOS6502::load(uint8_t addr) -> uint8_t { return read(addr); }
+auto MOS6502::store(uint8_t addr, uint8_t data) -> void { write(addr, data); }
+
+// stack page
+auto MOS6502::pull() -> uint8_t { return read(0x100 | ++S); }
+auto MOS6502::push(uint8_t data) -> void { write(0x100 | S--, data); }
+
+// dummy read
+auto MOS6502::idleRead() -> void { read(PC); }
+auto MOS6502::idleZeroPage(uint8_t addr) -> void { read(addr); }
+auto MOS6502::idleStackPointer() -> void { read(0x100 | S); }
+auto MOS6502::idlePageCrossed(uint16_t x, uint16_t y, bool isWrite) -> void {
+  if (!isWrite && x >> 8 == y >> 8) return;
+  read((x & 0xff00) | (y & 0x00ff));
+}
+
+}
+
+#endif //MEMORY_ICC_

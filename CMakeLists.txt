@@ -72,10 +72,12 @@ else()
 endif()
 
 add_executable(SimpleNES ${SOURCES})
-target_link_libraries(SimpleNES ${SFML_LIBRARIES} ${SFML_DEPENDENCIES})
 
 set_property(TARGET SimpleNES PROPERTY CXX_STANDARD 11)
 set_property(TARGET SimpleNES PROPERTY CXX_STANDARD_REQUIRED ON)
 
-target_link_libraries(SimpleNES)
 define_file_basename_for_sources(SimpleNES)
+
+target_include_directories(SimpleNES PRIVATE third-party/utility)
+target_include_directories(SimpleNES PRIVATE third-party/mos6502)
+target_sources(SimpleNES PRIVATE third-party/mos6502/mos6502.cpp)
