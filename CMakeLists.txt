@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 project(SimpleNES)
+include(FetchContent)
 
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "Release" CACHE STRING
@@ -21,6 +22,7 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/Modules/;${CMAKE_MODULE_PATH};$
 file(GLOB SOURCES
     "${PROJECT_SOURCE_DIR}/main.cpp"
     "${PROJECT_SOURCE_DIR}/src/*.cpp"
+    "${PROJECT_SOURCE_DIR}/src/APU/*.cpp"
 )
 
 # Copy keybindings.conf
@@ -73,12 +75,25 @@ endif()
 
 # generate compile commands for clangd
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+=======
+# Download portaudio
+FetchContent_Declare(
+    portaudio
+    GIT_REPOSITORY https://github.com/PortAudio/portaudio.git
+    GIT_TAG a2efb9ac588a2999567e48f4fbfe29e0bd90b35c
+    SOURCE_DIR ${CMAKE_BINARY_DIR}/portaudio
+)
+
+
+FetchContent_MakeAvailable(portaudio)
 
 add_executable(SimpleNES ${SOURCES})
-target_link_libraries(SimpleNES ${SFML_LIBRARIES} ${SFML_DEPENDENCIES})
+target_link_libraries(SimpleNES PRIVATE ${SFML_LIBRARIES} ${SFML_DEPENDENCIES} PortAudio)
 
 set_property(TARGET SimpleNES PROPERTY CXX_STANDARD 11)
 set_property(TARGET SimpleNES PROPERTY CXX_STANDARD_REQUIRED ON)
 
 target_link_libraries(SimpleNES)
 define_file_basename_for_sources(SimpleNES)
+
+install(TARGETS SimpleNES RUNTIME DESTINATION bin)
