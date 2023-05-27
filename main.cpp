@@ -98,9 +98,7 @@ int main(int argc, char** argv)
     if (path.empty())
     {
         std::cout << "Argument required: ROM path" << std::endl;
-        path = "Super Mario Bros. 3 (USA).nes";
-        path = "NEStress.NES";
-        // return 1;
+        return 1;
     }
 
     sn::parseControllerConf("keybindings.conf", p1, p2);
