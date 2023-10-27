@@ -1,26 +1,21 @@
-#include "MapperNROM.h"
+#include "Mapper474.h"
 #include "Log.h"
 
 namespace sn
 {
-    MapperNROM::MapperNROM(Cartridge &cart) :
-        Mapper(cart, Mapper::NROM)
+    Mapper474::Mapper474(Cartridge &cart) :
+        Mapper(cart, Mapper::NROM474)
     {
-        if (cart.getROM().size() == 0x4000) //1 bank
+        if (cart.getROM().size() == 0xC000) // 3 banks
         {
-            m_oneBank = true;
-        }
-        else //2 or 3 banks
-        {
-            m_oneBank = false;
-        }
-	  if (cart.getROM().size() == 0xC000) // 3 banks
-        {
-            m_flavor368 = true;
+            // this is the only correct ROM size for this mapper
+            m_flavor474 = true;
         }
         else
         {
-            m_flavor368 = false;
+            // fail
+            m_flavor474 = false;
+            LOG(Info) << "Incorrectly configured mapper" << std::endl;
         }
 
         if (cart.getVROM().size() == 0)
@@ -30,17 +25,22 @@ namespace sn
             LOG(Info) << "Uses character RAM" << std::endl;
         }
         else
+        {
             m_usesCharacterRAM = false;
+        }
     }
 
     Byte MapperNROM::readPRG(Address addr)
     {
-        if (m_flavor368)
+        if (m_flavor474)
+        {
             return m_cartridge.getROM()[addr - 0x4000];
-        else if (!m_oneBank)
-            return m_cartridge.getROM()[addr - 0x8000];
-        else //mirrored
-            return m_cartridge.getROM()[(addr - 0x8000) & 0x3fff];
+        }
+        else
+        {
+            LOG(InfoVerbose) << "ROM memory read attempt while mapper is not correctly configured." << std::endl;
+            return 0; // fail
+        }
     }
 
     void MapperNROM::writePRG(Address addr, Byte value)
