@@ -84,7 +84,7 @@ namespace sn
                     LOG(InfoVerbose) << "No write callback registered for I/O register at: " << std::hex << +addr << std::endl;
             }
             else
-                LOG(InfoVerbose) << "Write access attmept at: " << std::hex << +addr << std::endl;
+                LOG(InfoVerbose) << "Write access attempt at: " << std::hex << +addr << std::endl;
         }
         else if (addr < 0x6000)
         {
