@@ -1,7 +1,7 @@
 #ifndef MEMORY_H
 #define MEMORY_H
 #include <vector>
-#include <map>
+#include <unordered_map>
 #include <functional>
 #include <memory>
 #include "Cartridge.h"
@@ -23,6 +23,13 @@ namespace sn
         JOY1 = 0x4016,
         JOY2 = 0x4017,
     };
+    struct IORegistersHasher
+    {
+        std::size_t operator()(sn::IORegisters const & reg) const noexcept
+        {
+            return std::hash<std::uint32_t>{}(reg);
+        }
+    };
 
     class MainBus
     {
@@ -39,8 +46,8 @@ namespace sn
             std::vector<Byte> m_extRAM;
             Mapper* m_mapper;
 
-            std::map<IORegisters, std::function<void(Byte)>> m_writeCallbacks;
-            std::map<IORegisters, std::function<Byte(void)>> m_readCallbacks;;
+            std::unordered_map<IORegisters, std::function<void(Byte)>, IORegistersHasher> m_writeCallbacks;
+            std::unordered_map<IORegisters, std::function<Byte(void)>, IORegistersHasher> m_readCallbacks;;
     };
 };
 

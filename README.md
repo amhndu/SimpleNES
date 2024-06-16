@@ -4,7 +4,9 @@ SimpleNES
 
 An NES emulator written in C++ for nothing but fun.
 
-Roughly 40-50% of games should work (ie. games that use either no mapper or mappers 1, 2 or 3).
+Roughly 40-50% of games should work (ie. games that use either no mapper or mappers 1, 2, 3 and experimental support for 4, 7, 66 and 11).
+
+
 
 
 Examples of games that have been tested to run (but NOT limited to):
@@ -25,9 +27,11 @@ Examples of games that have been tested to run (but NOT limited to):
 * Pacman
 * Tennis
 * Excitebike
-
-[Here's](https://gist.github.com/amhndu/5b6da39ee06959d93dc706a0b165fb80) a big list of games that match the supported specs from SimpleNES.
-(Unlike the list above, these aren't tested. Some may or may not work)
+* Nightmare Elm Street
+* Cabal
+* Battletoads
+* Arch Rivals
+* etc...
 
 
 Screenshots
@@ -38,21 +42,13 @@ Screenshots
 ![Screenshot 4](http://amhndu.github.io/screenshots/nes4.png)
 ![Screenshot 5](http://amhndu.github.io/screenshots/nes5.png)
 ![Screenshot 6](http://amhndu.github.io/screenshots/nes6.png)
+![Screenshot 6](http://amhndu.github.io/screenshots/nes7.png)
+![Screenshot 6](http://amhndu.github.io/screenshots/nes8.png)
 
 Videos
 ------------
 [YouTube Playlist](https://www.youtube.com/playlist?list=PLiULt7qySWt2VbHTkvIt9kYPMPcWt01qN)
 
-
-Download
------------
-Executables:
-
-[Windows 32-bit](https://www.dropbox.com/s/1gqhtbmvzo1ozsz/SimpleNES-win32.rar?dl=0)
-[Linux 64-bit](https://www.dropbox.com/s/7eswcdektlkdz65/SimpleNES-linux64?dl=0)
-
-
-ROMs available [here](http://www.emuparadise.me/Nintendo_Entertainment_System_ROMs/13) for testing.
 
 Compiling
 -----------
@@ -125,4 +121,5 @@ Default keybindings:
  Down          | Down
  Left          | Left
  Right         | Right
+
 

@@ -1,4 +1,5 @@
 #include "Emulator.h"
+#include "CPUOpcodes.h"
 #include "Log.h"
 
 #include <thread>
@@ -9,7 +10,7 @@ namespace sn
     Emulator::Emulator() :
         m_cpu(m_bus),
         m_ppu(m_pictureBus, m_emulatorScreen),
-        m_screenScale(2.f),
+        m_screenScale(3.f),
         m_cycleTimer(),
         m_cpuCycleDuration(std::chrono::nanoseconds(559))
     {
@@ -36,7 +37,7 @@ namespace sn
             LOG(Error) << "Critical error: Failed to set I/O callbacks" << std::endl;
         }
 
-        m_ppu.setInterruptCallback([&](){ m_cpu.interrupt(CPU::NMI); });
+        m_ppu.setInterruptCallback([&](){ m_cpu.interrupt(InterruptType::NMI); });
     }
 
     void Emulator::run(std::string rom_path)
@@ -46,6 +47,7 @@ namespace sn
 
         m_mapper = Mapper::createMapper(static_cast<Mapper::Type>(m_cartridge.getMapper()),
                                         m_cartridge,
+                                        [&](){ m_cpu.interrupt(InterruptType::IRQ); },
                                         [&](){ m_pictureBus.updateMirroring(); });
         if (!m_mapper)
         {
@@ -61,7 +63,7 @@ namespace sn
         m_ppu.reset();
 
         m_window.create(sf::VideoMode(NESVideoWidth * m_screenScale, NESVideoHeight * m_screenScale),
-                        "SimpleNES", sf::Style::Titlebar | sf::Style::Close);
+                        "SimpleNES", sf::Style::Titlebar | sf::Style::Close | sf::Style::Resize);
         m_window.setVerticalSyncEnabled(true);
         m_emulatorScreen.create(NESVideoWidth, NESVideoHeight, m_screenScale, sf::Color::White);
 
@@ -91,7 +93,14 @@ namespace sn
                 {
                     pause = !pause;
                     if (!pause)
+                    {
                         m_cycleTimer = std::chrono::high_resolution_clock::now();
+                        LOG(Info) << "Paused." << std::endl;
+                    }
+                    else
+                    {
+                        LOG(Info) << "Unpaused." << std::endl;
+                    }
                 }
                 else if (pause && event.type == sf::Event::KeyReleased && event.key.code == sf::Keyboard::F3)
                 {
@@ -112,10 +121,6 @@ namespace sn
                 else if (focus && event.type == sf::Event::KeyReleased && event.key.code == sf::Keyboard::F5)
                 {
                     Log::get().setLevel(InfoVerbose);
-                }
-                else if (focus && event.type == sf::Event::KeyReleased && event.key.code == sf::Keyboard::F6)
-                {
-                    Log::get().setLevel(CpuTrace);
                 }
             }
 
@@ -151,7 +156,14 @@ namespace sn
     {
         m_cpu.skipDMACycles();
         auto page_ptr = m_bus.getPagePtr(page);
-        m_ppu.doDMA(page_ptr);
+        if (page_ptr != nullptr)
+        {
+            m_ppu.doDMA(page_ptr);
+        }
+        else
+        {
+            LOG(Error) << "Can't get pageptr for DMA" << std::endl;
+        }
     }
 
     void Emulator::setVideoHeight(int height)

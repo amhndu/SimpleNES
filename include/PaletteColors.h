@@ -1,7 +1,7 @@
-#include <cstdint>
+#include <SFML/Config.hpp>
 
 //Colors in RGBA (8 bit colors)
-const std::uint32_t colors[] = {
+const sf::Uint32 colors[] = {
             0x666666ff, 0x002a88ff, 0x1412a7ff, 0x3b00a4ff, 0x5c007eff, 0x6e0040ff, 0x6c0600ff, 0x561d00ff,
             0x333500ff, 0x0b4800ff, 0x005200ff, 0x004f08ff, 0x00404dff, 0x000000ff, 0x000000ff, 0x000000ff,
             0xadadadff, 0x155fd9ff, 0x4240ffff, 0x7527feff, 0xa01accff, 0xb71e7bff, 0xb53120ff, 0x994e00ff,

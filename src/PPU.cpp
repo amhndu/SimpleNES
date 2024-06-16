@@ -12,7 +12,7 @@ namespace sn
 
     void PPU::reset()
     {
-        m_longSprites = m_generateInterrupt = m_greyscaleMode = m_vblank = false;
+        m_longSprites = m_generateInterrupt = m_greyscaleMode = m_vblank = m_spriteOverflow = false;
         m_showBackground = m_showSprites = m_evenFrame = m_firstWrite = true;
         m_bgPage = m_sprPage = Low;
         m_dataAddress = m_cycle = m_scanline = m_spriteDataAddress = m_fineXScroll = m_tempAddress = 0;
@@ -54,6 +54,11 @@ namespace sn
                 {
                     m_pipelineState = Render;
                     m_cycle = m_scanline = 0;
+                }
+
+                // add IRQ support for MMC3
+                if(m_cycle==260 && m_showBackground && m_showSprites){
+                    m_bus.scanlineIRQ();
                 }
                 break;
             case Render:
@@ -103,7 +108,9 @@ namespace sn
                                 m_dataAddress ^= 0x0400;           // switch horizontal nametable
                             }
                             else
+                            {
                                 m_dataAddress += 1;                // increment coarse X
+                            }
                         }
                     }
 
@@ -177,7 +184,6 @@ namespace sn
                         paletteAddr = 0;
                     //else bgColor
 
-//                     m_screen.setPixel(x, y, sf::Color(colors[m_bus.readPalette(paletteAddr)]));
                     m_pictureBuffer[x][y] = sf::Color(colors[m_bus.readPalette(paletteAddr)]);
                 }
                 else if (m_cycle == ScanlineVisibleDots + 1 && m_showBackground)
@@ -212,6 +218,11 @@ namespace sn
 //                 if (m_cycle > 257 && m_cycle < 320)
 //                     m_spriteDataAddress = 0;
 
+                // add IRQ support for MMC3
+                if(m_cycle==260 && m_showBackground && m_showSprites){
+                    m_bus.scanlineIRQ();
+                }
+
                 if (m_cycle >= ScanlineEndCycle)
                 {
                     //Find and index sprites that are on the next Scanline
@@ -222,7 +233,9 @@ namespace sn
 
                     int range = 8;
                     if (m_longSprites)
+                    {
                         range = 16;
+                    }
 
                     std::size_t j = 0;
                     for (std::size_t i = m_spriteDataAddress / 4; i < 64; ++i)
@@ -230,12 +243,13 @@ namespace sn
                         auto diff = (m_scanline - m_spriteMemory[i * 4]);
                         if (0 <= diff && diff < range)
                         {
-                            m_scanlineSprites.push_back(i);
-                            ++j;
                             if (j >= 8)
                             {
+                                m_spriteOverflow = true;
                                 break;
                             }
+                            m_scanlineSprites.push_back(i);
+                            ++j;
                         }
                     }
 
@@ -254,17 +268,13 @@ namespace sn
                     m_cycle = 0;
                     m_pipelineState = VerticalBlank;
 
-                    for (int x = 0; x < m_pictureBuffer.size(); ++x)
+                    for (std::size_t x = 0; x < m_pictureBuffer.size(); ++x)
                     {
-                        for (int y = 0; y < m_pictureBuffer[0].size(); ++y)
+                        for (std::size_t y = 0; y < m_pictureBuffer[0].size(); ++y)
                         {
                             m_screen.setPixel(x, y, m_pictureBuffer[x][y]);
                         }
                     }
-
-                    //Should technically be done at first dot of VBlank, but this is close enough
-//                     m_vblank = true;
-//                     if (m_generateInterrupt) m_vblankCallback();
 
                 }
 
@@ -287,7 +297,6 @@ namespace sn
                     m_pipelineState = PreRender;
                     m_scanline = 0;
                     m_evenFrame = !m_evenFrame;
-//                     m_vblank = false;
                 }
 
                 break;
@@ -313,7 +322,6 @@ namespace sn
         std::memcpy(m_spriteMemory.data() + m_spriteDataAddress, page_ptr, 256 - m_spriteDataAddress);
         if (m_spriteDataAddress)
             std::memcpy(m_spriteMemory.data(), page_ptr + (256 - m_spriteDataAddress), m_spriteDataAddress);
-        //std::memcpy(m_spriteMemory.data(), page_ptr, 256);
     }
 
     void PPU::control(Byte ctrl)
@@ -344,9 +352,12 @@ namespace sn
 
     Byte PPU::getStatus()
     {
-        Byte status = m_sprZeroHit << 6 |
+        Byte status = m_spriteOverflow << 5 |
+                      m_sprZeroHit << 6 |
                       m_vblank << 7;
         //m_dataAddress = 0;
+
+        // Reading status clears vblank!
         m_vblank = false;
         m_firstWrite = true;
         return status;

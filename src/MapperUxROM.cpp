@@ -27,17 +27,9 @@ namespace sn
             return *(m_lastBankPtr + (addr & 0x3fff));
     }
 
-    void MapperUxROM::writePRG(Address addr, Byte value)
+    void MapperUxROM::writePRG(Address, Byte value)
     {
         m_selectPRG = value;
-    }
-
-    const Byte* MapperUxROM::getPagePtr(Address addr)
-    {
-        if (addr < 0xc000)
-            return &m_cartridge.getROM()[((addr - 0x8000) & 0x3fff) | (m_selectPRG << 14)];
-        else
-            return m_lastBankPtr + (addr & 0x3fff);
     }
 
     Byte MapperUxROM::readCHR(Address addr)
