@@ -23,6 +23,7 @@ int main(int argc, char** argv)
     sn::Log::get().setLevel(sn::Info);
 
     std::string path;
+    std::string keybindingsPath = "keybindings.conf";
 
     //Default keybindings
     std::vector<sf::Keyboard::Key> p1 {sf::Keyboard::J, sf::Keyboard::K, sf::Keyboard::RShift, sf::Keyboard::Return,
@@ -49,6 +50,8 @@ int main(int argc, char** argv)
                       << "-H, --height           Set the height of the emulation screen (width is\n"
                       << "                       set automatically to fit the aspect ratio)\n"
                       << "                       This option is mutually exclusive to --width\n"
+                      << "-C, --conf             Set the keybindings file's path. The default \n"
+                      << "                       keybindings file is keybindings.conf.\n"
                       << std::endl;
             return 0;
         }
@@ -89,6 +92,13 @@ int main(int argc, char** argv)
                 LOG(sn::Error) << "Setting height from argument failed" << std::endl;
             ++i;
         }
+        else if (std::strcmp(argv[i], "-C") == 0 || std::strcmp(argv[i], "--conf") == 0) {
+            if (i + 1 < argc)
+                keybindingsPath = argv[i + 1];
+            else
+                LOG(sn::Error) << "Setting keybindings.conf's path from argument failed" << std::endl;
+            ++i;
+        }
         else if (argv[i][0] != '-')
             path = argv[i];
         else
@@ -101,7 +111,7 @@ int main(int argc, char** argv)
         return 1;
     }
 
-    sn::parseControllerConf("keybindings.conf", p1, p2);
+    sn::parseControllerConf(std::move(keybindingsPath), p1, p2);
     emulator.setKeys(p1, p2);
     emulator.run(path);
     return 0;
