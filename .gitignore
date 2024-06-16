@@ -5,3 +5,4 @@
 .kdev*
 build/
 .vscode/*
+.cache/
