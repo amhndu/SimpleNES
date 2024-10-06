@@ -30,6 +30,7 @@ namespace sn
                 AxROM = 7,
                 ColorDreams = 11,
                 GxROM = 66,
+                NROM474 = 474,
             };
 
             Mapper(Cartridge& cart, Type t) : m_cartridge(cart), m_type(t) {};
@@ -45,6 +46,11 @@ namespace sn
             bool inline hasExtendedRAM()
             {
                 return m_cartridge.hasExtendedRAM();
+            }
+
+            Type inline getType()
+            {
+                return m_type;
             }
 
             virtual void scanlineIRQ(){}

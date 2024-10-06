@@ -41,13 +41,34 @@ namespace sn
         }
         else if (addr < 0x6000)
         {
-            LOG(InfoVerbose) << "Expansion ROM read attempted. This is currently unsupported" << std::endl;
+            if (m_mapper->getType() == NROM474)
+            {
+                if (m_mapper->hasExtendedRAM())
+                {
+                    return m_extRAM[addr - 0x4000];
+                }
+                else
+                {
+                    return m_mapper->readPRG(addr);                    
+                }
+            }
+            else
+            {
+                LOG(InfoVerbose) << "Expansion ROM read attempted. This is currently unsupported" << std::endl;
+            }  
         }
         else if (addr < 0x8000)
         {
-            if (m_mapper->hasExtendedRAM())
+            if (m_mapper->getType() == NROM474)
             {
-                return m_extRAM[addr - 0x6000];
+                return m_mapper->readPRG(addr);
+            }
+            else
+            {
+                if (m_mapper->hasExtendedRAM())
+                {
+                    return m_extRAM[addr - 0x6000];
+                }
             }
         }
         else
@@ -88,13 +109,34 @@ namespace sn
         }
         else if (addr < 0x6000)
         {
-            LOG(InfoVerbose) << "Expansion ROM access attempted. This is currently unsupported" << std::endl;
+            if (m_mapper->getType() == NROM474)
+            {
+                if (m_mapper->hasExtendedRAM())
+                {
+                    m_extRAM[addr - 0x4000] = value;
+                }
+                else
+                {
+                    m_mapper->writePRG(addr, value);
+                }
+            }
+            else
+            {
+                LOG(InfoVerbose) << "Expansion ROM access attempted. This is currently unsupported" << std::endl;
+            }  
         }
         else if (addr < 0x8000)
         {
-            if (m_mapper->hasExtendedRAM())
+            if (m_mapper->getType() == NROM474)
             {
-                m_extRAM[addr - 0x6000] = value;
+                m_mapper->writePRG(addr, value);
+            }
+            else
+            {
+                if (m_mapper->hasExtendedRAM())
+                {
+                    m_extRAM[addr - 0x6000] = value;
+                }
             }
         }
         else
@@ -116,13 +158,30 @@ namespace sn
         }
         else if (addr < 0x6000)
         {
-            LOG(Error) << "Expansion ROM access attempted, which is unsupported" << std::endl;
+            if (m_mapper->getType() == Mapper::Type::NROM474)
+            {
+                if (m_mapper->hasExtendedRAM())
+                {
+                    return &m_extRAM[addr - 0x4000];
+                }
+            }
+            else
+            {
+                LOG(Error) << "Expansion ROM access attempted, which is unsupported" << std::endl;
+            }
         }
         else if (addr < 0x8000)
         {
-            if (m_mapper->hasExtendedRAM())
+            if (m_mapper->getType() == Mapper::Type::NROM474)
             {
-                return &m_extRAM[addr - 0x6000];
+                LOG(Error) << "Unexpected DMA request: " << std::hex << "0x" << +addr << " (" << +page << ")" << std::dec << std::endl;
+            }
+            else
+            {
+                if (m_mapper->hasExtendedRAM())
+                {
+                    return &m_extRAM[addr - 0x6000];
+                }
             }
         }
         else
