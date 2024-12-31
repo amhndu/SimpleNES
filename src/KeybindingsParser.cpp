@@ -144,7 +144,7 @@ namespace sn
 
         std::ifstream file(filepath);
         std::string line;
-        enum { Player1, Player2, None } state;
+        enum { Player1, Player2, None } state = None;
         unsigned int line_no = 0;
         while (std::getline(file, line))
         {
