@@ -4,7 +4,7 @@ SimpleNES
 
 An NES emulator written in C++ for nothing but fun.
 
-Roughly 40-50% of games should work (ie. games that use either no mapper or mappers 1, 2, 3 and experimental support for 4, 7, 66 and 11).
+Roughly 50-60% of games should work (ie. games that use either no mapper or mappers 1, 2, 3 and experimental support for 4, 7, 66 and 11).
 
 
 
@@ -54,9 +54,9 @@ Compiling
 -----------
 
 You need:
-* SFML 2.0+ development headers and library
+* [SFML 2.0+](#installing-sfml) development headers and library
 * C++11 compliant compiler
-* CMake build system
+* [CMake](https://cgold.readthedocs.io/en/latest/first-step/installation.html) build system
 
 Compiling is straight forward with cmake, just run cmake on the project directory with CMAKE_BUILD_TYPE=Release
 and you'll get Makefile or equivalent for your platform, with which you can compile the emulator
@@ -67,8 +67,23 @@ $ git clone https://github.com/amhndu/SimpleNES
 $ cd SimpleNES
 $ mkdir build/ && cd build/
 $ cmake -DCMAKE_BUILD_TYPE=Release ..
-$ make -j4    #Replace 4 with however many cores you have to spare
+$ make -j4    # Replace 4 with however many cores you have to spare
 ```
+See also: [compile.yaml](https://github.com/amhndu/SimpleNES/blob/master/.github/workflows/compile.yml) for platform specific instructions
+
+Download SimpleNES
+-----------------
+1. Download an executable based on your platform from the latest run on [Github Actions](https://github.com/amhndu/SimpleNES/actions)
+2. Install [sfml](#installing-sfml)
+
+
+Installing SFML
+-----------------
+* Windows: `vcpkg install sfml`. Alterntaively, download from [SFML](https://www.sfml-dev.org/download/sfml/2.6.2/)
+* Debian/Ubuntu/derivates: `sudo apt install -y libsfml-dev`
+* Arch/etc: `sudo pacman -S sfml`
+* MacOS: `brew install sfml`
+
 
 Running
 -----------------
