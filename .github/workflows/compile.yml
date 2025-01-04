@@ -1,4 +1,4 @@
-name: SFML_CI
+name: CI
 
 on:
   push:
