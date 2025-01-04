@@ -12,7 +12,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
       with:
-        fetch-depth: 5
+        fetch-depth: 1
 
     - name: Install dependencies
       run: |
@@ -27,7 +27,7 @@ jobs:
     - uses: actions/upload-artifact@v4
       with:
         name: SimpleNES-linux
-        path: SimpleNES
+        path: build/SimpleNES
 
 
   build_macos:
@@ -35,7 +35,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
       with:
-        fetch-depth: 5
+        fetch-depth: 1
 
     - name: Install dependencies
       run: |
@@ -50,14 +50,14 @@ jobs:
     - uses: actions/upload-artifact@v4
       with:
         name: SimpleNES-macos
-        path: SimpleNES
+        path: build/SimpleNES
         
   build_windows:
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v2
       with:
-        fetch-depth: 5
+        fetch-depth: 1
 
     - name: Install dependencies
       run: |
@@ -72,4 +72,4 @@ jobs:
     - uses: actions/upload-artifact@v4
       with:
         name: SimpleNES-win.exe
-        path: SimpleNES.exe
+        path: build/SimpleNES.exe
