@@ -12,6 +12,9 @@ namespace sn
 
     Byte PictureBus::read(Address addr)
     {
+        // PictureBus is limited to 0x3fff
+        addr = addr & 0x3fff;
+
         if (addr < 0x2000)
         {
             return m_mapper->readCHR(addr);
@@ -56,6 +59,9 @@ namespace sn
 
     void PictureBus::write(Address addr, Byte value)
     {
+        // PictureBus is limited to 0x3fff
+        addr = addr & 0x3fff;
+
         if (addr < 0x2000)
         {
             m_mapper->writeCHR(addr, value);
