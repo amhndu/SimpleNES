@@ -1,0 +1,24 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build_linux:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 1
+
+    - name: Install dependencies
+      run: |
+        sudo apt update
+        sudo apt install -y libsfml-dev
+        
+    - name: Build
+      run: |
+        mkdir build/ && cd build/
+        cmake -DCMAKE_BUILD_TYPE=Debug ..
+        make -j4
