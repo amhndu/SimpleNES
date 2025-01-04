@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.10)
 project(SimpleNES)
 
 if(NOT CMAKE_BUILD_TYPE)
@@ -70,6 +70,9 @@ else()
         message("\nSFML directory not found. Set SFML_ROOT to SFML's top-level path (containing \"include\" and \"lib\" directories).")
         message("Make sure the SFML libraries with the same configuration (Release/Debug, Static/Dynamic) exist.\n")
 endif()
+
+# generate compile commands for clangd
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_executable(SimpleNES ${SOURCES})
 target_link_libraries(SimpleNES ${SFML_LIBRARIES} ${SFML_DEPENDENCIES})

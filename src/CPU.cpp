@@ -77,9 +77,8 @@ namespace sn
                 break;
         }
 
-        // Interrupt sequence takes 7, but one cycle was actually spent on this.
-        // So skip 6
-        m_skipCycles += 6;
+        // Interrupt sequence takes 7
+        m_skipCycles += 7;
     }
 
     void CPU::pushStack(Byte value)
@@ -99,11 +98,11 @@ namespace sn
         f_N = value & 0x80;
     }
 
-    void CPU::setPageCrossed(Address a, Address b, int inc)
+    void CPU::skipPageCrossCycle(Address a, Address b)
     {
         //Page is determined by the high byte
         if ((a & 0xff00) != (b & 0xff00))
-            m_skipCycles += inc;
+            m_skipCycles += 1;
     }
 
     void CPU::skipDMACycles()
@@ -349,9 +348,11 @@ namespace sn
             if (branch)
             {
                 int8_t offset = m_bus.read(r_PC++);
+                // skip 1 cycle since branch is taken
                 ++m_skipCycles;
                 auto newPC = static_cast<Address>(r_PC + offset);
-                setPageCrossed(r_PC, newPC, 2);
+                // skip 1 additional cycle if page is crossed
+                skipPageCrossCycle(r_PC, newPC);
                 r_PC = newPC;
             }
             else
@@ -392,7 +393,7 @@ namespace sn
                         Byte zero_addr = m_bus.read(r_PC++);
                         location = m_bus.read(zero_addr & 0xff) | m_bus.read((zero_addr + 1) & 0xff) << 8;
                         if (op != STA)
-                            setPageCrossed(location, location + r_Y);
+                            skipPageCrossCycle(location, location + r_Y);
                         location += r_Y;
                     }
                     break;
@@ -404,14 +405,14 @@ namespace sn
                     location = readAddress(r_PC);
                     r_PC += 2;
                     if (op != STA)
-                        setPageCrossed(location, location + r_Y);
+                        skipPageCrossCycle(location, location + r_Y);
                     location += r_Y;
                     break;
                 case AbsoluteX:
                     location = readAddress(r_PC);
                     r_PC += 2;
                     if (op != STA)
-                        setPageCrossed(location, location + r_X);
+                        skipPageCrossCycle(location, location + r_X);
                     location += r_X;
                     break;
                 default:
@@ -524,7 +525,7 @@ namespace sn
                             index = r_Y;
                         else
                             index = r_X;
-                        setPageCrossed(location, location + index);
+                        skipPageCrossCycle(location, location + index);
                         location += index;
                     }
                     break;
@@ -630,7 +631,7 @@ namespace sn
                 case AbsoluteIndexed:
                     location = readAddress(r_PC);
                     r_PC += 2;
-                    setPageCrossed(location, location + r_X);
+                    skipPageCrossCycle(location, location + r_X);
                     location += r_X;
                     break;
                 default:

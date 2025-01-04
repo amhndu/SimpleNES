@@ -38,8 +38,8 @@ namespace sn
             void pushStack(Byte value);
             Byte pullStack();
 
-            //If a and b are in different pages, increases the m_SkipCycles by inc
-            void setPageCrossed(Address a, Address b, int inc = 1);
+            //If a and b are in different pages, increases the m_SkipCycles by 1
+            void skipPageCrossCycle(Address a, Address b);
             void setZN(Byte value);
 
             int m_skipCycles;
