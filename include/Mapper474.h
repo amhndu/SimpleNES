@@ -1,21 +1,20 @@
-#ifndef MAPPERNROM_H
-#define MAPPERNROM_H
+#ifndef MAPPER474_H
+#define MAPPER474_H
 #include "Mapper.h"
 
 namespace sn
 {
-    class MapperNROM : public Mapper
+    class Mapper474 : public Mapper
     {
         public:
-            MapperNROM(Cartridge& cart);
+            Mapper474(Cartridge& cart);
             void writePRG (Address addr, Byte value);
             Byte readPRG (Address addr);
 
             Byte readCHR (Address addr);
             void writeCHR (Address addr, Byte value);
         private:
-            bool m_oneBank;
-            bool m_flavor368;
+            bool m_flavor474;
             bool m_usesCharacterRAM;
 
             std::vector<Byte> m_characterRAM;

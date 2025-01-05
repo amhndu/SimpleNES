@@ -8,6 +8,7 @@
 #include "MapperAxROM.h"
 #include "MapperColorDreams.h"
 #include "MapperGxROM.h"
+#include "Mapper474.h"
 
 namespace sn
 {
@@ -44,6 +45,12 @@ namespace sn
                 break;
             case GxROM:
                 ret.reset(new MapperGxROM(cart, mirroring_cb));
+                break;
+            case NROM474:
+                if (cart.getROM().size() == 0xC000)
+                {
+                    ret.reset(new Mapper474(cart));
+                }
                 break;
             default:
                 break;
