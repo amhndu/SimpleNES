@@ -137,7 +137,7 @@ namespace sn
                     m_ppu.step();
                     //CPU
                     m_cpu.step();
-                    m_apu.step();
+                    // m_apu.step();
 
                     m_elapsedTime -= m_cpuCycleDuration;
                 }

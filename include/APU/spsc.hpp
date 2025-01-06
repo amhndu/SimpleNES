@@ -1,4 +1,4 @@
-//  This is adapted from Boost.Lockfree to work without other boost dependencies
+//  Adapted from Boost.Lockfree to work without other boost dependencies
 //
 //  lock-free single-producer/single-consumer ringbuffer
 //  this algorithm is implemented in various projects (linux kernel)
@@ -13,8 +13,8 @@
 
 #include <algorithm>
 #include <atomic>
-#include <memory>
 #include <type_traits>
+#include <vector>
 
 namespace spsc {
 
@@ -22,10 +22,15 @@ using std::size_t;
 
 // RingBuffer assumes value is trivially destructible
 // Only works with single producer and single consumer threads.
+//
+// Thread safety:
+//   * During push, write-index is stored with memory order release *after* storage[write_index] is written to, ensuring the storage writes are visible in pop due to Release-Acquire ordering
+//   * write-index only moves forward *upto* the `read_index_`, so during a pop, it is safe to extract values from the storage, since push can only affect the empty area
+//   * read-index is stored using release ordering to ensure it is only updated after the full pop operation is finished
 template <typename T>
 class RingBuffer
 {
-    static_assert(std::is_trivially_destructible<T>::value);
+    static_assert(std::is_trivially_destructible<T>::value, "expecting a simple (trivially_destructible) type in the ring buffer");
 
 private:
     const size_t max_size;
@@ -96,14 +101,16 @@ public:
 
 
         if (avail == 0)
+        {
             return 0;
+        }
 
-        output_count = (std::min)(output_count, avail);
+        output_count = std::min(output_count, avail);
 
         size_t new_read_index = read_index + output_count;
 
         if (read_index + output_count > max_size) {
-            /* copy data in two sections */
+            // copy data in two sections
             const size_t count0 = max_size - read_index;
             const size_t count1 = output_count - count0;
 

@@ -25,6 +25,10 @@ file(GLOB SOURCES
     "${PROJECT_SOURCE_DIR}/src/APU/*.cpp"
 )
 
+file(GLOB VENDOR_SOURCES
+    "${PROJECT_SOURCE_DIR}/vendor/miniaudio/*.c"
+)
+
 # Copy keybindings.conf
 file(COPY keybindings.conf DESTINATION .)
 
@@ -47,7 +51,10 @@ function(define_file_basename_for_sources targetname)
 endfunction()
 
 # Specify include Directory
-include_directories("${PROJECT_SOURCE_DIR}/include")
+include_directories(
+    "${PROJECT_SOURCE_DIR}/include"
+    "${PROJECT_SOURCE_DIR}/vendor/miniaudio/"
+)
 
 # Set static if BUILD_STATIC is set
 if (BUILD_STATIC)
@@ -75,20 +82,9 @@ endif()
 
 # generate compile commands for clangd
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-=======
-# Download portaudio
-FetchContent_Declare(
-    portaudio
-    GIT_REPOSITORY https://github.com/PortAudio/portaudio.git
-    GIT_TAG a2efb9ac588a2999567e48f4fbfe29e0bd90b35c
-    SOURCE_DIR ${CMAKE_BINARY_DIR}/portaudio
-)
 
-
-FetchContent_MakeAvailable(portaudio)
-
-add_executable(SimpleNES ${SOURCES})
-target_link_libraries(SimpleNES PRIVATE ${SFML_LIBRARIES} ${SFML_DEPENDENCIES} PortAudio)
+add_executable(SimpleNES ${SOURCES} ${VENDOR_SOURCES})
+target_link_libraries(SimpleNES PRIVATE ${SFML_LIBRARIES} ${SFML_DEPENDENCIES})
 
 set_property(TARGET SimpleNES PROPERTY CXX_STANDARD 11)
 set_property(TARGET SimpleNES PROPERTY CXX_STANDARD_REQUIRED ON)
@@ -97,3 +93,12 @@ target_link_libraries(SimpleNES)
 define_file_basename_for_sources(SimpleNES)
 
 install(TARGETS SimpleNES RUNTIME DESTINATION bin)
+
+# Create test file
+file(GLOB TEST_SOURCES
+    "${PROJECT_SOURCE_DIR}/test/audio.cpp"
+    "${PROJECT_SOURCE_DIR}/src/*.cpp"
+    "${PROJECT_SOURCE_DIR}/src/APU/*.cpp"
+)
+add_executable(sn-test ${TEST_SOURCES} ${VENDOR_SOURCES})
+target_link_libraries(sn-test PRIVATE ${SFML_LIBRARIES} ${SFML_DEPENDENCIES})

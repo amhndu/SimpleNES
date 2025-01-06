@@ -12,7 +12,7 @@ namespace sn {
             bool gate();
         private:
             bool m_enabled = false;
-            Divider m_divider = {};
+            //Divider m_divider = {};
             bool m_negate = false;
             int m_shift = 0;
             bool m_reload = false;

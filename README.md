@@ -137,4 +137,3 @@ Default keybindings:
  Left          | Left
  Right         | Right
 
-
