@@ -5,6 +5,7 @@
 #include <fstream>
 #include <memory>
 #include <cstring>
+#include <chrono>
 
 #ifndef __FILENAME__
 #define __FILENAME__ __FILE__
@@ -12,7 +13,7 @@
 
 #define LOG(level) \
 if (level > sn::Log::get().getLevel()) ; \
-else sn::Log::get().getStream() << '[' << __FILENAME__ << ":" << std::dec << __LINE__ << "] "
+else sn::Log::get().getStream() << sn::log_timestamp << '[' << __FILENAME__ << ":" << std::dec << __LINE__ << "] "
 
 #define LOG_CPU \
 if (sn::CpuTrace != sn::Log::get().getLevel()) ; \
@@ -20,6 +21,12 @@ else sn::Log::get().getCpuTraceStream()
 
 namespace sn
 {
+    inline std::ostream& log_timestamp(std::ostream& out) {
+        auto timestamp_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+                std::chrono::system_clock::now().time_since_epoch()).count();
+        return out << '[' << timestamp_ms << ']';
+    }
+
     enum Level
     {
         None,
