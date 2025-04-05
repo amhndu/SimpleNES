@@ -54,7 +54,7 @@ Compiling
 -----------
 
 You need:
-* [SFML 2.0+](#installing-sfml) development headers and library
+* [SFML 2.*](#installing-sfml) development headers and library
 * C++11 compliant compiler
 * [CMake](https://cgold.readthedocs.io/en/latest/first-step/installation.html) build system
 
@@ -79,10 +79,10 @@ Download SimpleNES
 
 Installing SFML
 -----------------
-* Windows: `vcpkg install sfml`. Alterntaively, download from [SFML](https://www.sfml-dev.org/download/sfml/2.6.2/)
+* Windows: `vcpkg install sfml`. Alterntaively, download from [SFML](https://www.sfml-dev.org/download/sfml/2.6.2/). See: [compile.yaml](https://github.com/amhndu/SimpleNES/blob/master/.github/workflows/compile.yml) for instructions on pinning sfml to version 2
 * Debian/Ubuntu/derivates: `sudo apt install -y libsfml-dev`
-* Arch/etc: `sudo pacman -S sfml`
-* MacOS: `brew install sfml`
+* Arch/etc: `yay -S sfml2`
+* MacOS: `brew install sfml@2 && brew link sfml@2`
 
 
 Running
