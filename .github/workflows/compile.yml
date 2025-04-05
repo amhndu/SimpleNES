@@ -37,7 +37,8 @@ jobs:
 
     - name: Install dependencies
       run: |
-        brew install sfml
+        brew install sfml@2
+        brew link --force --overwrite sfml@2
         
     - name: Build
       run: |
@@ -59,15 +60,25 @@ jobs:
 
     - name: Install dependencies
       run: |
-        vcpkg install sfml
+        $manifest = @'
+        {
+            "dependencies": [ "sfml" ],
+            "builtin-baseline": "df6921c0b6cdf95269a4a3093e267b59e4bf0f5b",
+            "overrides": [
+                { "name": "sfml", "version": "2.6.2" }
+            ]
+        }
+        '@
+        Add-Content ./vcpkg.json $manifest
+        vcpkg install
         
     - name: Build
       run: |
         mkdir build/ && cd build/
         cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake ..
-        cmake --build .
+        cmake --build  --config Release
         
     - uses: actions/upload-artifact@v4
       with:
         name: SimpleNES-win.exe
-        path: build/SimpleNES.exe
+        path: build/Release/SimpleNES.exe
