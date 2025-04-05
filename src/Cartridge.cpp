@@ -9,6 +9,7 @@ namespace sn
     Cartridge::Cartridge() :
         m_nameTableMirroring(0),
         m_mapperNumber(0),
+        m_subMapperNumber(0),
         m_extendedRAM(false)
     {
 
@@ -23,9 +24,14 @@ namespace sn
         return m_CHR_ROM;
     }
 
-    Byte Cartridge::getMapper()
+    UShort Cartridge::getMapper()
     {
         return m_mapperNumber;
+    }
+
+    Byte Cartridge::getSubMapper()
+    {
+        return m_subMapperNumber;
     }
 
     Byte Cartridge::getNameTableMirroring()
@@ -53,6 +59,7 @@ namespace sn
 
         //Header
         header.resize(0x10);
+        bool ver2_0 = false;
         if (!romFile.read(reinterpret_cast<char*>(&header[0]), 0x10))
         {
             LOG(Error) << "Reading iNES header failed." << std::endl;
@@ -68,6 +75,16 @@ namespace sn
         }
 
         LOG(Info) << "Reading header, it dictates: \n";
+
+        if (((header[7] & 0xC) >> 2) == 2)
+        {
+            ver2_0 = true;
+            LOG(Info) << "ines 2.0" << std::endl;
+        }
+        else
+        {
+            LOG(Info) << "ines 1.0" << std::endl;
+        }
 
         Byte banks = header[4];
         LOG(Info) << "16KB PRG-ROM Banks: " << +banks << std::endl;
@@ -92,7 +109,13 @@ namespace sn
         }
 
         m_mapperNumber = ((header[6] >> 4) & 0xf) | (header[7] & 0xf0);
+        if (ver2_0)
+        {
+            m_mapperNumber += ((header[8] & 0xf) << 8);
+            m_subMapperNumber = (header[8] >> 4) & 0xf;
+        }
         LOG(Info) << "Mapper #: " << +m_mapperNumber << std::endl;
+        LOG(Info) << "Sub Mapper #: " << +m_subMapperNumber << std::endl;
 
         m_extendedRAM = header[6] & 0x2;
         LOG(Info) << "Extended (CPU) RAM: " << std::boolalpha << m_extendedRAM << std::endl;
