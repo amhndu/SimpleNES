@@ -69,6 +69,13 @@ $ mkdir build/ && cd build/
 $ cmake -DCMAKE_BUILD_TYPE=Release ..
 $ make -j4    # Replace 4 with however many cores you have to spare
 ```
+
+If SFML is installed on a non-standard, specify SFML_ROOT variable, e.g. on Arch Linux:
+```
+$ cd SimpleNES && mkdir build/ && cd build/
+$ cmake -DCMAKE_BUILD_TYPE=Release -DSFML_ROOT=/opt/sfml2 ..
+$ make -j8
+```
 See also: [compile.yaml](https://github.com/amhndu/SimpleNES/blob/master/.github/workflows/compile.yml) for platform specific instructions
 
 Download SimpleNES

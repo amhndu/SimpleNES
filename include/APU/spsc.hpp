@@ -109,17 +109,17 @@ public:
 
         size_t new_read_index = read_index + output_count;
 
-        if (read_index + output_count > max_size) {
+        if (read_index + output_count >= max_size) {
             // copy data in two sections
             const size_t count0 = max_size - read_index;
             const size_t count1 = output_count - count0;
 
-            std::copy(&storage[read_index], &storage[max_size], output_buffer);
-            std::copy(&storage[0], &storage[count1], output_buffer + count0);
+            std::copy(storage.begin() + read_index, storage.end(), output_buffer);
+            std::copy(storage.begin(), storage.begin() + count1, output_buffer + count0);
 
             new_read_index -= max_size;
         } else {
-            std::copy(&storage[read_index], &storage[read_index + output_count], output_buffer);
+            std::copy(storage.begin() + read_index, storage.begin() + (read_index + output_count), output_buffer);
             if (new_read_index == max_size) {
                 new_read_index = 0;
             }

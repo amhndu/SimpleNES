@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.12)
 project(SimpleNES)
 include(FetchContent)
 
@@ -67,9 +67,9 @@ endif()
 
 # Find SFML
 if (SFML_OS_WINDOWS AND SFML_COMPILER_MSVC)
-    find_package( SFML 2 COMPONENTS main audio graphics window system REQUIRED)
+    find_package(SFML 2 COMPONENTS main audio graphics window system REQUIRED)
 else()
-    find_package( SFML 2 COMPONENTS audio graphics window system REQUIRED)
+    find_package(SFML 2 COMPONENTS audio graphics window system REQUIRED)
 endif()
 
 if(SFML_FOUND)
