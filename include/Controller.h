@@ -32,7 +32,6 @@ namespace sn
         unsigned int m_keyStates;
 
         std::vector<sf::Keyboard::Key> m_keyBindings;
-//         sf::Keyboard::Key m_keyBindings[TotalButtons];
     };
 }
 
