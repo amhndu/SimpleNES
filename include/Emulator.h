@@ -28,7 +28,6 @@ namespace sn
     private:
         void DMA(Byte page);
 
-        MainBus m_bus;
         PictureBus m_pictureBus;
         CPU m_cpu;
         PPU m_ppu;
@@ -36,6 +35,8 @@ namespace sn
         std::unique_ptr<Mapper> m_mapper;
 
         Controller m_controller1, m_controller2;
+
+        MainBus m_bus;
 
         sf::RenderWindow m_window;
         VirtualScreen m_emulatorScreen;

@@ -1,47 +1,69 @@
 #include "MainBus.h"
 #include <cstring>
+#include <functional>
+#include "Cartridge.h"
 #include "Log.h"
 
 namespace sn
 {
-    MainBus::MainBus() :
+    MainBus::MainBus(PPU& ppu, Controller& ctrl1, Controller& ctrl2, std::function<void(Byte)> dma):
         m_RAM(0x800, 0),
-        m_mapper(nullptr)
-    {
+        m_dmaCallback(dma),
+        m_mapper(nullptr),
+        m_ppu(ppu),
+        m_controller1(ctrl1),
+        m_controller2(ctrl2)
+    {}
+
+    Address normalize_mirror(Address addr) {
+        if (addr >= MainBus::PPU_CTRL && addr < MainBus::APU_SQ1_VOL)
+        {
+            // 0x2008 - 0x3fff are mirrors of 0x2000 - 0x2007
+            return addr & 0x2007;
+        }
+
+        // no mirroring
+        return addr;
     }
 
     Byte MainBus::read(Address addr)
     {
         if (addr < 0x2000)
-            return m_RAM[addr & 0x7ff];
-        else if (addr < 0x4020)
         {
-            if (addr < 0x4000) //PPU registers, mirrored
-            {
-                auto it = m_readCallbacks.find(static_cast<IORegisters>(addr & 0x2007));
-                if (it != m_readCallbacks.end())
-                    return (it -> second)();
-                    //Second object is the pointer to the function object
-                    //Dereference the function pointer and call it
-                else
-                    LOG(InfoVerbose) << "No read callback registered for I/O register at: " << std::hex << +addr << std::endl;
+            return m_RAM[addr & 0x7ff];
+        }
+        else if (addr < 0x4020) // memory-mapped registers
+        {
+            addr = normalize_mirror(addr);
+            switch (addr) {
+                case PPU_STATUS:
+                    return m_ppu.getStatus();
+                    break;
+                case PPU_DATA:
+                    return m_ppu.getData();
+                    break;
+                case JOY1:
+                    return m_controller1.read();
+                    break;
+                case JOY2_AND_FRAME_CONTROL:
+                    return m_controller2.read();
+                    break;
+                case OAM_DATA:
+                    return m_ppu.getOAMData();
+                    break;
+                //case APU_CONTROL_AND_STATUS:
+                    // return m_apu.readStatus();
+                //    break;
+                default:
+                    LOG(InfoVerbose) << "Read access attempt at: " << std::hex << +addr << std::endl;
+                    return 0;
+                    break;
             }
-            else if (addr < 0x4018 && addr >= 0x4014) //Only *some* IO registers
-            {
-                auto it = m_readCallbacks.find(static_cast<IORegisters>(addr));
-                if (it != m_readCallbacks.end())
-                    return (it -> second)();
-                    //Second object is the pointer to the function object
-                    //Dereference the function pointer and call it
-                else
-                    LOG(InfoVerbose) << "No read callback registered for I/O register at: " << std::hex << +addr << std::endl;
-            }
-            else
-                LOG(InfoVerbose) << "Read access attempt at: " << std::hex << +addr << std::endl;
         }
         else if (addr < 0x6000)
         {
             LOG(InfoVerbose) << "Expansion ROM read attempted. This is currently unsupported" << std::endl;
+            return 0;
         }
         else if (addr < 0x8000)
         {
@@ -49,42 +71,83 @@ namespace sn
             {
                 return m_extRAM[addr - 0x6000];
             }
+
+            return 0;
         }
         else
         {
             return m_mapper->readPRG(addr);
         }
-        return 0;
     }
 
     void MainBus::write(Address addr, Byte value)
     {
         if (addr < 0x2000)
-            m_RAM[addr & 0x7ff] = value;
-        else if (addr < 0x4020)
         {
-            if (addr < 0x4000) //PPU registers, mirrored
-            {
-                auto it = m_writeCallbacks.find(static_cast<IORegisters>(addr & 0x2007));
-                if (it != m_writeCallbacks.end())
-                    (it -> second)(value);
-                    //Second object is the pointer to the function object
-                    //Dereference the function pointer and call it
-                else
-                    LOG(InfoVerbose) << "No write callback registered for I/O register at: " << std::hex << +addr << std::endl;
+            m_RAM[addr & 0x7ff] = value;
+        }
+        else if (addr < 0x4020) // memory-mapped registers
+        {
+            addr = normalize_mirror(addr);
+            switch (addr) {
+                case PPU_CTRL:
+                    m_ppu.control(value);
+                    break;
+                case PPU_MASK:
+                    m_ppu.setMask(value);
+                    break;
+                case OAM_ADDR:
+                    m_ppu.setOAMAddress(value);
+                    break;
+                case OAM_DATA:
+                    m_ppu.setOAMData(value);
+                    break;
+                case PPU_ADDR:
+                    m_ppu.setDataAddress(value);
+                    break;
+                case PPU_SCROL:
+                    m_ppu.setScroll(value);
+                    break;
+                case PPU_DATA:
+                    m_ppu.setData(value);
+                    break;
+                case OAM_DMA:
+                    m_dmaCallback(value);
+                    break;
+                case JOY1:
+                    m_controller1.strobe(value);
+                    m_controller2.strobe(value);
+                    break;
+
+            /*
+                case APU_SQ1_VOL:
+                case APU_SQ1_SWEEP:
+                case APU_SQ1_LO:
+                case APU_SQ1_HI:
+                case APU_SQ2_VOL:
+                case APU_SQ2_SWEEP:
+                case APU_SQ2_LO:
+                case APU_SQ2_HI:
+                case APU_TRI_LINEAR:
+                case APU_TRI_LO:
+                case APU_TRI_HI:
+                case APU_NOISE_VOL:
+                case APU_NOISE_LO:
+                case APU_NOISE_HI:
+                case APU_DMC_FREQ:
+                case APU_DMC_RAW:
+                case APU_DMC_START:
+                case APU_DMC_LEN:
+                case APU_CONTROL_AND_STATUS:
+                case JOY2_AND_FRAME_CONTROL:
+                    m_apu.writeRegister(addr, value)
+                    break;
+            */
+
+                default:
+                    LOG(InfoVerbose) << "Write access attempt at: " << std::hex << +addr << std::endl;
+                    break;
             }
-            else if (addr < 0x4017 && addr >= 0x4014) //only some registers
-            {
-                auto it = m_writeCallbacks.find(static_cast<IORegisters>(addr));
-                if (it != m_writeCallbacks.end())
-                    (it -> second)(value);
-                    //Second object is the pointer to the function object
-                    //Dereference the function pointer and call it
-                else
-                    LOG(InfoVerbose) << "No write callback registered for I/O register at: " << std::hex << +addr << std::endl;
-            }
-            else
-                LOG(InfoVerbose) << "Write access attempt at: " << std::hex << +addr << std::endl;
         }
         else if (addr < 0x6000)
         {
@@ -147,25 +210,4 @@ namespace sn
 
         return true;
     }
-
-    bool MainBus::setWriteCallback(IORegisters reg, std::function<void(Byte)> callback)
-    {
-        if (!callback)
-        {
-            LOG(Error) << "callback argument is nullptr" << std::endl;
-            return false;
-        }
-        return m_writeCallbacks.emplace(reg, callback).second;
-    }
-
-    bool MainBus::setReadCallback(IORegisters reg, std::function<Byte(void)> callback)
-    {
-        if (!callback)
-        {
-            LOG(Error) << "callback argument is nullptr" << std::endl;
-            return false;
-        }
-        return m_readCallbacks.emplace(reg, callback).second;
-    }
-
 };

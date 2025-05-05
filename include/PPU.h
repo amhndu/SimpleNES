@@ -1,9 +1,7 @@
 #ifndef PPU_H
 #define PPU_H
 #include <functional>
-#include <array>
 #include "PictureBus.h"
-#include "MainBus.h"
 #include "VirtualScreen.h"
 #include "PaletteColors.h"
 
