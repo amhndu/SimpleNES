@@ -1,5 +1,4 @@
 #include "Mapper.h"
-#include "CPUOpcodes.h"
 #include "MapperAxROM.h"
 #include "MapperCNROM.h"
 #include "MapperColorDreams.h"
@@ -18,7 +17,7 @@ NameTableMirroring Mapper::getNameTableMirroring()
 
 std::unique_ptr<Mapper> Mapper::createMapper(Mapper::Type              mapper_t,
                                              sn::Cartridge&            cart,
-                                             std::function<void()>     interrupt_cb,
+                                             Irq&                      irq,
                                              std::function<void(void)> mirroring_cb)
 {
     std::unique_ptr<Mapper> ret(nullptr);
@@ -37,7 +36,7 @@ std::unique_ptr<Mapper> Mapper::createMapper(Mapper::Type              mapper_t,
         ret.reset(new MapperCNROM(cart));
         break;
     case MMC3:
-        ret.reset(new MapperMMC3(cart, interrupt_cb, mirroring_cb));
+        ret.reset(new MapperMMC3(cart, irq, mirroring_cb));
         break;
     case AxROM:
         ret.reset(new MapperAxROM(cart, mirroring_cb));

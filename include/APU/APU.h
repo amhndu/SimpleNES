@@ -20,15 +20,11 @@ public:
     FrameCounter frame_counter;
 
 public:
-    APU(AudioPlayer& player, IRQ& irq)
+    APU(AudioPlayer& player, Irq& irq)
       : frame_counter(setup_frame_counter(irq))
       , audio_queue(player.audio_queue)
       , sampling_timer(nanoseconds(int64_t(1e9) / int64_t(player.std_sample_rate)))
     {
-        LOG(Info) << "sampling_timer: " << sampling_timer.period.count() << "ns"
-                  << "; sample_rate: " << player.std_sample_rate << "Hz" << std::endl;
-        LOG(Info) << "; enum sample_rate: " << ma_standard_sample_rate_44100 << "Hz" << std::endl;
-        LOG(Info) << "AudioPlayer ptr" << &player << std::endl;
     }
 
     // Frame counter is clocked at CPU freq, while the channels are clocked at half the freq
@@ -39,7 +35,7 @@ public:
     Byte readStatus();
 
 private:
-    FrameCounter             setup_frame_counter(IRQ& irq);
+    FrameCounter             setup_frame_counter(Irq& irq);
     bool                     halfDivider = false;
 
     spsc::RingBuffer<float>& audio_queue;

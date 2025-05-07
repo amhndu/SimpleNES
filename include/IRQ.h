@@ -2,9 +2,12 @@
 
 namespace sn
 {
-class IRQ
+
+class Irq
 {
-    virtual void pullIRQ()    = 0;
-    virtual void releaseIRQ() = 0;
+public:
+    virtual void pull()    = 0;
+    virtual void release() = 0;
 };
+
 }

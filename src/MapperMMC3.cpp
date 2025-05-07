@@ -3,7 +3,7 @@
 
 namespace sn
 {
-MapperMMC3::MapperMMC3(Cartridge& cart, std::function<void()> interrupt_cb, std::function<void(void)> mirroring_cb)
+MapperMMC3::MapperMMC3(Cartridge& cart, Irq& irq, std::function<void(void)> mirroring_cb)
   : Mapper(cart, Mapper::MMC3)
   , m_targetRegister(0)
   , m_prgBankMode(false)
@@ -17,7 +17,7 @@ MapperMMC3::MapperMMC3(Cartridge& cart, std::function<void()> interrupt_cb, std:
   , m_mirroringRam(4 * 1024)
   , m_mirroring(Horizontal)
   , m_mirroringCallback(mirroring_cb)
-  , m_interruptCallback(interrupt_cb)
+  , m_irq(irq)
 {
     m_prgBank0 = &cart.getROM()[cart.getROM().size() - 0x4000];
     m_prgBank1 = &cart.getROM()[cart.getROM().size() - 0x2000];
@@ -185,7 +185,7 @@ void MapperMMC3::writePRG(Address addr, Byte value)
     {
         // enabled if odd address
         m_irqEnabled = (addr & 0x01) == 0x01;
-        // TODO acknowledge any pending interrupts?
+        m_irq.release();
     }
 }
 
@@ -215,7 +215,7 @@ void MapperMMC3::scanlineIRQ()
 
     if (zeroTransition && m_irqEnabled)
     {
-        m_interruptCallback();
+        m_irq.pull();
     }
 }
 

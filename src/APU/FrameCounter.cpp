@@ -2,6 +2,38 @@
 
 namespace sn
 {
+
+void FrameCounter::clearFrameInterrupt()
+{
+    if (frame_interrupt)
+    {
+        frame_interrupt = false;
+        irq.release();
+    }
+};
+
+void FrameCounter::reset(Mode m, bool irq_inhibit)
+{
+    mode              = m;
+    interrupt_inhibit = irq_inhibit;
+    // TODO: delay reset by 3-4 cycles?
+    counter           = 0;
+    if (interrupt_inhibit)
+    {
+        clearFrameInterrupt();
+    }
+    if (mode == Seq5Step)
+    {
+        for (FrameClockable& c : frame_slots)
+        {
+            // clock envelopes & triangle's linear counter
+            c.quarter_frame_clock();
+            // clock length counter & sweep units
+            c.half_frame_clock();
+        }
+    }
+}
+
 void FrameCounter::clock()
 {
     counter += 1;
@@ -57,7 +89,8 @@ void FrameCounter::clock()
         // set frame irq if not inhibit
         if (!interrupt_inhibit && mode == Seq4Step)
         {
-            irq();
+            irq.pull();
+            frame_interrupt = true;
         }
         break;
     // case postQ4:

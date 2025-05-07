@@ -1,7 +1,7 @@
 #ifndef MAPPER_H
 #define MAPPER_H
-#include "CPUOpcodes.h"
 #include "Cartridge.h"
+#include "IRQ.h"
 #include <functional>
 #include <memory>
 
@@ -49,7 +49,7 @@ public:
 
     static std::unique_ptr<Mapper> createMapper(Type                      mapper_t,
                                                 Cartridge&                cart,
-                                                std::function<void()>     interrupt_cb,
+                                                Irq&                      irq,
                                                 std::function<void(void)> mirroring_cb);
 
 protected:

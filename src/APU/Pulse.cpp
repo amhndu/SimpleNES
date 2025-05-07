@@ -124,8 +124,7 @@ void Pulse::Sweep::half_frame_clock()
         if (!pulse.sweep_muted)
         {
             const auto current = pulse.sequencer.get_period();
-            auto       target  = calculate_target(current);
-            pulse.period       = target;
+            pulse.period       = calculate_target(current);
             pulse.reload_period();
         }
     }
@@ -153,13 +152,7 @@ void Pulse::reload_period()
 {
     sequencer.reset(period);
     auto target = sweep.calculate_target(period);
-    if (sweep.is_muted(period, target))
-    {
-    }
-    else
-    {
-        sweep_muted = true;
-    }
+    sweep_muted = sweep.is_muted(period, target);
 }
 
 void Pulse::set_frequency(double output_freq)

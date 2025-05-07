@@ -1,6 +1,5 @@
 #include "Emulator.h"
 #include "APU/Constants.h"
-#include "CPUOpcodes.h"
 #include "Log.h"
 
 #include <chrono>
@@ -12,7 +11,7 @@ using std::chrono::high_resolution_clock;
 Emulator::Emulator()
   : m_cpu(m_bus)
   , m_ppu(m_pictureBus, m_emulatorScreen)
-  , m_apu(m_audioPlayer, [&]() { m_cpu.nmiInterrupt(InterruptType::IRQ); })
+  , m_apu(m_audioPlayer, m_cpu.createIRQHandler())
   , m_bus(m_ppu, m_apu, m_controller1, m_controller2, [&](Byte b) { DMA(b); })
   , m_screenScale(3.f)
   , m_lastWakeup()
@@ -25,11 +24,10 @@ void Emulator::run(std::string rom_path)
     if (!m_cartridge.loadFromFile(rom_path))
         return;
 
-    m_mapper = Mapper::createMapper(
-      static_cast<Mapper::Type>(m_cartridge.getMapper()),
-      m_cartridge,
-      [&]() { m_cpu.nmiInterrupt(InterruptType::IRQ); },
-      [&]() { m_pictureBus.updateMirroring(); });
+    m_mapper = Mapper::createMapper(static_cast<Mapper::Type>(m_cartridge.getMapper()),
+                                    m_cartridge,
+                                    m_cpu.createIRQHandler(),
+                                    [&]() { m_pictureBus.updateMirroring(); });
     if (!m_mapper)
     {
         LOG(Error) << "Creating Mapper failed. Probably unsupported." << std::endl;
@@ -54,13 +52,6 @@ void Emulator::run(std::string rom_path)
     m_elapsedTime = m_lastWakeup - m_lastWakeup;
 
     m_audioPlayer.start();
-    // TEST CODE
-    m_apu.pulse1.set_frequency(82.41);
-    m_apu.pulse1.volume.constantVolume      = false;
-    m_apu.pulse1.volume.isLooping           = true;
-    m_apu.pulse1.volume.shouldStart         = true;
-    m_apu.pulse1.volume.fixedVolumeOrPeriod = 1;
-    // TEST CODE END
 
     sf::Event event;
     bool      focus = true, pause = false;
@@ -76,18 +67,24 @@ void Emulator::run(std::string rom_path)
             }
             else if (event.type == sf::Event::GainedFocus)
             {
-                focus        = true;
-                m_lastWakeup = high_resolution_clock::now();
+                focus          = true;
+                const auto now = high_resolution_clock::now();
+                LOG(Info) << "Gained focus. Removing " << (now - m_lastWakeup).count() << "ns from timers" << std::endl;
+                m_lastWakeup = now;
             }
             else if (event.type == sf::Event::LostFocus)
+            {
                 focus = false;
+                LOG(Info) << "Losing focus; paused." << std::endl;
+            }
             else if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::F2)
             {
                 pause = !pause;
                 if (!pause)
                 {
-                    m_lastWakeup = high_resolution_clock::now();
-                    LOG(Info) << "Unpaused." << std::endl;
+                    const auto now = high_resolution_clock::now();
+                    LOG(Info) << "Unpaused. Removing " << (now - m_lastWakeup).count() << "ns from timers" << std::endl;
+                    m_lastWakeup = now;
                 }
                 else
                 {
@@ -120,8 +117,9 @@ void Emulator::run(std::string rom_path)
 
         if (focus && !pause)
         {
-            m_elapsedTime += high_resolution_clock::now() - m_lastWakeup;
-            m_lastWakeup   = high_resolution_clock::now();
+            const auto now  = high_resolution_clock::now();
+            m_elapsedTime  += now - m_lastWakeup;
+            m_lastWakeup    = now;
 
             while (m_elapsedTime > cpu_clock_period_ns)
             {

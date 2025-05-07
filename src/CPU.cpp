@@ -31,15 +31,28 @@ void CPU::nmiInterrupt()
     m_pendingNMI = true;
 }
 
-void CPU::pullIRQ()
+Irq& CPU::createIRQHandler()
 {
-    ++m_irqPulldowns;
+    int bit = 1 << m_irqHandlers.size();
+    m_irqHandlers.emplace_back(IRQHandler { bit, *this });
+    return m_irqHandlers.back();
 }
 
-void CPU::releaseIRQ()
+void IRQHandler::release()
 {
-    --m_irqPulldowns;
+    cpu.setIRQPulldown(bit, false);
 }
+
+void IRQHandler::pull()
+{
+    cpu.setIRQPulldown(bit, true);
+}
+
+void CPU::setIRQPulldown(int bit, bool state)
+{
+    int mask       = ~(1 << bit);
+    m_irqPulldowns = (m_irqPulldowns & mask) | state;
+};
 
 void CPU::interruptSequence(InterruptType type)
 {
@@ -117,13 +130,12 @@ void CPU::step()
     if (m_pendingNMI)
     {
         interruptSequence(NMI);
-        m_pendingNMI = m_pendingIRQ = false;
+        m_pendingNMI = false;
         return;
     }
-    else if (m_pendingIRQ)
+    else if (isPendingIRQ())
     {
         interruptSequence(IRQ);
-        m_pendingNMI = m_pendingIRQ = false;
         return;
     }
 

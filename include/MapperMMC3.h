@@ -1,4 +1,5 @@
 #pragma once
+#include "IRQ.h"
 #include "Mapper.h"
 #include <array>
 
@@ -8,7 +9,7 @@ namespace sn
 class MapperMMC3 : public Mapper
 {
 public:
-    MapperMMC3(Cartridge& cart, std::function<void()> interrupt_cb, std::function<void(void)> mirroring_cb);
+    MapperMMC3(Cartridge& cart, Irq& irq, std::function<void(void)> mirroring_cb);
 
     Byte               readPRG(Address addr);
     void               writePRG(Address addr, Byte value);
@@ -43,7 +44,7 @@ private:
 
     NameTableMirroring        m_mirroring;
     std::function<void(void)> m_mirroringCallback;
-    std::function<void()>     m_interruptCallback;
+    Irq&                      m_irq;
 };
 
 } // namespace sn
