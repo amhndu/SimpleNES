@@ -18,7 +18,7 @@ int main(int argc, char** argv)
     else
         sn::Log::get().setLogStream(std::cout);
 
-    sn::Log::get().setLevel(sn::Info);
+    sn::Log::get().setLevel(sn::InfoVerbose); // FIXME use Info
 
     std::string                    path;
     std::string                    keybindingsPath = "keybindings.conf";
@@ -107,8 +107,9 @@ int main(int argc, char** argv)
 
     if (path.empty())
     {
-        std::cout << "Argument required: ROM path" << std::endl;
-        return 1;
+        path = "build/roms/smb.nes";
+        // std::cout << "Argument required: ROM path" << std::endl;
+        // return 1;
     }
 
     sn::parseControllerConf(std::move(keybindingsPath), p1, p2);

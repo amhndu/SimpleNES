@@ -26,8 +26,6 @@ public:
     AudioPlayer()
       : cb_data { audio_queue, 3 }
     {
-        LOG(Info) << "AudioPlayer ptr" << this << std::endl;
-        LOG(Info) << "AudioPlayer std_sample_rate" << std_sample_rate << "Hz" << std::endl;
     }
     ~AudioPlayer();
 

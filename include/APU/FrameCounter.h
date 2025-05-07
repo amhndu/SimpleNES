@@ -37,14 +37,17 @@ struct FrameCounter
     int  counter           = 0;
     bool interrupt_inhibit = false;
 
-    IRQ& irq;
+    Irq& irq;
+    bool frame_interrupt = false;
 
-    FrameCounter(std::vector<std::reference_wrapper<FrameClockable>> slots, IRQ& irq)
+    FrameCounter(std::vector<std::reference_wrapper<FrameClockable>> slots, Irq& irq)
       : frame_slots(slots)
       , irq(irq)
     {
     }
 
+    void clearFrameInterrupt();
     void clock();
+    void reset(Mode m, bool irq_inhibit);
 };
 }

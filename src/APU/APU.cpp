@@ -1,11 +1,9 @@
 #include "APU/APU.h"
 #include "APU/Constants.h"
-#include "APU/Divider.h"
 #include "APU/FrameCounter.h"
 #include "APU/Pulse.h"
 #include "APU/Timer.h"
 #include "APU/spsc.hpp"
-#include "AudioPlayer.h"
 #include "Cartridge.h"
 #include "Log.h"
 
@@ -94,10 +92,13 @@ void APU::writeRegister(Address addr, Byte value)
         pulse1.sweep.reload  = true;
         break;
     case APU_SQ1_LO:
-        pulse1.period = (pulse1.period & 0xf0) | (value << 0);
+        pulse1.period = (pulse1.period & 0xff00) | value;
         break;
     case APU_SQ1_HI:
-        pulse1.period = (pulse1.period & 0x0f) | (value << 4);
+        pulse1.period = (pulse1.period & 0x00ff) | ((value & 0x7) << 8);
+        pulse1.length_counter.set_from_table(value >> 3);
+        pulse1.seq_idx = 0;
+        // This is technically NOT accurate, but we reset the divider for simplicity
         pulse1.reload_period();
         break;
 
@@ -115,10 +116,13 @@ void APU::writeRegister(Address addr, Byte value)
         pulse2.sweep.reload  = true;
         break;
     case APU_SQ2_LO:
-        pulse2.period = (pulse2.period & 0xf0) | (value << 0);
+        pulse2.period = (pulse2.period & 0xff00) | value;
         break;
     case APU_SQ2_HI:
-        pulse2.period = (pulse2.period & 0x0f) | (value << 4);
+        pulse2.period = (pulse2.period & 0x00ff) | ((value & 0x7) << 8);
+        pulse2.length_counter.set_from_table(value >> 3);
+        pulse2.seq_idx = 0;
+        // This is technically NOT accurate, but we reset the divider for simplicity
         pulse2.reload_period();
         break;
 
@@ -147,19 +151,20 @@ void APU::writeRegister(Address addr, Byte value)
         pulse2.length_counter.set_enable(value & 0x2);
         break;
     case APU_FRAME_CONTROL:
-        frame_counter.mode              = static_cast<FrameCounter::Mode>(value >> 7);
-        frame_counter.interrupt_inhibit = value >> 6;
-        // TODO:
+        frame_counter.reset(static_cast<FrameCounter::Mode>(value >> 7), value >> 6);
         break;
     }
 }
 
 Byte APU::readStatus()
 {
-    return (pulse1.length_counter.is_enabled() << 0 | pulse2.length_counter.is_enabled() << 1);
+    bool last_frame_interrupt = frame_counter.frame_interrupt;
+    frame_counter.clearFrameInterrupt();
+    return (pulse1.length_counter.is_enabled() << 0 | pulse2.length_counter.is_enabled() << 1 |
+            last_frame_interrupt << 6);
 }
 
-FrameCounter APU::setup_frame_counter(IRQ& irq)
+FrameCounter APU::setup_frame_counter(Irq& irq)
 {
     return FrameCounter(
       {

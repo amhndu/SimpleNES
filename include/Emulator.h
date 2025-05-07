@@ -31,10 +31,11 @@ public:
 private:
     void                                         DMA(Byte page);
 
+    CPU                                          m_cpu;
+
     AudioPlayer                                  m_audioPlayer;
 
     PictureBus                                   m_pictureBus;
-    CPU                                          m_cpu;
     PPU                                          m_ppu;
     APU                                          m_apu;
     Cartridge                                    m_cartridge;

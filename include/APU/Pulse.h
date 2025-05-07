@@ -74,7 +74,7 @@ struct Pulse
     uint          seq_idx { 0 };
     Duty::Type    seq_type { Duty::Type::SEQ_50 };
     Divider       sequencer { 0 };
-    int           period;
+    int           period = 0;
 
     enum class Type
     {
