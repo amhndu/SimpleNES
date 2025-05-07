@@ -9,6 +9,8 @@
 
 namespace sn
 {
+
+// Acts as either length counter or linear counter.
 struct LengthCounter : public FrameClockable
 {
     void set_enable(bool new_value);
@@ -19,7 +21,13 @@ struct LengthCounter : public FrameClockable
     void half_frame_clock() override;
     bool muted() const;
 
-    bool halt = false;
+    // only used in length counter
+    bool halt        = false;
+
+    // only used in linear counter mode
+    bool reload      = false;
+    int  reloadValue = 0;
+    bool control     = true;
 
 private:
     bool enabled = false;
@@ -117,12 +125,29 @@ struct Pulse
 
     void reload_period();
 
-    void set_frequency(double output_freq);
-
     // Clocked at half the cpu freq
     void clock();
 
     Byte sample() const;
+};
+
+struct Triangle
+{
+    LengthCounter length_counter;
+    LengthCounter linear_counter;
+
+    uint          seq_idx { 0 };
+    Divider       sequencer { 0 };
+    int           period = 0;
+
+    void          reload_period();
+
+    // Clocked at half the cpu freq
+    void          clock();
+
+    Byte          sample() const;
+
+    int           volume() const;
 };
 
 }

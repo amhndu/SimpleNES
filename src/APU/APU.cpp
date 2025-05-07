@@ -54,6 +54,7 @@ void APU::step()
 {
     frame_counter.clock();
 
+    triangle.clock();
     if (halfDivider)
     {
         pulse1.clock();
@@ -63,10 +64,11 @@ void APU::step()
 
     for (int clocks = sampling_timer.clock(cpu_clock_period_ns); clocks > 0; --clocks)
     {
-        float frame =
-          (static_cast<float>(pulse1.sample()) / max_volume_f + static_cast<float>(pulse2.sample()) / max_volume_f) /
-          2.0;
-        audio_queue.push(frame);
+        // TODO: follow NES mixing
+        float pulse_out =
+          (static_cast<float>(pulse1.sample()) / max_volume_f + static_cast<float>(pulse2.sample()) / max_volume_f);
+        float tnd_out = static_cast<float>(triangle.sample()) / max_volume_f;
+        audio_queue.push((pulse_out + tnd_out) / 3);
     }
 }
 
@@ -77,14 +79,12 @@ void APU::writeRegister(Address addr, Byte value)
         break;
 
     case APU_SQ1_VOL:
-        // DDlcvvvv
         pulse1.volume.fixedVolumeOrPeriod = value & 0xf;
         pulse1.volume.constantVolume      = value & (1 << 4);
         pulse1.length_counter.halt        = value & (1 << 5);
         pulse1.seq_type                   = static_cast<Pulse::Duty::Type>(value >> 6);
         break;
     case APU_SQ1_SWEEP:
-        // EPPP.NSSS
         pulse1.sweep.enabled = value & (1 << 7);
         pulse1.sweep.period  = (value >> 4) & 0x7;
         pulse1.sweep.negate  = value & (1 << 3);
@@ -127,10 +127,20 @@ void APU::writeRegister(Address addr, Byte value)
         break;
 
     case APU_TRI_LINEAR:
+        triangle.linear_counter.set_linear(value & 0x7f);
+        // same bit is used for both the length counter half and linear counter control
+        triangle.length_counter.halt    = 1 >> 7;
+        triangle.linear_counter.control = 1 >> 7;
         break;
     case APU_TRI_LO:
+        triangle.period = (triangle.period & 0xff00) | value;
         break;
     case APU_TRI_HI:
+        triangle.period = (triangle.period & 0x00ff) | ((value & 0x7) << 8);
+        triangle.length_counter.set_from_table(value >> 3);
+        triangle.seq_idx = 0;
+        triangle.reload_period();
+        triangle.linear_counter.reload = true;
         break;
     case APU_NOISE_VOL:
         break;
@@ -149,6 +159,7 @@ void APU::writeRegister(Address addr, Byte value)
     case APU_CONTROL:
         pulse1.length_counter.set_enable(value & 0x1);
         pulse2.length_counter.set_enable(value & 0x2);
+        triangle.length_counter.set_enable(value & 0x4);
         break;
     case APU_FRAME_CONTROL:
         frame_counter.reset(static_cast<FrameCounter::Mode>(value >> 7), value >> 6);
@@ -161,7 +172,7 @@ Byte APU::readStatus()
     bool last_frame_interrupt = frame_counter.frame_interrupt;
     frame_counter.clearFrameInterrupt();
     return (pulse1.length_counter.is_enabled() << 0 | pulse2.length_counter.is_enabled() << 1 |
-            last_frame_interrupt << 6);
+            triangle.length_counter.is_enabled() << 2 | last_frame_interrupt << 6);
 }
 
 FrameCounter APU::setup_frame_counter(Irq& irq)
@@ -171,9 +182,12 @@ FrameCounter APU::setup_frame_counter(Irq& irq)
         std::ref(pulse1.volume),
         std::ref(pulse1.sweep),
         std::ref(pulse1.length_counter),
+
         std::ref(pulse2.volume),
         std::ref(pulse2.sweep),
         std::ref(pulse2.length_counter),
+
+        std::ref(triangle.length_counter),
       },
       irq);
 }
