@@ -1,22 +1,22 @@
 #include "MainBus.h"
-#include <cstring>
 #include <functional>
 #include "Cartridge.h"
 #include "Log.h"
 
 namespace sn
 {
-    MainBus::MainBus(PPU& ppu, Controller& ctrl1, Controller& ctrl2, std::function<void(Byte)> dma):
+    MainBus::MainBus(PPU& ppu, APU& apu, Controller& ctrl1, Controller& ctrl2, std::function<void(Byte)> dma):
         m_RAM(0x800, 0),
         m_dmaCallback(dma),
         m_mapper(nullptr),
         m_ppu(ppu),
+        m_apu(apu),
         m_controller1(ctrl1),
         m_controller2(ctrl2)
     {}
 
     Address normalize_mirror(Address addr) {
-        if (addr >= MainBus::PPU_CTRL && addr < MainBus::APU_SQ1_VOL)
+        if (addr >= MainBus::PPU_CTRL && addr < MainBus::APU_REGISTER_START)
         {
             // 0x2008 - 0x3fff are mirrors of 0x2000 - 0x2007
             return addr & 0x2007;
@@ -51,9 +51,9 @@ namespace sn
                 case OAM_DATA:
                     return m_ppu.getOAMData();
                     break;
-                //case APU_CONTROL_AND_STATUS:
-                    // return m_apu.readStatus();
-                //    break;
+                case APU_CONTROL_AND_STATUS:
+                    return m_apu.readStatus();
+                    break;
                 default:
                     LOG(InfoVerbose) << "Read access attempt at: " << std::hex << +addr << std::endl;
                     return 0;
@@ -119,33 +119,17 @@ namespace sn
                     m_controller2.strobe(value);
                     break;
 
-            /*
-                case APU_SQ1_VOL:
-                case APU_SQ1_SWEEP:
-                case APU_SQ1_LO:
-                case APU_SQ1_HI:
-                case APU_SQ2_VOL:
-                case APU_SQ2_SWEEP:
-                case APU_SQ2_LO:
-                case APU_SQ2_HI:
-                case APU_TRI_LINEAR:
-                case APU_TRI_LO:
-                case APU_TRI_HI:
-                case APU_NOISE_VOL:
-                case APU_NOISE_LO:
-                case APU_NOISE_HI:
-                case APU_DMC_FREQ:
-                case APU_DMC_RAW:
-                case APU_DMC_START:
-                case APU_DMC_LEN:
                 case APU_CONTROL_AND_STATUS:
                 case JOY2_AND_FRAME_CONTROL:
-                    m_apu.writeRegister(addr, value)
+                    m_apu.writeRegister(addr, value);
                     break;
-            */
 
                 default:
-                    LOG(InfoVerbose) << "Write access attempt at: " << std::hex << +addr << std::endl;
+                    if (addr >= APU_REGISTER_START && addr <= APU_REGISTER_END) {
+                        m_apu.writeRegister(addr, value);
+                    } else {
+                        LOG(InfoVerbose) << "Write access attempt at: " << std::hex << +addr << std::endl;
+                    }
                     break;
             }
         }

@@ -1,12 +1,13 @@
 #ifndef CPU_H
 #define CPU_H
 #include "CPUOpcodes.h"
+#include "IRQ.h"
 #include "MainBus.h"
 
 namespace sn
 {
 
-    class CPU
+    class CPU: public IRQ
     {
         public:
 
@@ -20,8 +21,9 @@ namespace sn
             Address getPC() { return r_PC; }
             void skipDMACycles();
 
-            void interrupt(InterruptType type);
-
+            void nmiInterrupt();
+            void pullIRQ() override;
+            void releaseIRQ() override;
         private:
             void interruptSequence(InterruptType type);
 
@@ -62,7 +64,12 @@ namespace sn
             bool f_N;
 
             bool m_pendingNMI;
-            bool m_pendingIRQ;
+
+            bool isPendingIRQ() const { return m_irqPulldowns > 0; };
+
+            // Incremented each time a source is pulling down the IRQ line (and decremented when it stops)
+            // If this is non-zero, the CPU will go into the interrupt sequence as long as it's not masked
+            int m_irqPulldowns = 0;
 
             MainBus &m_bus;
     };

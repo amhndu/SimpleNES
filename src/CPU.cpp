@@ -7,7 +7,6 @@ namespace sn
 {
     CPU::CPU(MainBus &mem) :
         m_pendingNMI(false),
-        m_pendingIRQ(false),
         m_bus(mem)
     {}
 
@@ -26,21 +25,19 @@ namespace sn
         r_SP = 0xfd; //documented startup state
     }
 
-    void CPU::interrupt(InterruptType type)
+    void CPU::nmiInterrupt()
     {
-        switch (type)
-        {
-        case InterruptType::NMI:
-            m_pendingNMI = true;
-            break;
+        m_pendingNMI = true;
+    }
 
-        case InterruptType::IRQ:
-            m_pendingIRQ = true;
-            break;
+    void CPU::pullIRQ()
+    {
+        ++m_irqPulldowns;
+    }
 
-        default:
-            break;
-        }
+    void CPU::releaseIRQ()
+    {
+        --m_irqPulldowns;
     }
 
     void CPU::interruptSequence(InterruptType type)

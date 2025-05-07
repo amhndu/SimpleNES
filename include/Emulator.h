@@ -3,6 +3,8 @@
 #include <SFML/Graphics.hpp>
 #include <chrono>
 
+#include "APU/APU.h"
+#include "AudioPlayer.h"
 #include "CPU.h"
 #include "PPU.h"
 #include "MainBus.h"
@@ -28,9 +30,12 @@ namespace sn
     private:
         void DMA(Byte page);
 
+        AudioPlayer m_audioPlayer;
+
         PictureBus m_pictureBus;
         CPU m_cpu;
         PPU m_ppu;
+        APU m_apu;
         Cartridge m_cartridge;
         std::unique_ptr<Mapper> m_mapper;
 
@@ -42,10 +47,9 @@ namespace sn
         VirtualScreen m_emulatorScreen;
         float m_screenScale;
 
-        TimePoint m_cycleTimer;
+        TimePoint m_lastWakeup;
 
         std::chrono::high_resolution_clock::duration m_elapsedTime;
-        std::chrono::nanoseconds m_cpuCycleDuration;
     };
 }
 #endif // EMULATOR_H

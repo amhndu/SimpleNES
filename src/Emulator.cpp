@@ -1,20 +1,23 @@
 #include "Emulator.h"
 #include "CPUOpcodes.h"
 #include "Log.h"
+#include "APU/Constants.h"
 
 #include <chrono>
 
 namespace sn
 {
+    using std::chrono::high_resolution_clock;
+
     Emulator::Emulator() :
         m_cpu(m_bus),
         m_ppu(m_pictureBus, m_emulatorScreen),
-        m_bus(m_ppu, m_controller1, m_controller2, [&](Byte b){ DMA(b); }),
+        m_apu(m_audioPlayer, [&](){ m_cpu.nmiInterrupt(InterruptType::IRQ); }),
+        m_bus(m_ppu, m_apu, m_controller1, m_controller2, [&](Byte b){ DMA(b); }),
         m_screenScale(3.f),
-        m_cycleTimer(),
-        m_cpuCycleDuration(std::chrono::nanoseconds(559))
+        m_lastWakeup()
     {
-        m_ppu.setInterruptCallback([&](){ m_cpu.interrupt(InterruptType::NMI); });
+        m_ppu.setInterruptCallback([&](){ m_cpu.nmiInterrupt(); });
     }
 
     void Emulator::run(std::string rom_path)
@@ -24,7 +27,7 @@ namespace sn
 
         m_mapper = Mapper::createMapper(static_cast<Mapper::Type>(m_cartridge.getMapper()),
                                         m_cartridge,
-                                        [&](){ m_cpu.interrupt(InterruptType::IRQ); },
+                                        [&](){ m_cpu.nmiInterrupt(InterruptType::IRQ); },
                                         [&](){ m_pictureBus.updateMirroring(); });
         if (!m_mapper)
         {
@@ -34,7 +37,9 @@ namespace sn
 
         if (!m_bus.setMapper(m_mapper.get()) ||
             !m_pictureBus.setMapper(m_mapper.get()))
+        {
             return;
+        }
 
         m_cpu.reset();
         m_ppu.reset();
@@ -44,8 +49,17 @@ namespace sn
         m_window.setVerticalSyncEnabled(true);
         m_emulatorScreen.create(NESVideoWidth, NESVideoHeight, m_screenScale, sf::Color::White);
 
-        m_cycleTimer = std::chrono::high_resolution_clock::now();
-        m_elapsedTime = m_cycleTimer - m_cycleTimer;
+        m_lastWakeup = high_resolution_clock::now();
+        m_elapsedTime = m_lastWakeup - m_lastWakeup;
+
+        m_audioPlayer.start();
+        // TEST CODE
+        m_apu.pulse1.set_frequency(82.41);
+        m_apu.pulse1.volume.constantVolume = false;
+        m_apu.pulse1.volume.isLooping = true;
+        m_apu.pulse1.volume.shouldStart = true;
+        m_apu.pulse1.volume.fixedVolumeOrPeriod = 1;
+        // TEST CODE END
 
         sf::Event event;
         bool focus = true, pause = false;
@@ -62,7 +76,7 @@ namespace sn
                 else if (event.type == sf::Event::GainedFocus)
                 {
                     focus = true;
-                    m_cycleTimer = std::chrono::high_resolution_clock::now();
+                    m_lastWakeup = high_resolution_clock::now();
                 }
                 else if (event.type == sf::Event::LostFocus)
                     focus = false;
@@ -71,7 +85,7 @@ namespace sn
                     pause = !pause;
                     if (!pause)
                     {
-                        m_cycleTimer = std::chrono::high_resolution_clock::now();
+                        m_lastWakeup = high_resolution_clock::now();
                         LOG(Info) << "Unpaused." << std::endl;
                     }
                     else
@@ -89,6 +103,8 @@ namespace sn
                         m_ppu.step();
                         //CPU
                         m_cpu.step();
+                        // APU
+                        m_apu.step();
                     }
                 }
                 else if (focus && event.type == sf::Event::KeyReleased && event.key.code == sf::Keyboard::F4)
@@ -103,20 +119,21 @@ namespace sn
 
             if (focus && !pause)
             {
-                m_elapsedTime += std::chrono::high_resolution_clock::now() - m_cycleTimer;
-                m_cycleTimer = std::chrono::high_resolution_clock::now();
+                m_elapsedTime += high_resolution_clock::now() - m_lastWakeup;
+                m_lastWakeup = high_resolution_clock::now();
 
-                while (m_elapsedTime > m_cpuCycleDuration)
+                while (m_elapsedTime > cpu_clock_period_ns)
                 {
-                    //PPU
+                    // PPU
                     m_ppu.step();
                     m_ppu.step();
                     m_ppu.step();
-                    //CPU
+                    // CPU
                     m_cpu.step();
-                    // m_apu.step();
+                    // APU
+                    m_apu.step();
 
-                    m_elapsedTime -= m_cpuCycleDuration;
+                    m_elapsedTime -= cpu_clock_period_ns;
                 }
 
                 m_window.draw(m_emulatorScreen);
@@ -125,7 +142,6 @@ namespace sn
             else
             {
                 sf::sleep(sf::milliseconds(1000/60));
-                //std::this_thread::sleep_for(std::chrono::milliseconds(1000/60)); //1/60 second
             }
         }
     }
