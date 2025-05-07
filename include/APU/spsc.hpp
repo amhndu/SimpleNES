@@ -16,7 +16,8 @@
 #include <type_traits>
 #include <vector>
 
-namespace spsc {
+namespace spsc
+{
 
 using std::size_t;
 
@@ -24,29 +25,32 @@ using std::size_t;
 // Only works with single producer and single consumer threads.
 //
 // Thread safety:
-//   * During push, write-index is stored with memory order release *after* storage[write_index] is written to, ensuring the storage writes are visible in pop due to Release-Acquire ordering
-//   * write-index only moves forward *upto* the `read_index_`, so during a pop, it is safe to extract values from the storage, since push can only affect the empty area
+//   * During push, write-index is stored with memory order release *after* storage[write_index] is written to, ensuring
+//   the storage writes are visible in pop due to Release-Acquire ordering
+//   * write-index only moves forward *upto* the `read_index_`, so during a pop, it is safe to extract values from the
+//   storage, since push can only affect the empty area
 //   * read-index is stored using release ordering to ensure it is only updated after the full pop operation is finished
-template <typename T>
+template<typename T>
 class RingBuffer
 {
-    static_assert(std::is_trivially_destructible<T>::value, "expecting a simple (trivially_destructible) type in the ring buffer");
+    static_assert(std::is_trivially_destructible<T>::value,
+                  "expecting a simple (trivially_destructible) type in the ring buffer");
 
 private:
-    const size_t max_size;
+    const size_t        max_size;
     std::atomic<size_t> write_index_;
     std::atomic<size_t> read_index_;
 
-    std::vector<T> storage;
+    std::vector<T>      storage;
 
-    RingBuffer(RingBuffer const&) = delete;
-    RingBuffer& operator= (RingBuffer const&) = delete;
+    RingBuffer(RingBuffer const&)            = delete;
+    RingBuffer& operator=(RingBuffer const&) = delete;
 
 public:
-    explicit RingBuffer(int capacity):
-        max_size(capacity),
-        write_index_(0),
-        read_index_(0)
+    explicit RingBuffer(int capacity)
+      : max_size(capacity)
+      , write_index_(0)
+      , read_index_(0)
     {
         storage.resize(capacity);
     }
@@ -66,8 +70,8 @@ public:
      * */
     bool push(T const& t)
     {
-        const size_t write_index = write_index_.load(std::memory_order_relaxed);  // only written from push thread
-        const size_t next = next_index(write_index, max_size);
+        const size_t write_index = write_index_.load(std::memory_order_relaxed); // only written from push thread
+        const size_t next        = next_index(write_index, max_size);
 
         if (next == read_index_.load(std::memory_order_acquire))
             return false; /* RingBuffer is full */
@@ -87,9 +91,9 @@ public:
     size_t pop(T* output_buffer, size_t output_count)
     {
         const size_t write_index = write_index_.load(std::memory_order_acquire);
-        const size_t read_index = read_index_.load(std::memory_order_relaxed); // only written from pop thread
+        const size_t read_index  = read_index_.load(std::memory_order_relaxed); // only written from pop thread
 
-        size_t avail;
+        size_t       avail;
         if (write_index >= read_index)
         {
             avail = write_index - read_index;
@@ -99,17 +103,17 @@ public:
             avail = write_index + max_size - read_index;
         }
 
-
         if (avail == 0)
         {
             return 0;
         }
 
-        output_count = std::min(output_count, avail);
+        output_count          = std::min(output_count, avail);
 
         size_t new_read_index = read_index + output_count;
 
-        if (read_index + output_count >= max_size) {
+        if (read_index + output_count >= max_size)
+        {
             // copy data in two sections
             const size_t count0 = max_size - read_index;
             const size_t count1 = output_count - count0;
@@ -118,9 +122,12 @@ public:
             std::copy(storage.begin(), storage.begin() + count1, output_buffer + count0);
 
             new_read_index -= max_size;
-        } else {
+        }
+        else
+        {
             std::copy(storage.begin() + read_index, storage.begin() + (read_index + output_count), output_buffer);
-            if (new_read_index == max_size) {
+            if (new_read_index == max_size)
+            {
                 new_read_index = 0;
             }
         }
@@ -128,7 +135,6 @@ public:
         read_index_.store(new_read_index, std::memory_order_release);
         return output_count;
     }
-
 
     /** reset the RingBuffer
      *
@@ -145,10 +151,7 @@ public:
      * \return true, if the RingBuffer is empty, false otherwise
      * \note Due to the concurrent nature of the RingBuffer the result may be inaccurate.
      * */
-    bool empty()
-    {
-        return size() == 0;
-    }
+    bool        empty() { return size() == 0; }
 
     /** Get the current RingBuffer size
      *
@@ -158,9 +161,9 @@ public:
     std::size_t size()
     {
         const size_t write_index = write_index_.load(std::memory_order_relaxed);
-        const size_t read_index = read_index_.load(std::memory_order_relaxed);
+        const size_t read_index  = read_index_.load(std::memory_order_relaxed);
 
-        size_t avail;
+        size_t       avail;
         if (write_index >= read_index)
         {
             avail = write_index - read_index;
@@ -173,11 +176,7 @@ public:
         return avail;
     }
 
-    std::size_t capacity()
-    {
-        return max_size;
-    }
+    std::size_t capacity() { return max_size; }
 };
-
 
 } /* namespace lockfree */

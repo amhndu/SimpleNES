@@ -4,23 +4,23 @@
 
 namespace sn
 {
-    class MapperUxROM : public Mapper
-    {
-        public:
-            MapperUxROM(Cartridge& cart);
-            void writePRG (Address addr, Byte value);
-            Byte readPRG (Address addr);
+class MapperUxROM : public Mapper
+{
+public:
+    MapperUxROM(Cartridge& cart);
+    void writePRG(Address addr, Byte value);
+    Byte readPRG(Address addr);
 
-            Byte readCHR (Address addr);
-            void writeCHR (Address addr, Byte value);
-        private:
-            bool m_usesCharacterRAM;
+    Byte readCHR(Address addr);
+    void writeCHR(Address addr, Byte value);
 
-            const Byte* m_lastBankPtr;
-            Address m_selectPRG;
+private:
+    bool              m_usesCharacterRAM;
 
-            std::vector<Byte> m_characterRAM;
+    const Byte*       m_lastBankPtr;
+    Address           m_selectPRG;
 
-    };
+    std::vector<Byte> m_characterRAM;
+};
 }
 #endif // MAPPERUXROM_H
