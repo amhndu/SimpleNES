@@ -1,0 +1,30 @@
+---
+# We'll use defaults from the LLVM style, but with 4 columns indentation.
+BasedOnStyle: Mozilla
+IndentWidth: 4
+---
+Language: Cpp
+IndentCaseLabels: false
+AccessModifierOffset: -4
+AlignConsecutiveAssignments:
+  Enabled:         true
+  AcrossEmptyLines: true
+  AcrossComments:  true
+  AlignCompound:   true
+  AlignFunctionPointers: true
+AlignConsecutiveDeclarations:
+  Enabled:         true
+  AcrossEmptyLines: true
+  AcrossComments:  true
+ColumnLimit:     120
+SpaceBeforeCpp11BracedList: true
+BraceWrapping:
+  IndentBraces:    false
+BreakBeforeBraces: Allman
+Standard:        c++11
+BreakAfterReturnType: Automatic
+PointerAlignment: Left
+BreakBeforeBinaryOperators: None
+SpaceBeforeParens: ControlStatements
+BreakConstructorInitializers: BeforeComma
+---

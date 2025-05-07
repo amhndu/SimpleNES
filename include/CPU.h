@@ -7,72 +7,72 @@
 namespace sn
 {
 
-    class CPU: public IRQ
-    {
-        public:
+class CPU : public IRQ
+{
+public:
+    CPU(MainBus& mem);
 
-            CPU(MainBus &mem);
+    void    step();
+    void    reset();
+    void    reset(Address start_addr);
+    void    log();
 
-            void step();
-            void reset();
-            void reset(Address start_addr);
-            void log();
+    Address getPC() { return r_PC; }
+    void    skipDMACycles();
 
-            Address getPC() { return r_PC; }
-            void skipDMACycles();
+    void    nmiInterrupt();
+    void    pullIRQ() override;
+    void    releaseIRQ() override;
 
-            void nmiInterrupt();
-            void pullIRQ() override;
-            void releaseIRQ() override;
-        private:
-            void interruptSequence(InterruptType type);
+private:
+    void     interruptSequence(InterruptType type);
 
-            //Instructions are split into five sets to make decoding easier.
-            //These functions return true if they succeed
-            bool executeImplied(Byte opcode);
-            bool executeBranch(Byte opcode);
-            bool executeType0(Byte opcode);
-            bool executeType1(Byte opcode);
-            bool executeType2(Byte opcode);
+    // Instructions are split into five sets to make decoding easier.
+    // These functions return true if they succeed
+    bool     executeImplied(Byte opcode);
+    bool     executeBranch(Byte opcode);
+    bool     executeType0(Byte opcode);
+    bool     executeType1(Byte opcode);
+    bool     executeType2(Byte opcode);
 
-            Address readAddress(Address addr);
+    Address  readAddress(Address addr);
 
-            void pushStack(Byte value);
-            Byte pullStack();
+    void     pushStack(Byte value);
+    Byte     pullStack();
 
-            //If a and b are in different pages, increases the m_SkipCycles by 1
-            void skipPageCrossCycle(Address a, Address b);
-            void setZN(Byte value);
+    // If a and b are in different pages, increases the m_SkipCycles by 1
+    void     skipPageCrossCycle(Address a, Address b);
+    void     setZN(Byte value);
 
-            int m_skipCycles;
-            int m_cycles;
+    int      m_skipCycles;
+    int      m_cycles;
 
-            //Registers
-            Address r_PC;
-            Byte r_SP;
-            Byte r_A;
-            Byte r_X;
-            Byte r_Y;
+    // Registers
+    Address  r_PC;
+    Byte     r_SP;
+    Byte     r_A;
+    Byte     r_X;
+    Byte     r_Y;
 
-            //Status flags.
-            //Is storing them in one byte better ?
-            bool f_C;
-            bool f_Z;
-            bool f_I;
-            bool f_D;
-            bool f_V;
-            bool f_N;
+    // Status flags.
+    // Is storing them in one byte better ?
+    bool     f_C;
+    bool     f_Z;
+    bool     f_I;
+    bool     f_D;
+    bool     f_V;
+    bool     f_N;
 
-            bool m_pendingNMI;
+    bool     m_pendingNMI;
 
-            bool isPendingIRQ() const { return m_irqPulldowns > 0; };
+    bool     isPendingIRQ() const { return m_irqPulldowns > 0; };
 
-            // Incremented each time a source is pulling down the IRQ line (and decremented when it stops)
-            // If this is non-zero, the CPU will go into the interrupt sequence as long as it's not masked
-            int m_irqPulldowns = 0;
+    // Incremented each time a source is pulling down the IRQ line (and decremented when it stops)
+    // If this is non-zero, the CPU will go into the interrupt sequence as long as it's not masked
+    int      m_irqPulldowns = 0;
 
-            MainBus &m_bus;
-    };
+    MainBus& m_bus;
+};
 
 };
 #endif // CPU_H
