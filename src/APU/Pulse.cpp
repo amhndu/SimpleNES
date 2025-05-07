@@ -53,6 +53,15 @@ void LengthCounter::half_frame_clock()
         return;
     }
 
+    if (reload)
+    {
+        counter = reloadValue;
+        if (!control)
+        {
+            reload = false;
+        }
+    }
+
     if (counter == 0)
     {
         return;
@@ -155,15 +164,6 @@ void Pulse::reload_period()
     sweep_muted = sweep.is_muted(period, target);
 }
 
-void Pulse::set_frequency(double output_freq)
-{
-    // output_f = divider_freq / 8 = clock_freq / (8 * divider_p) = 1 / (8 * divider_p * clock_period)
-    // divider_p = 1 / (8 * clock_period * output_f)
-    auto period = 1.0 / (Duty::Length * apu_clock_period_s.count() * output_freq);
-    sequencer.reset(static_cast<int>(period));
-    LOG(sn::Info) << "pulse t: " << sequencer.get_period() << std::endl;
-}
-
 // Clocked at half the cpu freq
 void Pulse::clock()
 {
@@ -193,4 +193,40 @@ Byte Pulse::sample() const
 
     return volume.get();
 }
+
+/**** Triangle ****/
+
+void Triangle::reload_period()
+{
+    sequencer.reset(period);
+}
+
+// Clocked at half the cpu freq
+void Triangle::clock()
+{
+    if (sequencer.clock())
+    {
+        // NES counts downwards in sequencer
+        seq_idx = (seq_idx + 1) % 32;
+    }
+}
+
+Byte Triangle::sample() const
+{
+    if (length_counter.muted())
+    {
+        return 0;
+    }
+
+    return volume();
+}
+
+int Triangle::volume() const
+{
+    const int _sequences[] {
+        15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+    };
+    return _sequences[seq_idx];
+}
+
 }

@@ -24,7 +24,7 @@ public:
     const int std_sample_rate = ma_standard_sample_rate_44100;
 
     AudioPlayer()
-      : cb_data { audio_queue, 3 }
+      : cb_data { audio_queue, 1 }
     {
     }
     ~AudioPlayer();
@@ -32,7 +32,7 @@ public:
     bool                    start();
 
     // ONLY safe for 1 writer and 1 reader
-    spsc::RingBuffer<float> audio_queue { 2 * std_sample_rate };
+    spsc::RingBuffer<float> audio_queue { std_sample_rate / 4 };
 
 private:
     CallbackData     cb_data;

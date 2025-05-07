@@ -16,6 +16,7 @@ class APU
 public:
     Pulse        pulse1 { Pulse::Type::Pulse1 };
     Pulse        pulse2 { Pulse::Type::Pulse2 };
+    Triangle     triangle;
 
     FrameCounter frame_counter;
 
