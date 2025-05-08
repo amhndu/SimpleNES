@@ -38,7 +38,7 @@ void LengthCounter::set_linear(int new_value)
 
 void LengthCounter::set_from_table(std::size_t index)
 {
-    const int length_table[] = {
+    const static int length_table[] = {
         10, 254, 20, 2,  40, 4,  80, 6,  160, 8,  60, 10, 14, 12, 26, 14,
         12, 16,  24, 18, 48, 20, 96, 22, 192, 24, 72, 26, 16, 28, 32, 30,
     };
@@ -223,10 +223,49 @@ Byte Triangle::sample() const
 
 int Triangle::volume() const
 {
-    const int _sequences[] {
+    const static int sequence[] {
         15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
     };
-    return _sequences[seq_idx];
+    return sequence[seq_idx];
+}
+
+void Noise::set_period_from_table(int idx)
+{
+    const static int periods[] {
+        4, 8, 16, 32, 64, 96, 128, 160, 202, 254, 380, 508, 762, 1016, 2034, 4068,
+    };
+
+    divider.reset(periods[idx]);
+};
+
+void Noise::clock()
+{
+    if (!divider.clock())
+    {
+        return;
+    }
+
+    bool feedback_input1 = (shift_register & 0x2) ? mode == Bit1 : (shift_register & 0x40);
+    bool feedback_input2 = (shift_register & 0x1);
+
+    bool feedback        = feedback_input1 != feedback_input2;
+
+    shift_register       = shift_register >> 1 | (feedback << 14);
+};
+
+Byte Noise::sample() const
+{
+    if (length_counter.muted())
+    {
+        return 0;
+    }
+
+    if (shift_register & 0x1)
+    {
+        return 0;
+    }
+
+    return volume.get();
 }
 
 }
