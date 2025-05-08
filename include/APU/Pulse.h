@@ -142,12 +142,34 @@ struct Triangle
 
     void          reload_period();
 
-    // Clocked at half the cpu freq
+    // Clocked at the cpu freq
     void          clock();
 
     Byte          sample() const;
 
     int           volume() const;
+};
+
+struct Noise
+{
+    Volume        volume;
+    LengthCounter length_counter;
+    Divider       divider { 0 };
+
+    enum Mode : bool
+    {
+        Bit1 = 0,
+        BIt6 = 1,
+    } mode              = Bit1;
+    int  period         = 0;
+    int  shift_register = 1;
+
+    void set_period_from_table(int idx);
+
+    // Clocked at the cpu freq
+    void clock();
+
+    Byte sample() const;
 };
 
 }
