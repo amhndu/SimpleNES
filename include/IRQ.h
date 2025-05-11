@@ -3,7 +3,7 @@
 namespace sn
 {
 
-class Irq
+class IRQHandle
 {
 public:
     virtual void pull()    = 0;

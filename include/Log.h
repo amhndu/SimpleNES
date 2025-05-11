@@ -23,6 +23,8 @@
     else                                                                                                               \
         sn::Log::get().getCpuTraceStream()
 
+#define VAR_PRINT(x) " \033[0;31m" << #x << "\033[0m=" << x
+
 namespace sn
 {
 inline std::ostream& log_timestamp(std::ostream& out)

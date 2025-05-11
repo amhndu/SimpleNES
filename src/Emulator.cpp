@@ -11,8 +11,8 @@ using std::chrono::high_resolution_clock;
 Emulator::Emulator()
   : m_cpu(m_bus)
   , m_ppu(m_pictureBus, m_emulatorScreen)
-  , m_apu(m_audioPlayer, m_cpu.createIRQHandler())
-  , m_bus(m_ppu, m_apu, m_controller1, m_controller2, [&](Byte b) { DMA(b); })
+  , m_apu(m_audioPlayer, m_cpu.createIRQHandler(), [&](Address addr) { return DMCDMA(addr); })
+  , m_bus(m_ppu, m_apu, m_controller1, m_controller2, [&](Byte b) { OAMDMA(b); })
   , m_screenScale(3.f)
   , m_lastWakeup()
 {
@@ -145,9 +145,9 @@ void Emulator::run(std::string rom_path)
     }
 }
 
-void Emulator::DMA(Byte page)
+void Emulator::OAMDMA(Byte page)
 {
-    m_cpu.skipDMACycles();
+    m_cpu.skipOAMDMACycles();
     auto page_ptr = m_bus.getPagePtr(page);
     if (page_ptr != nullptr)
     {
@@ -158,6 +158,12 @@ void Emulator::DMA(Byte page)
         LOG(Error) << "Can't get pageptr for DMA" << std::endl;
     }
 }
+
+Byte Emulator::DMCDMA(Address addr)
+{
+    m_cpu.skipDMCDMACycles();
+    return m_bus.read(addr);
+};
 
 void Emulator::setVideoHeight(int height)
 {

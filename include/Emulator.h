@@ -14,6 +14,7 @@
 namespace sn
 {
 using TimePoint          = std::chrono::high_resolution_clock::time_point;
+using Duration           = std::chrono::high_resolution_clock::duration;
 
 const int NESVideoWidth  = ScanlineVisibleDots;
 const int NESVideoHeight = VisibleScanlines;
@@ -29,29 +30,30 @@ public:
     void setKeys(std::vector<sf::Keyboard::Key>& p1, std::vector<sf::Keyboard::Key>& p2);
 
 private:
-    void                                         DMA(Byte page);
+    void                    OAMDMA(Byte page);
+    Byte                    DMCDMA(Address addr);
 
-    CPU                                          m_cpu;
+    CPU                     m_cpu;
 
-    AudioPlayer                                  m_audioPlayer;
+    AudioPlayer             m_audioPlayer;
 
-    PictureBus                                   m_pictureBus;
-    PPU                                          m_ppu;
-    APU                                          m_apu;
-    Cartridge                                    m_cartridge;
-    std::unique_ptr<Mapper>                      m_mapper;
+    PictureBus              m_pictureBus;
+    PPU                     m_ppu;
+    APU                     m_apu;
+    Cartridge               m_cartridge;
+    std::unique_ptr<Mapper> m_mapper;
 
-    Controller                                   m_controller1, m_controller2;
+    Controller              m_controller1, m_controller2;
 
-    MainBus                                      m_bus;
+    MainBus                 m_bus;
 
-    sf::RenderWindow                             m_window;
-    VirtualScreen                                m_emulatorScreen;
-    float                                        m_screenScale;
+    sf::RenderWindow        m_window;
+    VirtualScreen           m_emulatorScreen;
+    float                   m_screenScale;
 
-    TimePoint                                    m_lastWakeup;
+    TimePoint               m_lastWakeup;
 
-    std::chrono::high_resolution_clock::duration m_elapsedTime;
+    Duration                m_elapsedTime;
 };
 }
 #endif // EMULATOR_H

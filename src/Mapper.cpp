@@ -17,7 +17,7 @@ NameTableMirroring Mapper::getNameTableMirroring()
 
 std::unique_ptr<Mapper> Mapper::createMapper(Mapper::Type              mapper_t,
                                              sn::Cartridge&            cart,
-                                             Irq&                      irq,
+                                             IRQHandle&                irq,
                                              std::function<void(void)> mirroring_cb)
 {
     std::unique_ptr<Mapper> ret(nullptr);

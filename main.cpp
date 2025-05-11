@@ -18,7 +18,7 @@ int main(int argc, char** argv)
     else
         sn::Log::get().setLogStream(std::cout);
 
-    sn::Log::get().setLevel(sn::InfoVerbose); // FIXME use Info
+    sn::Log::get().setLevel(sn::InfoVerbose);
 
     std::string                    path;
     std::string                    keybindingsPath = "keybindings.conf";

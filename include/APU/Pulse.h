@@ -1,11 +1,14 @@
 #pragma once
 
 #include <cstddef>
+#include <functional>
+#include <optional>
 
 #include "APU/Constants.h"
 #include "APU/Divider.h"
 #include "APU/FrameCounter.h"
 #include "Cartridge.h"
+#include "IRQ.h"
 
 namespace sn
 {
@@ -16,22 +19,26 @@ struct LengthCounter : public FrameClockable
     void set_enable(bool new_value);
     bool is_enabled() const { return enabled; }
 
-    void set_linear(int new_value);
     void set_from_table(std::size_t index);
     void half_frame_clock() override;
     bool muted() const;
 
-    // only used in length counter
-    bool halt        = false;
+    bool halt    = false;
 
-    // only used in linear counter mode
+    bool enabled = false;
+    int  counter = 0;
+};
+
+struct LinearCounter : public FrameClockable
+{
+    void set_linear(int new_value);
+    void quarter_frame_clock() override;
+
     bool reload      = false;
     int  reloadValue = 0;
     bool control     = true;
 
-private:
-    bool enabled = false;
-    int  counter = 0;
+    int  counter     = 0;
 };
 
 struct Volume : public FrameClockable
@@ -77,8 +84,6 @@ struct Pulse
     Volume        volume;
     LengthCounter length_counter;
 
-    bool          sweep_muted = false;
-
     uint          seq_idx { 0 };
     Duty::Type    seq_type { Duty::Type::SEQ_50 };
     Divider       sequencer { 0 };
@@ -86,8 +91,8 @@ struct Pulse
 
     enum class Type
     {
-        Pulse1,
-        Pulse2,
+        Pulse1 = 1,
+        Pulse2 = 2,
     } type;
 
     Pulse(Type type)
@@ -123,7 +128,7 @@ struct Pulse
 
     } sweep;
 
-    void reload_period();
+    void set_period(int p);
 
     // Clocked at half the cpu freq
     void clock();
@@ -134,13 +139,13 @@ struct Pulse
 struct Triangle
 {
     LengthCounter length_counter;
-    LengthCounter linear_counter;
+    LinearCounter linear_counter;
 
     uint          seq_idx { 0 };
     Divider       sequencer { 0 };
     int           period = 0;
 
-    void          reload_period();
+    void          set_period(int p);
 
     // Clocked at the cpu freq
     void          clock();
@@ -170,6 +175,52 @@ struct Noise
     void clock();
 
     Byte sample() const;
+};
+
+struct DMC
+{
+    bool    irqEnable      = false;
+    bool    loop           = false;
+
+    Byte    volume         = 0;
+
+    bool    change_enabled = false;
+    Divider change_rate { 0 };
+
+    Address sample_begin   = 0;
+    int     sample_length  = 0;
+    int     sample_idx     = 0;
+
+    Byte    sample_buffer  = 0;
+    bool    sample_empty   = false;
+
+    int     shifter        = 0;
+    int     remaining_bits = 0;
+    bool    silenced       = false;
+
+    bool    interrupt      = false;
+
+    void    set_irq_enable(bool enable);
+    void    set_rate(int idx);
+    void    set_change_enable(bool enable);
+    void    clear_interrupt();
+
+    DMC(IRQHandle& irq, std::function<Byte(Address)> dma)
+      : irq(irq)
+      , dma(dma)
+    {
+    }
+
+    // Clocked at the cpu freq
+    void clock();
+
+    Byte sample() const;
+
+private:
+    void                         load_sample();
+    bool                         pop_delta();
+    IRQHandle&                   irq;
+    std::function<Byte(Address)> dma;
 };
 
 }
