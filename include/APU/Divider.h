@@ -23,7 +23,7 @@ public:
         return false;
     }
 
-    void reset(int p) { counter = period = p; }
+    void set_period(int p) { period = p; }
 
     void reset() { counter = period; }
 

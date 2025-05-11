@@ -31,7 +31,7 @@ void CPU::nmiInterrupt()
     m_pendingNMI = true;
 }
 
-Irq& CPU::createIRQHandler()
+IRQHandle& CPU::createIRQHandler()
 {
     int bit = 1 << m_irqHandlers.size();
     m_irqHandlers.emplace_back(IRQHandler { bit, *this });
@@ -111,10 +111,16 @@ void CPU::skipPageCrossCycle(Address a, Address b)
         m_skipCycles += 1;
 }
 
-void CPU::skipDMACycles()
+void CPU::skipOAMDMACycles()
 {
     m_skipCycles += 513;            // 256 read + 256 write + 1 dummy read
     m_skipCycles += (m_cycles & 1); //+1 if on odd cycle
+}
+
+void CPU::skipDMCDMACycles()
+{
+    // Cycles to skip depends on alignment and what not, but we keep it simple and just wait 3 on average
+    m_skipCycles += 3;
 }
 
 void CPU::step()

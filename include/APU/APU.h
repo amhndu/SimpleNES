@@ -18,12 +18,14 @@ public:
     Pulse        pulse2 { Pulse::Type::Pulse2 };
     Triangle     triangle;
     Noise        noise;
+    DMC          dmc;
 
     FrameCounter frame_counter;
 
 public:
-    APU(AudioPlayer& player, Irq& irq)
-      : frame_counter(setup_frame_counter(irq))
+    APU(AudioPlayer& player, IRQHandle& irq, std::function<Byte(Address)> dmcDma)
+      : dmc(irq, dmcDma)
+      , frame_counter(setup_frame_counter(irq))
       , audio_queue(player.audio_queue)
       , sampling_timer(nanoseconds(int64_t(1e9) / int64_t(player.std_sample_rate)))
     {
@@ -37,8 +39,8 @@ public:
     Byte readStatus();
 
 private:
-    FrameCounter             setup_frame_counter(Irq& irq);
-    bool                     halfDivider = false;
+    FrameCounter             setup_frame_counter(IRQHandle& irq);
+    bool                     divideByTwo = false;
 
     spsc::RingBuffer<float>& audio_queue;
     Timer                    sampling_timer;

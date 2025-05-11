@@ -9,7 +9,7 @@ namespace sn
 {
 
 class CPU;
-class IRQHandler : public Irq
+class IRQHandler : public IRQHandle
 {
     int  bit;
     CPU& cpu;
@@ -31,18 +31,19 @@ class CPU
 public:
     CPU(MainBus& mem);
 
-    void    step();
-    void    reset();
-    void    reset(Address start_addr);
-    void    log();
+    void       step();
+    void       reset();
+    void       reset(Address start_addr);
+    void       log();
 
-    Address getPC() { return r_PC; }
-    void    skipDMACycles();
+    Address    getPC() { return r_PC; }
+    void       skipOAMDMACycles();
+    void       skipDMCDMACycles();
 
-    void    nmiInterrupt();
+    void       nmiInterrupt();
 
-    Irq&    createIRQHandler();
-    void    setIRQPulldown(int bit, bool state);
+    IRQHandle& createIRQHandler();
+    void       setIRQPulldown(int bit, bool state);
 
 private:
     void                  interruptSequence(InterruptType type);

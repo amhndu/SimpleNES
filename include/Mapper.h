@@ -49,7 +49,7 @@ public:
 
     static std::unique_ptr<Mapper> createMapper(Type                      mapper_t,
                                                 Cartridge&                cart,
-                                                Irq&                      irq,
+                                                IRQHandle&                irq,
                                                 std::function<void(void)> mirroring_cb);
 
 protected:

@@ -9,7 +9,7 @@ namespace sn
 class MapperMMC3 : public Mapper
 {
 public:
-    MapperMMC3(Cartridge& cart, Irq& irq, std::function<void(void)> mirroring_cb);
+    MapperMMC3(Cartridge& cart, IRQHandle& irq, std::function<void(void)> mirroring_cb);
 
     Byte               readPRG(Address addr);
     void               writePRG(Address addr, Byte value);
@@ -44,7 +44,7 @@ private:
 
     NameTableMirroring        m_mirroring;
     std::function<void(void)> m_mirroringCallback;
-    Irq&                      m_irq;
+    IRQHandle&                m_irq;
 };
 
 } // namespace sn

@@ -33,14 +33,14 @@ struct FrameCounter
     {
         Seq4Step = 0,
         Seq5Step = 1,
-    } mode                 = Seq4Step;
-    int  counter           = 0;
-    bool interrupt_inhibit = false;
+    } mode                       = Seq4Step;
+    int        counter           = 0;
+    bool       interrupt_inhibit = false;
 
-    Irq& irq;
-    bool frame_interrupt = false;
+    IRQHandle& irq;
+    bool       frame_interrupt = false;
 
-    FrameCounter(std::vector<std::reference_wrapper<FrameClockable>> slots, Irq& irq)
+    FrameCounter(std::vector<std::reference_wrapper<FrameClockable>> slots, IRQHandle& irq)
       : frame_slots(slots)
       , irq(irq)
     {

@@ -1,11 +1,9 @@
-#include "APU/spsc.hpp"
+#include "APU/Constants.h"
 #include "Cartridge.h"
 #include "Log.h"
-#include "miniaudio.h"
 
 #include "APU/Divider.h"
 #include "APU/Pulse.h"
-#include "APU/Timer.h"
 #include <SFML/Audio/SoundStream.hpp>
 #include <SFML/Config.hpp>
 #include <SFML/System/Time.hpp>
@@ -26,16 +24,6 @@ void LengthCounter::set_enable(bool new_value)
     }
 }
 
-void LengthCounter::set_linear(int new_value)
-{
-    if (!enabled)
-    {
-        return;
-    }
-
-    counter = new_value;
-}
-
 void LengthCounter::set_from_table(std::size_t index)
 {
     const static int length_table[] = {
@@ -43,7 +31,12 @@ void LengthCounter::set_from_table(std::size_t index)
         12, 16,  24, 18, 48, 20, 96, 22, 192, 24, 72, 26, 16, 28, 32, 30,
     };
 
-    set_linear(length_table[index]);
+    if (!enabled)
+    {
+        return;
+    }
+
+    counter = length_table[index];
 }
 
 void LengthCounter::half_frame_clock()
@@ -51,15 +44,6 @@ void LengthCounter::half_frame_clock()
     if (halt)
     {
         return;
-    }
-
-    if (reload)
-    {
-        counter = reloadValue;
-        if (!control)
-        {
-            reload = false;
-        }
     }
 
     if (counter == 0)
@@ -83,7 +67,7 @@ void Volume::quarter_frame_clock()
     {
         shouldStart = false;
         decayVolume = max_volume;
-        divider.reset(fixedVolumeOrPeriod);
+        divider.set_period(fixedVolumeOrPeriod);
         return;
     }
 
@@ -118,7 +102,7 @@ void Pulse::Sweep::half_frame_clock()
 {
     if (reload)
     {
-        divider.reset(period);
+        divider.set_period(period);
         reload = false;
         return;
     }
@@ -130,14 +114,14 @@ void Pulse::Sweep::half_frame_clock()
 
     if (enabled && shift > 0)
     {
-        if (!pulse.sweep_muted)
+        int current = pulse.period;
+        int target  = calculate_target(current);
+        if (!is_muted(pulse.period, target))
         {
-            const auto current = pulse.sequencer.get_period();
-            pulse.period       = calculate_target(current);
-            pulse.reload_period();
+            pulse.set_period(target);
         }
     }
-};
+}
 
 int Pulse::Sweep::calculate_target(int current) const
 {
@@ -157,11 +141,19 @@ int Pulse::Sweep::calculate_target(int current) const
 
 /***** Pulse *****/
 
-void Pulse::reload_period()
+int calc_note_freq(int period, int seq_length, nanoseconds clock_period)
 {
-    sequencer.reset(period);
-    auto target = sweep.calculate_target(period);
-    sweep_muted = sweep.is_muted(period, target);
+    return 1e9 / ((float)clock_period.count() * period * seq_length);
+}
+
+void Pulse::set_period(int p)
+{
+    period = p;
+    sequencer.set_period(period);
+
+    auto note_freq = calc_note_freq(period, 8, apu_clock_period_ns);
+    LOG(InfoVerbose) << "PULSE RELEAD" << (int)type << VAR_PRINT(period) << std::hex << VAR_PRINT(note_freq) << std::dec
+                     << std::endl;
 }
 
 // Clocked at half the cpu freq
@@ -181,7 +173,8 @@ Byte Pulse::sample() const
         return 0;
     }
 
-    if (sweep_muted)
+    // TODO: cache the target to avoid recalculation?
+    if (sweep.is_muted(period, sweep.calculate_target(period)))
     {
         return 0;
     }
@@ -194,19 +187,53 @@ Byte Pulse::sample() const
     return volume.get();
 }
 
-/**** Triangle ****/
-
-void Triangle::reload_period()
+/***** LengthCounter ****/
+void LinearCounter::set_linear(int new_value)
 {
-    sequencer.reset(period);
+    counter = new_value;
 }
 
-// Clocked at half the cpu freq
+void LinearCounter::quarter_frame_clock()
+{
+    if (reload)
+    {
+        counter = reloadValue;
+        if (!control)
+        {
+            reload = false;
+        }
+    }
+
+    if (counter == 0)
+    {
+        return;
+    }
+
+    --counter;
+}
+
+/**** Triangle ****/
+
+void Triangle::set_period(int p)
+{
+    period = p;
+    sequencer.set_period(p);
+
+    auto note_freq = calc_note_freq(period, 32, cpu_clock_period_ns);
+    LOG(InfoVerbose) << "TRIANGLE RELEAD" << VAR_PRINT(period) << std::hex << VAR_PRINT(note_freq) << std::dec
+                     << std::endl;
+}
+
+// Clocked at the cpu freq
 void Triangle::clock()
 {
+    if (linear_counter.counter == 0 || length_counter.counter == 0)
+    {
+        return;
+    }
+
     if (sequencer.clock())
     {
-        // NES counts downwards in sequencer
         seq_idx = (seq_idx + 1) % 32;
     }
 }
@@ -218,15 +245,32 @@ Byte Triangle::sample() const
         return 0;
     }
 
+    if (linear_counter.counter == 0)
+    {
+        return 0;
+    }
+
     return volume();
 }
 
 int Triangle::volume() const
 {
-    const static int sequence[] {
-        15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
-    };
-    return sequence[seq_idx];
+    // const static int sequence[] {
+    //     // clang-format off
+    //     15, 14, 13, 12, 11, 10, 9, 8, 7, 6,  5,  4,  3,  2,  1,  0,
+    //     0,   1,  2,  3,  4,  5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+    //     // clang-format on
+    // };
+    // return sequence[seq_idx];
+
+    if (seq_idx < 16)
+    {
+        return 15 - seq_idx;
+    }
+    else
+    {
+        return seq_idx - 16;
+    }
 }
 
 void Noise::set_period_from_table(int idx)
@@ -235,8 +279,8 @@ void Noise::set_period_from_table(int idx)
         4, 8, 16, 32, 64, 96, 128, 160, 202, 254, 380, 508, 762, 1016, 2034, 4068,
     };
 
-    divider.reset(periods[idx]);
-};
+    divider.set_period(periods[idx]);
+}
 
 void Noise::clock()
 {
@@ -251,7 +295,7 @@ void Noise::clock()
     bool feedback        = feedback_input1 != feedback_input2;
 
     shift_register       = shift_register >> 1 | (feedback << 14);
-};
+}
 
 Byte Noise::sample() const
 {
@@ -266,6 +310,134 @@ Byte Noise::sample() const
     }
 
     return volume.get();
+}
+
+/**** DMC ****/
+void DMC::set_irq_enable(bool enable)
+{
+    irqEnable = enable;
+    if (!irqEnable)
+    {
+        interrupt = false;
+        irq.release();
+    }
+}
+
+void DMC::set_change_enable(bool enable)
+{
+    change_enabled = enable;
+    if (change_enabled && remaining_bits == 0)
+    {
+        sample_empty = true;
+        load_sample();
+    }
+}
+
+void DMC::set_rate(int idx)
+{
+    const static int rate[] { 428, 380, 340, 320, 286, 254, 226, 214, 190, 160, 142, 128, 106, 84, 72, 54 };
+
+    change_rate.set_period(rate[idx]);
+    change_rate.reset();
+}
+
+void DMC::clear_interrupt()
+{
+    irq.release();
+    interrupt = false;
+}
+
+Byte DMC::sample() const
+{
+    if (silenced)
+    {
+        return 0;
+    }
+
+    return volume;
+}
+
+void DMC::load_sample()
+{
+    if (!sample_empty)
+    {
+        return;
+    }
+
+    if (sample_idx >= sample_length)
+    {
+        if (!loop)
+        {
+            if (irqEnable)
+            {
+                interrupt = true;
+                irq.pull();
+            }
+            return;
+        }
+
+        sample_idx = 0;
+    }
+
+    auto addr = sample_begin + sample_idx;
+    if (addr > 0xfff)
+    {
+        addr = 0x8000 + (addr - 0x10000);
+    }
+    sample_buffer = dma(addr);
+    ++sample_idx;
+    sample_empty = false;
+}
+
+bool DMC::pop_delta()
+{
+    if (remaining_bits == 0)
+    {
+        load_sample();
+        remaining_bits = 8;
+        if (sample_empty)
+        {
+            silenced = true;
+        }
+        else
+        {
+            shifter      = sample_buffer;
+            sample_empty = true;
+        }
+    }
+
+    bool rv   = shifter & 0x1;
+    shifter >>= 1;
+    --remaining_bits;
+    return rv;
+}
+
+void DMC::clock()
+{
+    if (!change_enabled)
+    {
+        return;
+    }
+
+    if (!change_rate.clock())
+    {
+        return;
+    }
+
+    bool delta = pop_delta();
+    if (silenced)
+    {
+        return;
+    }
+
+    if (delta && volume < 125)
+    {
+        volume += 2;
+    }
+    else if (!delta && volume >= 2)
+    {
+        volume -= 1;
+    }
 }
 
 }

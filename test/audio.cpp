@@ -225,6 +225,7 @@ struct Pulse
     bool              enabled     = false;
     bool              sweep_muted = false;
 
+    int               period      = 0;
     uint              seq_idx { 0 };
     Duty::Type        seq_type { Duty::Type::SEQ_50 };
     Divider           sequencer { 0 };
@@ -265,7 +266,8 @@ struct Pulse
                 {
                     const auto current = pulse.sequencer.get_period();
                     auto       target  = calculate_target(current);
-                    pulse.set_period(target);
+                    pulse.period       = target;
+                    pulse.reload_period();
                 }
             }
         };
@@ -295,17 +297,11 @@ struct Pulse
     {
     }
 
-    void set_period(int period)
+    void reload_period()
     {
         sequencer.reset(period);
         auto target = sweep.calculate_target(period);
-        if (sweep.is_muted(period, target))
-        {
-        }
-        else
-        {
-            sweep_muted = true;
-        }
+        sweep_muted = sweep.is_muted(period, target);
     }
 
     void set_frequency(double output_freq)
@@ -504,11 +500,16 @@ void audio_generator(spsc::RingBuffer<float>& audio_queue)
     Timer apu_clock { apu_clock_period_ns };
 
     APU   apu;
-    apu.pulser.set_frequency(82.41);
-    apu.pulser.envelope.constantVolume      = false;
-    apu.pulser.envelope.isLooping           = true;
-    apu.pulser.envelope.shouldStart         = true;
-    apu.pulser.envelope.fixedVolumeOrPeriod = 1;
+    // apu.pulser.envelope.constantVolume      = false;
+    // apu.pulser.envelope.isLooping           = true;
+    // apu.pulser.envelope.shouldStart         = true;
+    // apu.pulser.envelope.fixedVolumeOrPeriod = 1;
+    apu.pulser.period = 768;
+    apu.pulser.reload_period();
+    apu.pulser.envelope.constantVolume      = true;
+    apu.pulser.envelope.fixedVolumeOrPeriod = 4;
+    apu.pulser.envelope.isLooping           = false;
+    apu.pulser.envelope.shouldStart         = false;
 
     Mixer mixer { apu.pulser, audio_queue };
 

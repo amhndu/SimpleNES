@@ -3,7 +3,7 @@
 
 namespace sn
 {
-MapperMMC3::MapperMMC3(Cartridge& cart, Irq& irq, std::function<void(void)> mirroring_cb)
+MapperMMC3::MapperMMC3(Cartridge& cart, IRQHandle& irq, std::function<void(void)> mirroring_cb)
   : Mapper(cart, Mapper::MMC3)
   , m_targetRegister(0)
   , m_prgBankMode(false)
