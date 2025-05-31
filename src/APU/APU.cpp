@@ -56,9 +56,10 @@ void APU::step()
     frame_counter.clock();
 
     noise.clock();
+    dmc.clock();
+    triangle.clock();
     if (divideByTwo)
     {
-        triangle.clock();
         pulse1.clock();
         pulse2.clock();
     }
@@ -71,18 +72,19 @@ void APU::step()
         float pulse_out = 0;
         if (pulse1out + pulse2out != 0)
         {
-            pulse_out = 95.88 / ((8128 / (pulse1out + pulse2out)) + 100);
+            pulse_out = 95.88 / ((8128.0 / (pulse1out + pulse2out)) + 100.0);
         }
 
         float tnd_out     = 0;
         float triangleout = static_cast<float>(triangle.sample());
         float noiseout    = static_cast<float>(noise.sample());
         float dmcout      = static_cast<float>(dmc.sample());
+
         if (triangleout + noiseout + dmcout != 0)
         {
-            tnd_out = 159.79 / ((1. / (triangleout / 8227.) + (noiseout / 12241.) + (dmcout / 22638)) + 100);
+            float tnd_sum = (triangleout / 8227.0) + (noiseout / 12241.0) + (dmcout / 22638.0);
+            tnd_out       = 159.79 / (1.0 / tnd_sum + 100.0);
         }
-
         float final = pulse_out + tnd_out;
 
         audio_queue.push(final);
@@ -119,7 +121,7 @@ void APU::writeRegister(Address addr, Byte value)
     case APU_SQ1_LO:
     {
         int new_period = (pulse1.period & 0xff00) | value;
-        LOG(InfoVerbose) << "APU_SQ1_LO " << std::hex << +value << std::dec << std::endl;
+        LOG(CpuTrace) << "APU_SQ1_LO " << std::hex << +value << std::dec << std::endl;
         pulse1.set_period(new_period);
         break;
     }
@@ -131,8 +133,8 @@ void APU::writeRegister(Address addr, Byte value)
         pulse1.seq_idx = 0;
         pulse1.volume.divider.reset();
         pulse1.set_period(new_period);
-        LOG(InfoVerbose) << "APU_SQ1_HI " << std::hex << +value << std::dec << VAR_PRINT(pulse1.period)
-                         << VAR_PRINT(pulse1.seq_idx) << VAR_PRINT(pulse1.length_counter.counter) << std::endl;
+        LOG(CpuTrace) << "APU_SQ1_HI " << std::hex << +value << std::dec << VAR_PRINT(pulse1.period)
+                      << VAR_PRINT(pulse1.seq_idx) << VAR_PRINT(pulse1.length_counter.counter) << std::endl;
         break;
     }
 
@@ -241,19 +243,17 @@ void APU::writeRegister(Address addr, Byte value)
 
     case APU_DMC_RAW:
         dmc.volume = value & 0x7f;
-        LOG(CpuTrace) << "APU_DMC_RAW" << +dmc.volume << std::endl;
+        LOG(CpuTrace) << "APU_DMC_RAW" << VAR_PRINT(+dmc.volume) << std::endl;
         break;
 
     case APU_DMC_START:
-        dmc.sample_begin = 0xc000 + (value << 6);
-        dmc.sample_idx   = 0;
-        LOG(CpuTrace) << "APU_DMC_START" << dmc.sample_begin << std::endl;
+        dmc.sample_begin = 0xc000 | (value << 6);
+        LOG(CpuTrace) << "APU_DMC_START" << VAR_PRINT(dmc.sample_begin) << std::endl;
         break;
 
     case APU_DMC_LEN:
-        dmc.sample_length = (value << 4) + 1;
-        dmc.sample_idx    = 0;
-        LOG(CpuTrace) << "APU_DMC_LEN" << dmc.sample_length << std::endl;
+        dmc.sample_length = (value << 4) | 1;
+        LOG(CpuTrace) << "APU_DMC_LEN" << VAR_PRINT(dmc.sample_length) << std::endl;
         break;
 
     case APU_CONTROL:
@@ -261,7 +261,7 @@ void APU::writeRegister(Address addr, Byte value)
         pulse2.length_counter.set_enable(value & 0x2);
         triangle.length_counter.set_enable(value & 0x4);
         noise.length_counter.set_enable(value & 0x8);
-        dmc.set_change_enable(value & 0x16);
+        dmc.control(value & 0x16);
         LOG(CpuTrace) << "APU_CONTROL" << std::boolalpha << VAR_PRINT(pulse1.length_counter.is_enabled())
                       << VAR_PRINT(pulse2.length_counter.is_enabled())
                       << VAR_PRINT(triangle.length_counter.is_enabled()) << VAR_PRINT(noise.length_counter.is_enabled())
@@ -284,7 +284,7 @@ Byte APU::readStatus()
     LOG(CpuTrace) << "APU_STATUS" << std::endl;
     return (pulse1.length_counter.is_enabled() << 0 | pulse2.length_counter.is_enabled() << 1 |
             triangle.length_counter.is_enabled() << 2 | noise.length_counter.is_enabled() << 3 |
-            last_frame_interrupt << 6 | dmc_interrupt << 7);
+            (dmc.remaining_bytes > 0) << 4 | last_frame_interrupt << 6 | dmc_interrupt << 7);
 }
 
 FrameCounter APU::setup_frame_counter(IRQHandle& irq)
