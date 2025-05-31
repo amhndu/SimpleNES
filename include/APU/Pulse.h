@@ -182,27 +182,28 @@ struct DMC
     bool    irqEnable      = false;
     bool    loop           = false;
 
-    Byte    volume         = 0;
+    int     volume         = 0;
 
     bool    change_enabled = false;
     Divider change_rate { 0 };
 
-    Address sample_begin   = 0;
-    int     sample_length  = 0;
-    int     sample_idx     = 0;
+    Address sample_begin    = 0;
+    int     sample_length   = 0;
 
-    Byte    sample_buffer  = 0;
-    bool    sample_empty   = false;
+    int     remaining_bytes = 0;
+    Address current_address = 0;
 
-    int     shifter        = 0;
-    int     remaining_bits = 0;
-    bool    silenced       = false;
+    Byte    sample_buffer   = 0;
 
-    bool    interrupt      = false;
+    int     shifter         = 0;
+    int     remaining_bits  = 0;
+    bool    silenced        = false;
+
+    bool    interrupt       = false;
 
     void    set_irq_enable(bool enable);
     void    set_rate(int idx);
-    void    set_change_enable(bool enable);
+    void    control(bool enable);
     void    clear_interrupt();
 
     DMC(IRQHandle& irq, std::function<Byte(Address)> dma)
@@ -217,8 +218,9 @@ struct DMC
     Byte sample() const;
 
 private:
-    void                         load_sample();
-    bool                         pop_delta();
+    // Load sample and return if it was succesfully loaded
+    bool                         load_sample();
+    int                          pop_delta();
     IRQHandle&                   irq;
     std::function<Byte(Address)> dma;
 };

@@ -152,8 +152,8 @@ void Pulse::set_period(int p)
     sequencer.set_period(period);
 
     auto note_freq = calc_note_freq(period, 8, apu_clock_period_ns);
-    LOG(InfoVerbose) << "PULSE RELEAD" << (int)type << VAR_PRINT(period) << std::hex << VAR_PRINT(note_freq) << std::dec
-                     << std::endl;
+    LOG(CpuTrace) << "PULSE RELEAD" << (int)type << VAR_PRINT(period) << std::hex << VAR_PRINT(note_freq) << std::dec
+                  << std::endl;
 }
 
 // Clocked at half the cpu freq
@@ -220,8 +220,8 @@ void Triangle::set_period(int p)
     sequencer.set_period(p);
 
     auto note_freq = calc_note_freq(period, 32, cpu_clock_period_ns);
-    LOG(InfoVerbose) << "TRIANGLE RELEAD" << VAR_PRINT(period) << std::hex << VAR_PRINT(note_freq) << std::dec
-                     << std::endl;
+    LOG(CpuTrace) << "TRIANGLE RELEAD" << VAR_PRINT(period) << std::hex << VAR_PRINT(note_freq) << std::dec
+                  << std::endl;
 }
 
 // Clocked at the cpu freq
@@ -323,13 +323,18 @@ void DMC::set_irq_enable(bool enable)
     }
 }
 
-void DMC::set_change_enable(bool enable)
+void DMC::control(bool enable)
 {
     change_enabled = enable;
-    if (change_enabled && remaining_bits == 0)
+    if (!enable)
     {
-        sample_empty = true;
-        load_sample();
+        remaining_bytes = 0;
+    }
+    else if (remaining_bytes == 0)
+    {
+        // restart
+        current_address = sample_begin;
+        remaining_bytes = sample_length;
     }
 }
 
@@ -349,67 +354,7 @@ void DMC::clear_interrupt()
 
 Byte DMC::sample() const
 {
-    if (silenced)
-    {
-        return 0;
-    }
-
     return volume;
-}
-
-void DMC::load_sample()
-{
-    if (!sample_empty)
-    {
-        return;
-    }
-
-    if (sample_idx >= sample_length)
-    {
-        if (!loop)
-        {
-            if (irqEnable)
-            {
-                interrupt = true;
-                irq.pull();
-            }
-            return;
-        }
-
-        sample_idx = 0;
-    }
-
-    auto addr = sample_begin + sample_idx;
-    if (addr > 0xfff)
-    {
-        addr = 0x8000 + (addr - 0x10000);
-    }
-    sample_buffer = dma(addr);
-    ++sample_idx;
-    sample_empty = false;
-}
-
-bool DMC::pop_delta()
-{
-    if (remaining_bits == 0)
-    {
-        load_sample();
-        remaining_bits = 8;
-        if (sample_empty)
-        {
-            silenced = true;
-        }
-        else
-        {
-            shifter      = sample_buffer;
-            sample_empty = true;
-        }
-    }
-
-    bool rv   = shifter & 0x1;
-    shifter >>= 1;
-    --remaining_bits;
-    return rv;
 }
 
 void DMC::clock()
@@ -424,20 +369,85 @@ void DMC::clock()
         return;
     }
 
-    bool delta = pop_delta();
+    int delta = pop_delta();
     if (silenced)
     {
         return;
     }
 
-    if (delta && volume < 125)
+    if (delta == 1 && volume <= 125)
     {
         volume += 2;
     }
-    else if (!delta && volume >= 2)
+    else if (delta == 0 && volume >= 2)
     {
-        volume -= 1;
+        volume -= 2;
     }
+
+    // LOG(InfoVerbose) << "APU_DMC_VOLUME_CHANGE" << std::dec << VAR_PRINT(volume) << VAR_PRINT(delta) << std::dec
+    //                  << VAR_PRINT(remaining_bytes) << std::endl;
+}
+
+int DMC::pop_delta()
+{
+    if (remaining_bits == 0)
+    {
+        remaining_bits = 8;
+
+        if (load_sample())
+        {
+            shifter  = sample_buffer;
+            silenced = false;
+        }
+        else
+        {
+            silenced = true;
+        }
+    }
+    else
+    {
+        --remaining_bits;
+    }
+
+    int rv    = shifter & 0x1;
+    shifter >>= 1;
+    return rv;
+}
+
+bool DMC::load_sample()
+{
+    if (remaining_bytes == 0)
+    {
+        if (!loop)
+        {
+            if (irqEnable)
+            {
+                interrupt = true;
+                irq.pull();
+            }
+
+            return false;
+        }
+
+        // LOG(InfoVerbose) << "APU_DMC_LOOP_RESTART" << std::endl;
+        current_address = sample_begin;
+        remaining_bytes = sample_length;
+    }
+    else
+    {
+        remaining_bytes -= 1;
+    }
+
+    // LOG(InfoVerbose) << "APU_DMC_DMA" << std::hex << VAR_PRINT(current_address) << VAR_PRINT(sample_begin)
+    //                  << VAR_PRINT(sample_begin + sample_length) << std::dec << std::endl;
+    sample_buffer    = dma(current_address);
+
+    current_address += 1;
+    if (current_address > 0xffff)
+    {
+        current_address = 0x8000 + (current_address - (0xffff + 1));
+    }
+    return true;
 }
 
 }
