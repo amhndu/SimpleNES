@@ -18,7 +18,7 @@ int main(int argc, char** argv)
     else
         sn::Log::get().setLogStream(std::cout);
 
-    sn::Log::get().setLevel(sn::InfoVerbose);
+    sn::Log::get().setLevel(sn::ApuTrace);
 
     std::string                    path;
     std::string                    keybindingsPath = "keybindings.conf";

@@ -41,6 +41,7 @@ enum Level
     Error,
     Info,
     InfoVerbose,
+    ApuTrace,
     CpuTrace
 };
 class Log
