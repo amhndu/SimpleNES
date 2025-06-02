@@ -28,6 +28,7 @@ public:
     void setVideoHeight(int height);
     void setVideoScale(float scale);
     void setKeys(std::vector<sf::Keyboard::Key>& p1, std::vector<sf::Keyboard::Key>& p2);
+    void muteAudio();
 
 private:
     void                    OAMDMA(Byte page);

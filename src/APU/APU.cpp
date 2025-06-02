@@ -1,8 +1,6 @@
 #include "APU/APU.h"
-#include "APU/Constants.h"
 #include "APU/FrameCounter.h"
 #include "APU/Pulse.h"
-#include "APU/Timer.h"
 #include "APU/spsc.hpp"
 #include "Cartridge.h"
 #include "Log.h"
@@ -10,7 +8,6 @@
 #include <SFML/Audio/SoundStream.hpp>
 #include <SFML/Config.hpp>
 #include <SFML/System/Time.hpp>
-#include <chrono>
 #include <ios>
 
 using namespace std::chrono;
@@ -49,6 +46,31 @@ enum Register
     APU_FRAME_CONTROL = 0x4017,
 };
 
+float mix(Byte pulse1, Byte pulse2, Byte triangle, Byte noise, Byte dmc)
+{
+    float pulse1out = static_cast<float>(pulse1); // 0-15
+    float pulse2out = static_cast<float>(pulse2); // 0-15
+
+    float pulse_out = 0;
+    if (pulse1out + pulse2out != 0)
+    {
+        pulse_out = 95.88 / ((8128.0 / (pulse1out + pulse2out)) + 100.0);
+    }
+
+    float tnd_out     = 0;
+    float triangleout = static_cast<float>(triangle); // 0-15
+    float noiseout    = static_cast<float>(noise);    // 0-15
+    float dmcout      = static_cast<float>(dmc);      // 0-127
+
+    if (triangleout + noiseout + dmcout != 0)
+    {
+        float tnd_sum = (triangleout / 8227.0) + (noiseout / 12241.0) + (dmcout / 22638.0);
+        tnd_out       = 159.79 / (1.0 / tnd_sum + 100.0);
+    }
+
+    return pulse_out + tnd_out;
+}
+
 void APU::step()
 {
     noise.clock();
@@ -59,36 +81,10 @@ void APU::step()
         frame_counter.clock();
         pulse1.clock();
         pulse2.clock();
+
+        audio_queue.push(mix(pulse1.sample(), pulse2.sample(), triangle.sample(), noise.sample(), dmc.sample()));
     }
     divideByTwo = !divideByTwo;
-
-    for (int clocks = sampling_timer.clock(cpu_clock_period_ns); clocks > 0; --clocks)
-    {
-        float pulse1out = static_cast<float>(pulse1.sample()); // 0-15
-        float pulse2out = static_cast<float>(pulse2.sample()); // 0-15
-
-        float pulse_out = 0;
-        if (pulse1out + pulse2out != 0)
-        {
-            pulse_out = 95.88 / ((8128.0 / (pulse1out + pulse2out)) + 100.0);
-        }
-
-        float tnd_out     = 0;
-        float triangleout = static_cast<float>(triangle.sample()); // 0-15
-        float noiseout    = static_cast<float>(noise.sample());    // 0-15
-        float dmcout      = static_cast<float>(dmc.sample());      // 0-127
-
-        if (triangleout + noiseout + dmcout != 0)
-        {
-            float tnd_sum = (triangleout / 8227.0) + (noiseout / 12241.0) + (dmcout / 22638.0);
-            tnd_out       = 159.79 / (1.0 / tnd_sum + 100.0);
-        }
-        float final = pulse_out + tnd_out;
-
-        // final       = dmcout / 128;
-        // final       = triangleout / 16.0;
-        audio_queue.push(final);
-    }
 }
 
 void APU::writeRegister(Address addr, Byte value)
@@ -106,21 +102,15 @@ void APU::writeRegister(Address addr, Byte value)
         break;
 
     case APU_SQ1_SWEEP:
-    {
-        int prev_enabled     = pulse1.sweep.enabled;
         pulse1.sweep.enabled = value & (1 << 7);
         pulse1.sweep.period  = (value >> 4) & 0x7;
         pulse1.sweep.negate  = value & (1 << 3);
         pulse1.sweep.shift   = value & 0x7;
         pulse1.sweep.reload  = true;
-        // if (pulse1.sweep.enabled != prev_enabled || value != 0x7f)
-        // {
         LOG(ApuTrace) << "APU_SQ1_SWEEP " << std::hex << +value << std::dec << std::boolalpha
                       << VAR_PRINT(pulse1.sweep.enabled) << VAR_PRINT(pulse1.sweep.period)
                       << VAR_PRINT(pulse1.sweep.negate) << +VAR_PRINT(+pulse1.sweep.shift) << std::endl;
-        // }
-    }
-    break;
+        break;
 
     case APU_SQ1_LO:
     {
@@ -266,11 +256,11 @@ void APU::writeRegister(Address addr, Byte value)
         triangle.length_counter.set_enable(value & 0x4);
         noise.length_counter.set_enable(value & 0x8);
         dmc.control(value & 0x10);
-        // LOG(CpuTrace) << "APU_CONTROL" << std::boolalpha << VAR_PRINT(pulse1.length_counter.is_enabled())
-        // << VAR_PRINT(pulse1.length_counter.counter) << VAR_PRINT(pulse2.length_counter.is_enabled())
-        // << VAR_PRINT(pulse1.length_counter.counter) << VAR_PRINT(triangle.length_counter.is_enabled())
-        // << VAR_PRINT(triangle.length_counter.counter) << VAR_PRINT(noise.length_counter.is_enabled())
-        // << VAR_PRINT(dmc.change_enabled) << std::endl;
+        LOG(CpuTrace) << "APU_CONTROL" << std::boolalpha << VAR_PRINT(pulse1.length_counter.is_enabled())
+                      << VAR_PRINT(pulse1.length_counter.counter) << VAR_PRINT(pulse2.length_counter.is_enabled())
+                      << VAR_PRINT(pulse1.length_counter.counter) << VAR_PRINT(triangle.length_counter.is_enabled())
+                      << VAR_PRINT(triangle.length_counter.counter) << VAR_PRINT(noise.length_counter.is_enabled())
+                      << VAR_PRINT(dmc.change_enabled) << std::endl;
         break;
 
     case APU_FRAME_CONTROL:
@@ -287,7 +277,7 @@ Byte APU::readStatus()
     frame_counter.clearFrameInterrupt();
     bool dmc_interrupt = dmc.interrupt;
     dmc.clear_interrupt();
-    // LOG(CpuTrace) << "APU_STATUS" << std::endl;
+    LOG(CpuTrace) << "APU_STATUS" << std::endl;
     return ((!pulse1.length_counter.muted()) << 0 | (!pulse2.length_counter.muted()) << 1 |
             (!triangle.length_counter.muted()) << 2 | (!noise.length_counter.muted()) << 3 |
             (!dmc.has_more_samples()) << 4 | last_frame_interrupt << 6 | dmc_interrupt << 7);

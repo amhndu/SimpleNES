@@ -18,7 +18,7 @@ int main(int argc, char** argv)
     else
         sn::Log::get().setLogStream(std::cout);
 
-    sn::Log::get().setLevel(sn::InfoVerbose);
+    sn::Log::get().setLevel(sn::Info);
 
     std::string                    path;
     std::string                    keybindingsPath = "keybindings.conf";
@@ -36,11 +36,12 @@ int main(int argc, char** argv)
         if (arg == "-h" || arg == "--help")
         {
             std::cout << "SimpleNES is a simple NES emulator.\n"
-                      << "It can run off .nes images.\n"
+                      << "It can run .nes images.\n"
                       << "Set keybindings with keybindings.conf\n\n"
                       << "Usage: SimpleNES [options] rom-path\n\n"
                       << "Options:\n"
                       << "-h, --help             Print this help text and exit\n"
+                      << "--mute-audio           Mute audio\n"
                       << "-s, --scale            Set video scale. Default: 3.\n"
                       << "                       Scale of 1 corresponds to " << sn::NESVideoWidth << "x"
                       << sn::NESVideoHeight << std::endl
@@ -54,14 +55,19 @@ int main(int argc, char** argv)
                       << std::endl;
             return 0;
         }
-        else if (std::strcmp(argv[i], "--log-cpu") == 0)
+        else if (arg == "--log-cpu")
         {
             sn::Log::get().setLevel(sn::CpuTrace);
             cpuTraceFile.open("sn.cpudump");
             sn::Log::get().setCpuTraceStream(cpuTraceFile);
             LOG(sn::Info) << "CPU logging set." << std::endl;
         }
-        else if (std::strcmp(argv[i], "-s") == 0 || std::strcmp(argv[i], "--scale") == 0)
+        else if (arg == "--mute-audio")
+        {
+            emulator.muteAudio();
+            LOG(sn::Info) << "Audio muted." << std::endl;
+        }
+        else if (arg == "-s" || arg == "--scale")
         {
             float             scale;
             std::stringstream ss;
@@ -107,9 +113,8 @@ int main(int argc, char** argv)
 
     if (path.empty())
     {
-        path = "build/roms/smb.nes";
-        // std::cout << "Argument required: ROM path" << std::endl;
-        // return 1;
+        std::cout << "Argument required: ROM path" << std::endl;
+        return 1;
     }
 
     sn::parseControllerConf(std::move(keybindingsPath), p1, p2);

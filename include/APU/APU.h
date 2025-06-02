@@ -28,12 +28,11 @@ public:
       : dmc(irq, dmcDma)
       , frame_counter(setup_frame_counter(irq))
       , audio_queue(player.audio_queue)
-      , sampling_timer(nanoseconds(int64_t(1e9) / int64_t(player.std_sample_rate)))
+      , sampling_timer(nanoseconds(int64_t(1e9) / int64_t(player.output_sample_rate)))
     {
     }
 
-    // Frame counter is clocked at CPU freq, while the channels are clocked at half the freq
-    // Thus, APU is clocked at the same frequency as CPU
+    // clock at the same frequency as the cpu
     void step();
 
     void writeRegister(Address addr, Byte value);

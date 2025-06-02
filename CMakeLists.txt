@@ -1,6 +1,5 @@
 cmake_minimum_required(VERSION 3.12)
 project(SimpleNES)
-include(FetchContent)
 
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "Release" CACHE STRING
@@ -95,12 +94,3 @@ target_link_libraries(SimpleNES)
 define_file_basename_for_sources(SimpleNES)
 
 install(TARGETS SimpleNES RUNTIME DESTINATION bin)
-
-# Create test file
-file(GLOB TEST_SOURCES
-    "${PROJECT_SOURCE_DIR}/test/audio.cpp"
-    "${PROJECT_SOURCE_DIR}/src/*.cpp"
-    "${PROJECT_SOURCE_DIR}/src/APU/*.cpp"
-)
-add_executable(sn-test ${TEST_SOURCES} ${VENDOR_SOURCES})
-target_link_libraries(sn-test PRIVATE ${SFML_LIBRARIES} ${SFML_DEPENDENCIES})
