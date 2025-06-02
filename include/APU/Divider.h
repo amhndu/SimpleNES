@@ -2,7 +2,7 @@
 
 namespace sn
 {
-// Modeled after NES timers; which have a period of (t+1) and count from t -> 0 -> t -> ...
+// Modeled after NES timers; which have a period of (t+1) and count from t -> t-1 -> .. -> 0 -> t -> t-1 -> ... 0 -> ...
 struct Divider
 {
 public:

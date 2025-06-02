@@ -51,13 +51,12 @@ enum Register
 
 void APU::step()
 {
-    frame_counter.clock();
-
     noise.clock();
     dmc.clock();
     triangle.clock();
     if (divideByTwo)
     {
+        frame_counter.clock();
         pulse1.clock();
         pulse2.clock();
     }
@@ -114,20 +113,20 @@ void APU::writeRegister(Address addr, Byte value)
         pulse1.sweep.negate  = value & (1 << 3);
         pulse1.sweep.shift   = value & 0x7;
         pulse1.sweep.reload  = true;
-        if (pulse1.sweep.enabled != prev_enabled || value != 0x7f)
-        {
-            LOG(ApuTrace) << "APU_SQ1_SWEEP " << std::hex << +value << std::dec << std::boolalpha
-                          << VAR_PRINT(pulse1.sweep.enabled) << VAR_PRINT(pulse1.sweep.period)
-                          << VAR_PRINT(pulse1.sweep.negate) << +VAR_PRINT(+pulse1.sweep.shift) << std::endl;
-        }
+        // if (pulse1.sweep.enabled != prev_enabled || value != 0x7f)
+        // {
+        LOG(ApuTrace) << "APU_SQ1_SWEEP " << std::hex << +value << std::dec << std::boolalpha
+                      << VAR_PRINT(pulse1.sweep.enabled) << VAR_PRINT(pulse1.sweep.period)
+                      << VAR_PRINT(pulse1.sweep.negate) << +VAR_PRINT(+pulse1.sweep.shift) << std::endl;
+        // }
     }
     break;
 
     case APU_SQ1_LO:
     {
         int new_period = (pulse1.period & 0xff00) | value;
-        LOG(CpuTrace) << "APU_SQ1_LO " << std::hex << +value << std::dec << std::endl;
         pulse1.set_period(new_period);
+        LOG(ApuTrace) << "APU_SQ1_LO " << std::hex << +value << std::dec << std::endl;
         break;
     }
 
@@ -138,7 +137,7 @@ void APU::writeRegister(Address addr, Byte value)
         pulse1.seq_idx            = 0;
         pulse1.volume.shouldStart = true;
         pulse1.set_period(new_period);
-        LOG(CpuTrace) << "APU_SQ1_HI " << std::hex << +value << std::dec << VAR_PRINT(pulse1.period)
+        LOG(ApuTrace) << "APU_SQ1_HI " << std::hex << +value << std::dec << VAR_PRINT(pulse1.period)
                       << VAR_PRINT(pulse1.seq_idx) << VAR_PRINT(pulse1.length_counter.counter) << std::endl;
         break;
     }
@@ -276,7 +275,8 @@ void APU::writeRegister(Address addr, Byte value)
 
     case APU_FRAME_CONTROL:
         frame_counter.reset(static_cast<FrameCounter::Mode>(value >> 7), value >> 6);
-        // LOG(CpuTrace) << "APU_FRAME_CONTROL" << +VAR_PRINT(value) << std::endl;
+        LOG(ApuTrace) << "APU_FRAME_CONTROL " << VAR_PRINT(+value) << VAR_PRINT(frame_counter.mode)
+                      << VAR_PRINT(frame_counter.interrupt_inhibit) << std::endl;
         break;
     }
 }

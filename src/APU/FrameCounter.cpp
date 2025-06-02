@@ -1,4 +1,5 @@
 #include "APU/FrameCounter.h"
+#include "Log.h"
 
 namespace sn
 {
@@ -17,7 +18,6 @@ void FrameCounter::reset(Mode m, bool irq_inhibit)
     mode              = m;
     interrupt_inhibit = irq_inhibit;
     // TODO: delay reset by 3-4 cycles?
-    counter           = 0;
     if (interrupt_inhibit)
     {
         clearFrameInterrupt();
@@ -34,6 +34,7 @@ void FrameCounter::reset(Mode m, bool irq_inhibit)
     }
 }
 
+// clocked at apu freq (half the cpu freq)
 void FrameCounter::clock()
 {
     counter += 1;
@@ -46,6 +47,7 @@ void FrameCounter::clock()
             // clock envelopes & triangle's linear counter
             c.quarter_frame_clock();
         }
+        LOG(CpuTrace) << "framecounter: Q1 clock" << std::endl;
         break;
     case Q2:
         for (FrameClockable& c : frame_slots)
@@ -55,6 +57,7 @@ void FrameCounter::clock()
             // clock length counter & sweep units
             c.half_frame_clock();
         }
+        LOG(CpuTrace) << "framecounter: Q2 clock" << std::endl;
         break;
     case Q3:
         for (FrameClockable& c : frame_slots)
@@ -62,17 +65,8 @@ void FrameCounter::clock()
             // clock envelopes & triangle's linear counter
             c.quarter_frame_clock();
         }
+        LOG(CpuTrace) << "framecounter: Q3 clock" << std::endl;
         break;
-    // case preQ4:
-    //     // only 4-step
-    //     if (mode != Seq4Step) {
-    //         break;
-    //     }
-    //     // set frame irq if not inhibit
-    //     if (!interrupt_inhibit && mode == Seq4Step) {
-    //         irq();
-    //     }
-    //     break;
     case Q4:
         // only 4-step
         if (mode != Seq4Step)
@@ -86,23 +80,14 @@ void FrameCounter::clock()
             // clock length counter & sweep units
             c.half_frame_clock();
         }
+        LOG(CpuTrace) << "framecounter: Q4 clock" << std::endl;
         // set frame irq if not inhibit
-        if (!interrupt_inhibit && mode == Seq4Step)
+        if (!interrupt_inhibit)
         {
             irq.pull();
             frame_interrupt = true;
         }
         break;
-    // case postQ4:
-    //     // only 4-step
-    //     if (mode != Seq4Step) {
-    //         break;
-    //     }
-    //     // set frame irq if not inhibit
-    //     if (!interrupt_inhibit && mode == Seq4Step) {
-    //         irq();
-    //     }
-    //     break;
     case Q5:
         // only 5-step
         if (mode != Seq5Step)
@@ -116,6 +101,7 @@ void FrameCounter::clock()
             // clock length counter & sweep units
             c.half_frame_clock();
         }
+        LOG(CpuTrace) << "framecounter: Q5 clock" << std::endl;
         break;
     };
 

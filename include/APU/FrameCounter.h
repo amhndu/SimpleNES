@@ -19,13 +19,13 @@ struct FrameCounter
     constexpr static int                                Q1              = 7457;
     constexpr static int                                Q2              = 14913;
     constexpr static int                                Q3              = 22371;
-    constexpr static int                                preQ4           = 29828;
     constexpr static int                                Q4              = 29829;
-    constexpr static int                                postQ4          = 29830;
-    constexpr static int                                seq4step_length = 29830;
+    constexpr static int                                preQ4           = Q4 - 1;
+    constexpr static int                                postQ4          = Q4 + 1;
+    constexpr static int                                seq4step_length = postQ4;
 
     constexpr static int                                Q5              = 37281;
-    constexpr static int                                seq5step_length = 29830;
+    constexpr static int                                seq5step_length = Q5 + 1;
 
     std::vector<std::reference_wrapper<FrameClockable>> frame_slots;
 
