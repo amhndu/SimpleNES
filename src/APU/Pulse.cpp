@@ -73,8 +73,6 @@ Byte Pulse::sample() const
     // TODO: cache the target to avoid recalculation?
     if (sweep.is_muted(period, sweep.calculate_target(period)))
     {
-        LOG(InfoVerbose) << "sweep muted" << VAR_PRINT(period) << VAR_PRINT(sweep.calculate_target(period))
-                         << std::endl;
         return 0;
     }
 

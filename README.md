@@ -70,7 +70,7 @@ $ cmake -DCMAKE_BUILD_TYPE=Release ..
 $ make -j4    # Replace 4 with however many cores you have to spare
 ```
 
-If SFML is installed on a non-standard, specify SFML_ROOT variable, e.g. on Arch Linux:
+If SFML is installed on a non-standard location, specify SFML_ROOT as a cmake variable, e.g. on **Arch Linux**, after installing sfml2 from AUR:
 ```
 $ cd SimpleNES && mkdir build/ && cd build/
 $ cmake -DCMAKE_BUILD_TYPE=Release -DSFML_ROOT=/opt/sfml2 ..
@@ -107,6 +107,25 @@ $ ./SimpleNES -w 600 ~/Games/Contra.nes
 For supported command line options, try
 ```
 $ ./SimpleNES -h
+SimpleNES is a simple NES emulator.
+It can run off .nes images.
+Set keybindings with keybindings.conf
+
+Usage: SimpleNES [options] rom-path
+
+Options:
+-h, --help             Print this help text and exit
+--mute-audio           Mute audio
+-s, --scale            Set video scale. Default: 3.
+                       Scale of 1 corresponds to 256x240
+-w, --width            Set the width of the emulation screen (height is
+                       set automatically to fit the aspect ratio)
+-H, --height           Set the height of the emulation screen (width is
+                       set automatically to fit the aspect ratio)
+                       This option is mutually exclusive to --width
+-C, --conf             Set the keybindings file's path. The default 
+                       keybindings file is keybindings.conf.
+
 ```
 
 Controller

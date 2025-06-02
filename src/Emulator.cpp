@@ -10,6 +10,7 @@ using std::chrono::high_resolution_clock;
 
 Emulator::Emulator()
   : m_cpu(m_bus)
+  , m_audioPlayer(static_cast<int>(1.0 / apu_clock_period_s.count()))
   , m_ppu(m_pictureBus, m_emulatorScreen)
   , m_apu(m_audioPlayer, m_cpu.createIRQHandler(), [&](Address addr) { return DMCDMA(addr); })
   , m_bus(m_ppu, m_apu, m_controller1, m_controller2, [&](Byte b) { OAMDMA(b); })
@@ -189,6 +190,11 @@ void Emulator::setKeys(std::vector<sf::Keyboard::Key>& p1, std::vector<sf::Keybo
 {
     m_controller1.setKeyBindings(p1);
     m_controller2.setKeyBindings(p2);
+}
+
+void Emulator::muteAudio()
+{
+    m_audioPlayer.mute();
 }
 
 }
