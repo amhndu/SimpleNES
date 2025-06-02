@@ -47,7 +47,7 @@ Screenshots
 
 Videos
 ------------
-[YouTube Playlist](https://www.youtube.com/playlist?list=PLiULt7qySWt2VbHTkvIt9kYPMPcWt01qN)
+**OUTDATED**(missing audio)  [YouTube Playlist](https://www.youtube.com/playlist?list=PLiULt7qySWt2VbHTkvIt9kYPMPcWt01qN)
 
 
 Compiling

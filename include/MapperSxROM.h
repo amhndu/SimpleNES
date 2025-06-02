@@ -4,6 +4,7 @@
 
 namespace sn
 {
+
 class MapperSxROM : public Mapper
 {
 public:
@@ -36,8 +37,8 @@ private:
     const Byte*               m_firstBankPRG;
     const Byte*               m_secondBankPRG;
 
-    const Byte*               m_firstBankCHR;
-    const Byte*               m_secondBankCHR;
+    int                       m_firstBankCHRIdx;
+    int                       m_secondBankCHRIdx;
 
     std::vector<Byte>         m_characterRAM;
 };

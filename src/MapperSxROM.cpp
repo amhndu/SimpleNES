@@ -16,21 +16,21 @@ MapperSxROM::MapperSxROM(Cartridge& cart, std::function<void(void)> mirroring_cb
   , m_regCHR1(0)
   , m_firstBankPRG(nullptr)
   , m_secondBankPRG(nullptr)
-  , m_firstBankCHR(nullptr)
-  , m_secondBankCHR(nullptr)
+  , m_firstBankCHRIdx(0)
+  , m_secondBankCHRIdx(0)
 {
     if (cart.getVROM().size() == 0)
     {
         m_usesCharacterRAM = true;
-        m_characterRAM.resize(0x2000);
+        m_characterRAM.resize(0x8000);
         LOG(Info) << "Uses character RAM" << std::endl;
     }
     else
     {
         LOG(Info) << "Using CHR-ROM" << std::endl;
         m_usesCharacterRAM = false;
-        m_firstBankCHR     = &cart.getVROM()[0];
-        m_secondBankCHR    = &cart.getVROM()[0x1000 * m_regCHR1];
+        m_firstBankCHRIdx  = 0;
+        m_secondBankCHRIdx = 0x1000 * m_regCHR1;
     }
 
     m_firstBankPRG  = &cart.getROM()[0];                                               // first bank
@@ -85,28 +85,28 @@ void MapperSxROM::writePRG(Address addr, Byte value)
                 // Recalculate CHR pointers
                 if (m_modeCHR == 0) // one 8KB bank
                 {
-                    m_firstBankCHR  = &m_cartridge.getVROM()[0x1000 * (m_regCHR0 | 1)]; // ignore last bit
-                    m_secondBankCHR = m_firstBankCHR + 0x1000;
+                    m_firstBankCHRIdx  = 0x1000 * (m_regCHR0 | 1); // ignore last bit
+                    m_secondBankCHRIdx = m_firstBankCHRIdx + 0x1000;
                 }
                 else // two 4KB banks
                 {
-                    m_firstBankCHR  = &m_cartridge.getVROM()[0x1000 * m_regCHR0];
-                    m_secondBankCHR = &m_cartridge.getVROM()[0x1000 * m_regCHR1];
+                    m_firstBankCHRIdx  = 0x1000 * m_regCHR0;
+                    m_secondBankCHRIdx = 0x1000 * m_regCHR1;
                 }
             }
             else if (addr <= 0xbfff) // CHR Reg 0
             {
-                m_regCHR0      = m_tempRegister;
-                m_firstBankCHR = &m_cartridge.getVROM()[0x1000 * (m_tempRegister | (1 - m_modeCHR))]; // OR 1 if 8KB
-                                                                                                      // mode
+                m_regCHR0         = m_tempRegister;
+                m_firstBankCHRIdx = 0x1000 * (m_tempRegister | (1 - m_modeCHR)); // OR 1 if 8KB
+                                                                                 // mode
                 if (m_modeCHR == 0)
-                    m_secondBankCHR = m_firstBankCHR + 0x1000;
+                    m_secondBankCHRIdx = m_firstBankCHRIdx + 0x1000;
             }
             else if (addr <= 0xdfff)
             {
                 m_regCHR1 = m_tempRegister;
                 if (m_modeCHR == 1)
-                    m_secondBankCHR = &m_cartridge.getVROM()[0x1000 * m_tempRegister];
+                    m_secondBankCHRIdx = 0x1000 * m_tempRegister;
             }
             else
             {
@@ -157,18 +157,33 @@ void MapperSxROM::calculatePRGPointers()
 Byte MapperSxROM::readCHR(Address addr)
 {
     if (m_usesCharacterRAM)
-        return m_characterRAM[addr];
-    else if (addr < 0x1000)
-        return *(m_firstBankCHR + addr);
+    {
+        if (addr < 0x1000)
+            return m_characterRAM[m_firstBankCHRIdx + addr];
+        else
+            return m_characterRAM[m_secondBankCHRIdx + (addr & 0xfff)];
+    }
     else
-        return *(m_secondBankCHR + (addr & 0xfff));
+    {
+        if (addr < 0x1000)
+            return m_cartridge.getVROM()[m_firstBankCHRIdx + addr];
+        else
+            return m_cartridge.getVROM()[m_secondBankCHRIdx + (addr & 0xfff)];
+    }
 }
 
 void MapperSxROM::writeCHR(Address addr, Byte value)
 {
     if (m_usesCharacterRAM)
-        m_characterRAM[addr] = value;
+    {
+        if (addr < 0x1000)
+            m_characterRAM[m_firstBankCHRIdx + addr] = value;
+        else
+            m_characterRAM[m_secondBankCHRIdx + (addr & 0xfff)] = value;
+    }
     else
+    {
         LOG(Info) << "Read-only CHR memory write attempt at " << std::hex << addr << std::endl;
+    }
 }
 }
