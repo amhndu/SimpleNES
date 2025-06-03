@@ -24,7 +24,12 @@ void Triangle::set_period(int p)
 // Clocked at the cpu freq
 void Triangle::clock()
 {
-    if (linear_counter.counter == 0 || length_counter.muted())
+    if (length_counter.muted())
+    {
+        return;
+    }
+
+    if (linear_counter.counter == 0)
     {
         return;
     }
@@ -37,31 +42,6 @@ void Triangle::clock()
 
 Byte Triangle::sample() const
 {
-    // static bool last_length_muted = false;
-    // if (length_counter.muted() != last_length_muted)
-    // {
-    //     LOG(CpuTrace) << "TRI: length counter mute toggle: " << length_counter.muted() << std::endl;
-    //     last_length_muted = length_counter.muted();
-    // }
-    //
-    // static bool last_linear_muted = false;
-    // bool        linear_muted      = linear_counter.counter == 0;
-    // if (linear_muted != last_linear_muted)
-    // {
-    //     LOG(CpuTrace) << "TRI: linear counter mute toggle: " << linear_muted << std::endl;
-    //     last_linear_muted = linear_muted;
-    // }
-
-    if (length_counter.muted())
-    {
-        return 0;
-    }
-
-    if (linear_counter.counter == 0)
-    {
-        return 0;
-    }
-
     return volume();
 }
 
