@@ -4,16 +4,19 @@
 #include "APU/PulseUnits.h"
 #include "APU/Units.h"
 #include "Cartridge.h"
+#include <cstddef>
 
 namespace sn
 {
+
+using std::size_t;
 
 struct Pulse
 {
     Volume          volume;
     LengthCounter   length_counter;
 
-    uint            seq_idx { 0 };
+    size_t          seq_idx { 0 };
     PulseDuty::Type seq_type { PulseDuty::Type::SEQ_50 };
     Divider         sequencer { 0 };
     int             period = 0;

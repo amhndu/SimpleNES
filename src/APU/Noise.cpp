@@ -34,16 +34,6 @@ void Noise::clock()
 
 Byte Noise::sample() const
 {
-    if (length_counter.muted())
-    {
-        return 0;
-    }
-
-    if (shift_register & 0x1)
-    {
-        return 0;
-    }
-
     return volume.get();
 }
 

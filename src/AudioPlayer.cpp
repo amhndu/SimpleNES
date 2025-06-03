@@ -27,22 +27,34 @@ void data_callback(ma_device*                   device,
         return;
     }
 
-    ma_uint64 input_frames = 0;
-    ma_result result =
-      ma_resampler_get_required_input_frame_count(cb_data.resampler, required_output_frame_count, &input_frames);
+    ma_uint64 presample_input_frames = 0;
+    ma_result result                 = ma_resampler_get_required_input_frame_count(
+      cb_data.resampler, required_output_frame_count, &presample_input_frames);
     if (result != MA_SUCCESS)
     {
-        input_frames = required_output_frame_count * cb_data.resampler->sampleRateIn / cb_data.resampler->sampleRateOut;
+        presample_input_frames =
+          required_output_frame_count * cb_data.resampler->sampleRateIn / cb_data.resampler->sampleRateOut;
         LOG(sn::Error) << "ma_resampler_get_required_input_frame_count failed: " << result << std::endl;
     }
 
-    cb_data.input_frames_buffer.resize(input_frames);
-    ma_uint64 input_frames_avail   = cb_data.ring_buffer.pop(cb_data.input_frames_buffer.data(), input_frames);
+    cb_data.input_frames_buffer.resize(presample_input_frames);
+    ma_uint64 presample_frames_avail =
+      cb_data.ring_buffer.pop(cb_data.input_frames_buffer.data(), presample_input_frames);
+    // copy the last sample
+    if (presample_frames_avail < presample_input_frames && presample_frames_avail > 0)
+    {
+        LOG(Info) << "insufficient presample frames" << VAR_PRINT(presample_frames_avail)
+                  << VAR_PRINT(presample_input_frames) << std::endl;
+        for (auto idx = presample_frames_avail; idx < presample_input_frames; ++idx)
+        {
+            cb_data.input_frames_buffer[idx] = cb_data.input_frames_buffer[presample_frames_avail];
+        }
+    }
 
     ma_uint64 output_frame_count64 = required_output_frame_count;
     ma_resampler_process_pcm_frames(cb_data.resampler,
                                     reinterpret_cast<void*>(cb_data.input_frames_buffer.data()),
-                                    &input_frames_avail,
+                                    &presample_input_frames,
                                     output,
                                     &output_frame_count64);
     if (result != MA_SUCCESS)

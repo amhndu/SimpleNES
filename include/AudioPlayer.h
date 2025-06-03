@@ -8,7 +8,7 @@
 namespace sn
 {
 
-const std::chrono::milliseconds callback_period_ms { 100 };
+const std::chrono::milliseconds callback_period_ms { 120 };
 
 struct CallbackData
 {
