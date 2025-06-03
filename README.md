@@ -80,7 +80,7 @@ See also: [compile.yaml](https://github.com/amhndu/SimpleNES/blob/master/.github
 
 Download SimpleNES
 -----------------
-1. Download an executable based on your platform from the latest run on [Github Actions](https://github.com/amhndu/SimpleNES/actions)
+1. Download an executable based on your platform from the latest run on [Github Actions](https://github.com/amhndu/SimpleNES/actions) OR [Latest Release](https://github.com/amhndu/SimpleNES/releases)
 2. Install [sfml](#installing-sfml)
 
 
