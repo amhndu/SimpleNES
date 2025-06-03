@@ -1,0 +1,100 @@
+name: CI
+
+on:
+  workflow_dispatch:
+
+  
+jobs:
+  build_linux:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 1
+
+    - name: Install dependencies
+      run: |
+        sudo apt update
+        sudo apt install -y libsfml-dev
+        
+    - name: Build
+      run: |
+        mkdir build/ && cd build/
+        cmake -DCMAKE_BUILD_TYPE=Release ..
+        make -j4
+    - uses: actions/upload-artifact@v4
+      with:
+        name: SimpleNES-linux
+        path: build/SimpleNES
+
+
+  build_macos:
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 1
+
+    - name: Install dependencies
+      run: |
+        brew install sfml@2
+        brew link --force --overwrite sfml@2
+        
+    - name: Build
+      run: |
+        mkdir build/ && cd build/
+        cmake -DCMAKE_BUILD_TYPE=Release ..
+        make -j4
+        
+    - uses: actions/upload-artifact@v4
+      with:
+        name: SimpleNES-macos
+        path: build/SimpleNES
+        
+  build_windows:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 1
+
+    - name: Install dependencies
+      run: |
+        $manifest = @'
+        {
+            "dependencies": [ "sfml" ],
+            "builtin-baseline": "df6921c0b6cdf95269a4a3093e267b59e4bf0f5b",
+            "overrides": [
+                { "name": "sfml", "version": "2.6.2" }
+            ]
+        }
+        '@
+        Add-Content ./vcpkg.json $manifest
+        vcpkg install
+        
+    - name: Build
+      run: |
+        mkdir build/ && cd build/
+        cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake ..
+        cmake --build . --config Release
+        
+    - uses: actions/upload-artifact@v4
+      with:
+        name: SimpleNES-win.exe
+        path: build/Release/SimpleNES.exe
+
+  release:
+    runs-on: ubuntu-latest
+    needs: [build_linux, build_macos, build_windows]
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+      - name: Display structure of downloaded files
+        run: ls -R artifacts
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/*
+    
