@@ -84,13 +84,13 @@ endif()
 # generate compile commands for clangd
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-add_executable(SimpleNES ${SOURCES} ${VENDOR_SOURCES})
-target_link_libraries(SimpleNES PRIVATE ${SFML_LIBRARIES} ${SFML_DEPENDENCIES})
+add_executable(${PROJECT_NAME} ${SOURCES} ${VENDOR_SOURCES})
+target_link_libraries(${PROJECT_NAME} PRIVATE ${SFML_LIBRARIES} ${SFML_DEPENDENCIES})
 
-set_property(TARGET SimpleNES PROPERTY CXX_STANDARD 11)
-set_property(TARGET SimpleNES PROPERTY CXX_STANDARD_REQUIRED ON)
+set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 11)
+set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD_REQUIRED ON)
 
-target_link_libraries(SimpleNES)
-define_file_basename_for_sources(SimpleNES)
+target_link_libraries(${PROJECT_NAME})
+define_file_basename_for_sources(${PROJECT_NAME})
 
-install(TARGETS SimpleNES RUNTIME DESTINATION bin)
+install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)
