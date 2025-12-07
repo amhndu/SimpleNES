@@ -45,5 +45,22 @@ private:
     spsc::RingBuffer<float>& audio_queue;
     Timer                    sampling_timer;
 };
+// APU.h中需添加的声明
+#include <SFML/Audio/SoundStream.hpp>
 
+namespace sn
+{
+    class APU : public sf::SoundStream  // 继承SFML音频流
+    {
+    public:
+        explicit APU(IRQHandle& irq);  // 声明构造函数
+        // ... 现有成员声明 ...
+
+    private:
+        // 实现SFML纯虚函数
+        bool onGetData(Chunk& data) override;
+        void onSeek(sf::Time timeOffset) override;
+        // ... 现有成员 ...
+    };
+}
 }
