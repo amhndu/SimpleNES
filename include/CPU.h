@@ -1,5 +1,4 @@
-#ifndef CPU_H
-#define CPU_H
+#pragma once
 #include "CPUOpcodes.h"
 #include "IRQ.h"
 #include "MainBus.h"
@@ -97,4 +96,3 @@ private:
 };
 
 };
-#endif // CPU_H

@@ -1,5 +1,4 @@
-#ifndef MAPPER_H
-#define MAPPER_H
+#pragma once
 #include "Cartridge.h"
 #include "IRQ.h"
 #include <functional>
@@ -57,5 +56,3 @@ protected:
     Type       m_type;
 };
 }
-
-#endif // MAPPER_H

@@ -1,5 +1,4 @@
-#ifndef MAPPERNROM_H
-#define MAPPERNROM_H
+#pragma once
 #include "Mapper.h"
 
 namespace sn
@@ -21,4 +20,3 @@ private:
     std::vector<Byte> m_characterRAM;
 };
 }
-#endif // MAPPERNROM_H

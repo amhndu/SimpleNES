@@ -1,5 +1,4 @@
-#ifndef MEMORY_H
-#define MEMORY_H
+#pragma once
 #include "APU/APU.h"
 #include "Cartridge.h"
 #include "Controller.h"
@@ -54,5 +53,3 @@ private:
     Controller&               m_controller2;
 };
 };
-
-#endif // MEMORY_H

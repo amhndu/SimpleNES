@@ -6,14 +6,7 @@ Controller::Controller()
   : m_keyStates(0)
   , m_keyBindings(TotalButtons)
 {
-    //         m_keyBindings[A] = sf::Keyboard::J;
-    //         m_keyBindings[B] = sf::Keyboard::K;
-    //         m_keyBindings[Select] = sf::Keyboard::RShift;
-    //         m_keyBindings[Start] = sf::Keyboard::Return;
-    //         m_keyBindings[Up] = sf::Keyboard::W;
-    //         m_keyBindings[Down] = sf::Keyboard::S;
-    //         m_keyBindings[Left] = sf::Keyboard::A;
-    //         m_keyBindings[Right] = sf::Keyboard::D;
+
 }
 
 void Controller::setKeyBindings(const std::vector<sf::Keyboard::Key>& keys)

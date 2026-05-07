@@ -1,5 +1,4 @@
-#ifndef EMULATOR_H
-#define EMULATOR_H
+#pragma once
 #include <SFML/Graphics.hpp>
 #include <chrono>
 
@@ -57,4 +56,3 @@ private:
     Duration                m_elapsedTime;
 };
 }
-#endif // EMULATOR_H

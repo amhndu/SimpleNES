@@ -1,5 +1,4 @@
-#ifndef CARTRIDGE_H
-#define CARTRIDGE_H
+#pragma once
 #include <cstdint>
 #include <string>
 #include <vector>
@@ -31,4 +30,3 @@ private:
 
 };
 
-#endif // CARTRIDGE_H

@@ -1,5 +1,4 @@
-#ifndef CPUOPCODES_H_INCLUDED
-#define CPUOPCODES_H_INCLUDED
+#pragma once
 
 namespace sn
 {
@@ -150,4 +149,3 @@ static const int OperationCycles[0x100] = {
 };
 };
 
-#endif // CPUOPCODES_H_INCLUDED

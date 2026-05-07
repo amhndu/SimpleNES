@@ -1,5 +1,4 @@
-#ifndef CONTROLLER_H
-#define CONTROLLER_H
+#pragma once
 #include <SFML/Window.hpp>
 #include <cstdint>
 #include <vector>
@@ -36,4 +35,4 @@ private:
 };
 }
 
-#endif // CONTROLLER_H
+
