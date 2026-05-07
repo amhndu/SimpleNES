@@ -1,5 +1,4 @@
-#ifndef LOG_H
-#define LOG_H
+#pragma once
 #include <chrono>
 #include <cstring>
 #include <fstream>
@@ -96,4 +95,3 @@ private:
 };
 
 };
-#endif // LOG_H

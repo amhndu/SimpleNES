@@ -1,5 +1,4 @@
-#ifndef PPU_H
-#define PPU_H
+#pragma once
 #include "PaletteColors.h"
 #include "PictureBus.h"
 #include "VirtualScreen.h"
@@ -99,5 +98,3 @@ private:
     std::vector<std::vector<sf::Color>> m_pictureBuffer;
 };
 }
-
-#endif // PPU_H

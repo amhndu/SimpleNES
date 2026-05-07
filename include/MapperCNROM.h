@@ -1,5 +1,4 @@
-#ifndef MAPPERCNROM_H
-#define MAPPERCNROM_H
+#pragma once
 #include "Mapper.h"
 
 namespace sn
@@ -20,4 +19,4 @@ private:
     Address m_selectCHR;
 };
 }
-#endif // MAPPERCNROM_H
+

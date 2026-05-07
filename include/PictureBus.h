@@ -1,5 +1,4 @@
-#ifndef PICTUREBUS_H
-#define PICTUREBUS_H
+#pragma once
 #include "Cartridge.h"
 #include "Mapper.h"
 #include <vector>
@@ -27,4 +26,4 @@ private:
     Mapper*           m_mapper;
 };
 }
-#endif // PICTUREBUS_H
+

@@ -1,5 +1,4 @@
-#ifndef VIRTUALSCREEN_H
-#define VIRTUALSCREEN_H
+#pragma once
 #include <SFML/Graphics.hpp>
 
 namespace sn
@@ -18,4 +17,4 @@ private:
     sf::VertexArray m_vertices;
 };
 };
-#endif // VIRTUALSCREEN_H
+
